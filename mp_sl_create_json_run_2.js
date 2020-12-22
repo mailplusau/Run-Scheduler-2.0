@@ -90,7 +90,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
             var stop_freq_json = '{ "data": [';
 
-            resultSet.foreach(function(searchResult) {
+            resultSet.each(function(searchResult) {
                 stop_id = searchResult.getValue({
                     name: 'internalid',
                     summary: "GROUP",
