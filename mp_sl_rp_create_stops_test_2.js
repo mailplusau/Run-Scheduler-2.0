@@ -13,11 +13,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
     }
     var zee = 0;
     var role = runtime.getCurrentUser().role;
-
     if (role == 1000) {
         //Franchisee
-        // if this doesn't work, try it without .id
-        zee = runtime.getCurrentUser().id;
+        zee = runtime.getCurrentUser();
     } else if (role == 3) { //Administrator
         zee = 6; //test
     } else { // System Support
@@ -30,33 +28,32 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             var script_id = null;
             var deploy_id = null;
             var entryParamsString = null;
-
+    
             var commReg = null;
             var dateEffective = null;
             var editPage = 'F';
-
+    
+    
             var params = context.request.parameters.custparam_params;
-
+    
             params = JSON.parse(params);
-
+    
             if (!isNullorEmpty(params.zee)) {
                 zee = params.zee
             }
-            log.debug({
-                title: 'zee',
-                details: zee
-            });
-
+            
             var service_id = (params.serviceid);
 
             var service_record = record.load({
                 type: 'customrecord_service',
                 id: service_id,
             });
-
+            
+          
             var customer_id = service_record.getValue({
                 fieldId: 'custrecord_service_customer'
             });
+            
 
             var customer_text = service_record.getText({
                 fieldId: 'custrecord_service_customer'
@@ -73,16 +70,20 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             var service_price = service_record.getValue({
                 fieldId: 'custrecord_service_price'
             });
+            
+
 
             var recCustomer = record.load({
-                type: 'customer',
+                type: record.Type.CUSTOMER,
                 id: customer_id,
+                isDynamic: true,
             });
+            
 
             var company_name = recCustomer.getValue({
                 fieldId: 'companyname'
             });
-
+            
             var entity_id = recCustomer.getValue({
                 fieldId: 'entityid'
             });
@@ -90,16 +91,17 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             var service_type_record = record.load({
                 type: 'customrecord_service_type',
                 id: service_type_id,
+                isDynamic: true,
             });
-
+            
             var default_leg_names = service_type_record.getValue({
                 fieldId: 'custrecord_service_type_leg_name'
             });
-
+            
             var form = ui.createForm({
                 title: 'Add / Edit Stops for Customer: ' + entity_id + ' ' + company_name
             });
-            
+
             form.addField({
                 id: 'custpage_customer_id',
                 type: ui.FieldType.TEXT,
@@ -107,7 +109,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = customer_id;
-            
+
             form.addField({
                 id: 'custpage_service_leg_customer',
                 type: ui.FieldType.TEXT,
@@ -116,6 +118,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = entity_id + ' ' + company_name;
 
+            
             form.addField({
                 id: 'custpage_service_id',
                 type: ui.FieldType.TEXT,
@@ -124,6 +127,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = service_id;
 
+            
             form.addField({
                 id: 'custpage_suitlet',
                 type: ui.FieldType.TEXTAREA,
@@ -132,6 +136,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = params.scriptid;
 
+            
             form.addField({
                 id: 'custpage_deploy',
                 type: ui.FieldType.TEXTAREA,
@@ -140,6 +145,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = params.deployid;
 
+            
             form.addField({
                 id: 'custpage_zee',
                 type: ui.FieldType.TEXTAREA,
@@ -147,6 +153,32 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
             }).defaultValue = zee;
+            
+            form.addField({
+                id: 'custpage_freq_created',
+                type: ui.FieldType.TEXT,
+                label: 'Service ID'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
+
+            
+            form.addField({
+                id: 'custpage_freq_created_zees',
+                type: ui.FieldType.TEXT,
+                label: 'Service ID'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
+
+            
+            form.addField({
+                id: 'custpage_freq_edited',
+                type: ui.FieldType.TEXT,
+                label: 'Service ID'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
 
             form.addField({
                 id: 'custpage_stored_zee',
@@ -163,7 +195,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
             });
-
 
             form.addField({
                 id: 'custpage_deleted_stop',
@@ -221,78 +252,56 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 displayType: ui.FieldDisplayType.HIDDEN
             });
 
-            form.addField({
-                id: 'transfer_string',
-                type: ui.FieldType.TEXT,
-                label: 'Service ID'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            });
-
-            form.addField({
-                id: 'transfer_zee_string',
-                type: ui.FieldType.TEXT,
-                label: 'Service ID'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            });
-
-            form.addField({
-                id: 'stop_string',
-                type: ui.FieldType.TEXT,
-                label: 'Service ID'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            });    
-            
             /**
              * Description - Get all the AP Lodgement locations for this franchisee
-            */
+             */
 
             var searched_ncl = search.load({
                 id: 'customsearch_smc_noncust_location',
                 type: 'customrecord_ap_lodgment_location'
-            })
-
+            });
             
-            var pId = recCustomer.getValue({
+            var recPartValue = recCustomer.getValue({
                 fieldId: 'partner'
             });
-            var pRec = record.load({
+
+           
+            var pRecVal = record.load({
                 type: record.Type.PARTNER,
-                id: pId
+                id: recPartValue,
+                isDynamic: true,
             });
 
-            var pLocationValue = pRec.getValue({
+            var pRecLocVal = pRecVal.getValue({
                 fieldId: 'location'
             });
-
-            if (pLocationValue == 6) {
+            if (pRecLocVal == 6) {
                 searched_ncl.filters.push(search.createFilter({
                     name: 'custrecord_ap_lodgement_site_state',
                     operator: search.Operator.ANYOF,
                     values: [1, 6]
                 }));
-                newFilters[0] = new nlobjSearchFilter('custrecord_ap_lodgement_site_state', null, 'anyof', [1, 6]);
 
             } else {
                 searched_ncl.filters.push(search.createFilter({
                     name: 'custrecord_ap_lodgement_site_state',
                     operator: search.Operator.IS,
-                    values: pLocationValue
+                    values: pRecLocVal
                 }));
 
             }
+
+            //NCL Type: AusPost(1), Toll(2), StarTrack(7)
 
             var resultSet_ncl = searched_ncl.run();
 
             /**
              * [searched_jobs description] - Load all the Addresses related to this customer
-            */
+             */
             var searched_address = search.load({
                 id: 'customsearch_smc_address',
                 type: 'customer'
-            });
+            })
             
             searched_address.filters.push(search.createFilter({
                 name: 'internalid',
@@ -302,20 +311,11 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
             var resultSet_addresses = searched_address.run();
 
-            if (runtime.EnvType == "SANDBOX") {
-                var serviceLegSearch = search.load({
-                    id: 'customsearch_rp_serviceleg',
-                    type: 'customrecord_service_leg'
-                });
-                
-            } else {
-                var serviceLegSearch = search.load({
-                    id: 'customsearch_rp_serviceleg',
-                    type: 'customrecord_service_leg'
-                })
-                
-            }
-
+            var serviceLegSearch = search.load({
+                id: 'customsearch_rp_serviceleg',
+                type: 'customrecord_service_leg'
+            });
+            
             serviceLegSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_leg_service',
                 operator: search.Operator.IS,
@@ -329,7 +329,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             }));
 
             var resultSet = serviceLegSearch.run();
-
+        
             var serviceLegResult = ResultSet.getRange({
                 start: 0,
                 end: 1
@@ -339,14 +339,14 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 id: 'customsearch_smc_franchisee',
                 type: 'partner'
             });
-                
-            var resultSet_zee = searched_zee.run();
+            
+		    var resultSet_zee = searched_zee.run();
+
+            //testxx
 
             /**
              * Description - To add all the API's to the begining of the page
-            */
-
-            
+             */
             var inlineQty = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script><link type="text/css"'; 
             inlineQty += 'rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><link href="https://1048144.app.netsuite.com/core/media/media.nl?id=2292066&c=1048144&h=c91c35bfd9670a7ee512&_xt=.css" rel="stylesheet"><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2292065&c=1048144&h=5c70d98090661029c8b2&_xt=.js"></script>';
             inlineQty += '<ol class="breadcrumb" style="margin-left: 0px !important;position: absolute;">';
@@ -354,6 +354,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             inlineQty += '<li>Customer List</li>';
             inlineQty += '<li class="active">Add / Edit Stops</li>';
             inlineQty += '</ol>';
+
+
 
             inlineQty += '<div class="se-pre-con"></div><button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="margin-top: 50px;position: absolute;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute; margin-top:90px;" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b><ul><li>This page is used to Create / Add / Edit Stops for a particular service. The information required are the stop address, time spent at that stop & notes with respect to the stop</li><li><button class="btn btn-success btn-sm  glyphicon glyphicon-log-out" type="button"  title="Add Stop"></button>';
             inlineQty += ' - <b>ADD STOP</b><ul><li>Click to Add Stop Information</li></ul></li><li><button class="btn btn-warning btn-sm glyphicon glyphicon-pencil" type="button" title="Edit Stop" ></button> - <b>EDIT STOP</b> </li><ul><li>Click to Edit Stop Information.</li></ul><li><button class="btn btn-danger btn-sm  glyphicon glyphicon-trash" type="button"  title="Delete Stop" ></button> - <b>DELETE STOP</b></li><ul><li>Click to Delete the Stop</li></ul><li><button type="button" class="btn btn-sm glyphicon glyphicon-plus" value="+" style="color: green;" title="Add Row" ></button> - <b>CREATE STOP</b><ul><li>Click to create a New Stop</li></ul></li><ul></div>';
@@ -380,26 +382,27 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             resultSet_zee.each(function(searchResult_zee) {
                 zee_id = searchResult_zee.getValue('internalid');
                 zee_name = searchResult_zee.getValue('companyname');
-    
+
                 inlineQty += '<option value="' + zee_id + '">' + zee_name + '</option>'
                 return true;
             });
             inlineQty += '</select></div></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
-    
-    
+
+
             inlineQty += '<div class="form-group container address_type_row hide">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-6 address_type_section"><div class="input-group"><span class="input-group-addon" id="address_type_text">ADDRESS TYPE</span><select id="address_type" class="form-control address_type" ><option value="0"></option><option value="1">CUSTOMER ADDRESS</option><option value="2">NON-CUSTOMER LOCATION</option></select></div></div>';
             inlineQty += '</div>';
             inlineQty += '</div>';
-    
+
             inlineQty += '<div class="form-group container customer_address_row hide">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-6 customer_address_section"><div class="input-group"><span class="input-group-addon" id="customer_address_text">CUSTOMER ADDRESS</span><select id="customer_address_type" class="form-control customer_address_type" ><option value="0"></option>';
-    
+
             resultSet_addresses.each(function(searchResult_address) {
+
                 var id = searchResult_address.getValue({
                     name: 'addressinternalid',
                     join: 'Address'
@@ -463,7 +466,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 var customer_name = searchResult_address.getValue('companyname');
     
                 var street_no_name = null;
-    
+
                 if (isNullorEmpty(addr1) && isNullorEmpty(addr2)) {
                     var full_address = city + ', ' + state + ' - ' + zip;
                 } else if (isNullorEmpty(addr1) && !isNullorEmpty(addr2)) {
@@ -476,9 +479,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     var full_address = addr1 + ', ' + addr2 + ', ' + city + ', ' + state + ' - ' + zip;
                     street_no_name = addr1 + ', ' + addr2;
                 }
-    
+
                 inlineQty += '<option value="' + id + '" data-addr1="' + addr1 + '" data-addr2="' + addr2 + '" data-city="' + city + '" data-state="' + state + '" data-postcode="' + zip + '" data-residential="' + default_residential + '" data-ncl="' + post_outlet + '" data-ncltext="' + post_outlet_text + '" data-lat="' + lat + '" data-lng="' + lon + '" data-compname="' + customer_name + '" data-streetnoname="' + street_no_name + '">' + full_address + '</option>';
-    
+
                 return true;
             });
 
@@ -489,7 +492,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             inlineQty += '<div class="form-group container ncl_row hide">';
             inlineQty += '<div class="row">';
             inlineQty += '<div class="col-xs-6 ncl_section"><div class="input-group"><span class="input-group-addon" id="ncl_text">NON-CUSTOMER LOCATION</span><select id="ncl_type" class="form-control ncl_type" ><option value="0"></option>';
-            
             resultSet_ncl.each(function(searchResult_ncl) {
 
                 var internal_id = searchResult_ncl.getValue('internalid');
@@ -501,7 +503,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 var city = searchResult_ncl.getValue('custrecord_ap_lodgement_suburb');
                 var lat = searchResult_ncl.getValue('custrecord_ap_lodgement_lat');
                 var lon = searchResult_ncl.getValue('custrecord_ap_lodgement_long');
-    
+
                 var state_id;
                 switch (state) {
                     case '1':
@@ -532,14 +534,13 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                         state_id = 'NZ';
                         break;
                 }
-    
-    
+
+
                 inlineQty += '<option value="' + internal_id + '" data-addr1="' + addr1 + '" data-addr2="' + addr2 + '" data-city="' + city + '" data-state="' + state_id + '" data-postcode="' + post_code + '" data-lat="' + lat + '" data-lng="' + lon + '" data-ncl="' + internal_id + '" data-ncltext="' + name + '" >' + name + '</option>';
-    
-    
+
+
                 return true;
             });
-
             inlineQty += '</select></div></div>';
             inlineQty += '<div class="col-xs-1 create_new_section has-success"><input type="button" id="create_new" class="form-control btn btn-default glyphicon glyphicon-plus create_new" value="+" style="color: green;" data-toggle="tooltip" data-placement="right" title="CREATE NEW LOCATION" /></div>';
             inlineQty += '</div>';
@@ -585,6 +586,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             inlineQty += '</div>';
             inlineQty += '</div>';
 
+
             inlineQty += '<br><br><style>table#services {font-size:12px; text-align:center; border-color: #24385b}</style><form id="package_form" class="form-horizontal"><div class="form-group container-fluid"><div><div id="alert" class="alert alert-danger fade in"></div><div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document"><div class="modal-content" style="width: max-content;"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Information</h4><br> </div><div class="modal-body"></div>';
             inlineQty += '<div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div><table border="0" cellpadding="15" id="services" class="table table-responsive table-striped services tablesorter" cellspacing="0" style="width: 100%;"><thead style="color: white;background-color: #607799;"><tr class="text-center">';
 
@@ -599,7 +601,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
 
             var count = 0;
-            var transfer_stop_linked_array = [];
 
             if (serviceLegResult.length != 0) {
                 resultSet.each(function(searchResult_serviceLeg) {
@@ -624,46 +625,41 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     var service_leg_location_type_text = searchResult_serviceLeg.getText("custrecord_service_leg_location_type");
                     var service_leg_duration = searchResult_serviceLeg.getValue("custrecord_service_leg_duration");
                     var service_leg_notes = searchResult_serviceLeg.getValue("custrecord_service_leg_notes");
-                    var service_leg_transfer_stop_linked = searchResult_serviceLeg.getValue("custrecord_service_leg_trf_linked_stop");
-                    var service_leg_trf_leg = searchResult_serviceLeg.getValue("custrecord_service_leg_trf_leg");
-    
-                    if (!isNullorEmpty(service_leg_transfer_stop_linked) && service_leg_trf_leg == 1) {
-                        transfer_stop_linked_array[transfer_stop_linked_array.length] = service_leg_transfer_stop_linked;
-                    }
-    
+
                     inlineQty += '<tr>';
-    
+
                     if (isNullorEmpty(service_leg_transfer_type)) {
-    
-                        inlineQty += '<td class="first_col"><button class="btn btn-warning btn-sm edit_stop glyphicon glyphicon-pencil" type="button" data-toggle="tooltip" data-placement="right" title="Edit Stop" data-newstop="' + (count + 1) + '" data-oldstop="' + service_leg_id + '"></button> <button class="btn btn-danger btn-sm delete_stop glyphicon glyphicon-trash" type="button" data-toggle="tooltip" data-placement="right" title="Delete Stop" data-oldstop="' + service_leg_id + '" data-newstop="' + (count + 1) + '"></button><input type="hidden" class="delete_stop_input" value="F" data-stopid="' + service_leg_id + '" /> <button class="btn btn-default btn-sm move_up glyphicon glyphicon-arrow-up" type="button" data-toggle="tooltip" data-placement="right" title="Move Up"></button><button class="btn btn-default btn-sm move_down glyphicon glyphicon-arrow-down" type="button" data-toggle="tooltip" data-placement="right" title="Move Down"></button></td>';
+
+                        inlineQty += '<td class="first_col"><button class="btn btn-warning btn-sm edit_stop glyphicon glyphicon-pencil" type="button" data-toggle="tooltip" data-placement="right" title="Edit Stop" data-newstop="' + (count + 1) + '"></button> <button class="btn btn-danger btn-sm delete_stop glyphicon glyphicon-trash" type="button" data-toggle="tooltip" data-placement="right" title="Delete Stop" data-oldstop="' + service_leg_id + '" data-newstop="' + (count + 1) + '"></button><input type="hidden" class="delete_stop_input" value="F" data-stopid="' + service_leg_id + '" /> <button class="btn btn-default btn-sm move_up glyphicon glyphicon-arrow-up" type="button" data-toggle="tooltip" data-placement="right" title="Move Up"></button><button class="btn btn-default btn-sm move_down glyphicon glyphicon-arrow-down" type="button" data-toggle="tooltip" data-placement="right" title="Move Down"></button></td>';
                     } else {
-                        inlineQty += '<td class="first_col"><input class="btn btn-warning btn-sm edit_stop" type="hidden"';
-                        inlineQty += ' data-newstop="' + (count + 1) + '"data-oldstop="' + service_leg_id + '"></button><button class="btn btn-warning ';
-                        inlineQty += 'btn-sm edit_transfer_stop glyphicon glyphicon-transfer" type="button" data-toggle="tooltip" data-placement="right"'; 
-                        inlineQty += 'title="Edit Transfer Stop" data-newstop="' + (count + 1) + '" data-oldstop="' + service_leg_id + '"></button> <button class="btn btn-danger btn-sm delete_stop glyphicon glyphicon-trash" type="button" data-toggle="tooltip" data-placement="right" title="Delete Stop" data-oldstop="' + service_leg_id + '" data-newstop="' + (count + 1) + '"></button><input type="hidden" class="delete_stop_input" value="F" data-stopid="' + service_leg_id + '" /> <button class="btn btn-default btn-sm move_up glyphicon glyphicon-arrow-up" type="button" data-toggle="tooltip" data-placement="right" title="Move Up"></button><button class="btn btn-default btn-sm move_down glyphicon glyphicon-arrow-down" type="button" data-toggle="tooltip" data-placement="right" title="Move Down"></button></td>';
+                        inlineQty += '<td class="first_col"><input class="btn btn-warning btn-sm edit_stop" type="hidden" data-newstop="' + (count + 1) + '"></button><button class="btn btn-warning btn-sm edit_transfer_stop glyphicon glyphicon-transfer" type="button" data-toggle="tooltip" data-placement="right" title="Edit Transfer Stop" data-newstop="' + (count + 1) + '"></button> <button class="btn btn-danger btn-sm delete_stop glyphicon glyphicon-trash" type="button" data-toggle="tooltip" data-placement="right" title="Delete Stop" data-oldstop="' + service_leg_id + '" data-newstop="' + (count + 1) + '"></button><input type="hidden" class="delete_stop_input" value="F" data-stopid="' + service_leg_id + '" /> <button class="b';
+                        inlineqQty += 'tn btn-default btn-sm move_up glyphicon glyphicon-arrow-up" type="button" data-toggle="tooltip" data-placement="right" title="Move Up"></button><button class="btn btn-default btn-sm move_down glyphicon glyphicon-arrow-down" type="button" data-toggle="tooltip" data-placement="right" title="Move Down"></button></td>';
                     }
-    
+
                     var display_html = '';
-    
+
                     display_html += 'Stop Name: ' + service_leg_name + '\n';
                     if (!isNullorEmpty(service_leg_transfer_type)) {
                         display_html += 'Transfer Type: ' + service_leg_transfer_type_text + '\n';
                     }
-    
+
                     display_html += 'Notes: ' + service_leg_notes;
-    
+
                     inlineQty += '<td><textarea type="text" readonly class="form-control table_info" data-addresstype="' + service_leg_location_type + '"data-oldstop="' + service_leg_id + '" value="' + service_leg_location_type_text + '">' + display_html + '</textarea>';
-    
+
                     inlineQty += '<input type="hidden" readonly class="form-control table_stop_name" data-oldvalue="' + service_leg_name + '" value="' + service_leg_name + '" data-customeraddressid="' + service_leg_addr_id + '" data-postbox="' + service_leg_postal + '" data-addr1="' + service_leg_addr1 + '" data-addr2="' +
-                        service_leg_addr2 + '" data-city="' + service_leg_city + '" data-state="' + service_leg_state + '" data-zip="' + service_leg_zip + '" data-lat="' + service_leg_lat + '" data-lng="' + service_leg_lon + '" data-transfertype="' + service_leg_transfer_type + '"  data-linkedzee="' + service_leg_linked_zee + '" data-linkedstop="' + service_leg_transfer_stop_linked + '" data-storedzee="' + service_leg_linked_zee + '" data-ncl="' + service_leg_ncl + '" data-notes="' + service_leg_notes + '"/></td>';
-    
+                        service_leg_addr2 + '" data-city="' + service_leg_city + '" data-state="' + service_leg_state + '" data-zip="' + service_leg_zip + '" data-lat="' + service_leg_lat + '" data-lng="' + service_leg_lon + '" data-transfertype="' + service_leg_transfer_type + '"  data-linkedzee="' + service_leg_linked_zee + '" data-storedzee="' + service_leg_linked_zee + '" data-ncl="' + service_leg_ncl + '" data-notes="' + service_leg_notes + '"/></td>';
+
                     inlineQty += '<td><input type="text" readonly class="form-control table_duration" data-oldstop="' + service_leg_duration + '" value="' + service_leg_duration + '" /></td>'
-    
+
                     inlineQty += '</tr>';
-    
+
                     count++;
                     return true;
                 });
+
+
+
             } else {
                 var default_array = default_leg_names.split(',');
                 var min_stops = default_array.length;
@@ -687,23 +683,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 breakType: ui.FieldBreakType.STARTROW
             }).defaultValue = inlineQty;
 
-
-            transfer_stop_linked_array = transfer_stop_linked_array.join();
-            log.debug({
-                title: 'transfer_stop_linked_array',
-                details: transfer_stop_linked_array
-            });
-
-            form.addField({
-                id: 'custpage_transfer_stop_linked',
-                type: ui.FieldType.TEXT,
-                label: 'Service ID'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            }).defaultValue = transfer_stop_linked_array;
-            
             form.addSubmitButton({
-                label : 'Submit & Next'
+                label : 'Submit'
             });
 
             form.addButton({
@@ -724,20 +705,19 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 functionName : 'onclick_mainpage()'
             });
 
-
             /**
              * CREATE 2.0 CL SCRIPT AND SWITCH ID
              */
-            form.clientScriptFileId = 2188514;
+            form.clientScriptFileId = 3060081;
             context.response.writePage(form);
 
 
         } else {
+
             log.debug({
                 title: 'SENT',
             });
-            var status_id = context.request.parameters.status_id;
-
+            
             var customer_id = context.request.parameters.custpage_customer_id;
             var service_id = context.request.parameters.custpage_service_id;
             var freq_edited = context.request.parameters.custpage_freq_edited;
@@ -751,20 +731,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             var suitletid = context.request.parameters.custpage_suitlet;
             var deploy = context.request.parameters.custpage_deploy;
             var zee_response = context.request.parameters.custpage_zee;
-    
+
             var updated_stop_string = context.request.parameters.custpage_updated_stop;
             var old_stop_string = context.request.parameters.custpage_old_stop;
             var updated_stop_zee_string = context.request.parameters.custpage_updated_stop_zee;
-
-            // var new_service_leg_id_string = request.getParameter('new_service_leg_id_string');
-            // var zee = request.getParameter('custpage_zee');
-
-            var transfer_string = context.request.parameters.transfer_string;
-            var transfer_array = transfer_string.split(',');
-            var transfer_zee_string = context.request.parameters.transfer_zee_string;
-            var transfer_zee_array = transfer_zee_string.split(',');
-            var stop_string = context.request.parameters.stop_string;
-            var stop_array = stop_string.split(',');
 
             log.debug({
                 title: 'deleted_stop_string',
@@ -789,44 +759,21 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             log.debug({
                 title: 'updated_stop_zee_string',
                 details: updated_stop_zee_string
-            });
+            })
 
-
-            log.debug({
-                title: 'zee_response',
-                details: zee_response
-            });
-
-
-            log.debug({
-                title: 'stop_array',
-                details: stop_array
-            });
-
-
-            log.debug({
-                title: 'transfer_zee_array',
-                details: transfer_zee_array
-            });
-            
-
-            log.debug({
-                title: 'transfer_array',
-                details: transfer_array
-            });
-            
             if (!isNullorEmpty(updated_stop_zee_string) && !isNullorEmpty(updated_stop_string) && !isNullorEmpty(old_stop_string)) {
 
                 var updated_stop_zee = updated_stop_zee_string.split(',');
                 var updated_stop = updated_stop_string.split('|');
                 var old_stop = old_stop_string.split('|');
-    
+
                 for (var i = 0; i < updated_stop_zee.length; i++) {
                     var zee_record = record.load({
                         type: record.Type.PARTNER,
                         id: updated_stop_zee[i],
-                        isDynamic: true
+                        isDynamic: boolean,
                     });
+                    
                     
                     var zee_email = zee_record.getValue({
                         fieldId: 'email'
@@ -835,204 +782,139 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     log.debug({
                         title: 'zee_email',
                         details: zee_email
-                    })
+                    });
 
                     email.send({
                         author: 409635,
                         body: 'Old Stop: ' + old_stop[i] + ' New Stop: ' + updated_stop[i],
                         recipients: zee_email,
-                        subject: 'Service Leg Stop Updation',
+                        subject: 'Service Leg Stop Updation'
                     });
-    
+
                 }
-    
+
+
+
             }
+
 
             if (!isNullorEmpty(deleted_stop_string) && !isNullorEmpty(deleted_linked_zee_string)) {
 
                 var deleted_stop_array = deleted_stop_string.split(',');
                 var deleted_linked_zee_email = deleted_linked_zee_string.split(',');
                 var deleted_message = deleted_message_string.split(',');
-    
+
                 for (var i = 0; i < deleted_stop_array.length; i++) {
                     var service_leg_record = record.load({
                         type: 'customrecord_service_leg',
                         id: deleted_stop_array[i],
-                    });
-
-                    var deleted_stop_customer = service_leg_record.getValue({
-                        fieldId: 'custrecord_service_leg_customer'
-                    }); 
-                    
-
-                    var deleted_stop_customer_text = service_leg_record.getText({
-                        fieldId: 'custrecord_service_leg_customer'
+                        isDynamic: true,
                     });
                     
+                    var deleted_stop_customer = service_leg_record.getValue({ fieldId: 'custrecord_service_leg_customer'});
+                    var deleted_stop_customer_text = service_leg_record.getText({ fieldId: 'custrecord_service_leg_customer'});
+                    var deleted_stop_service = service_leg_record.getValue({ fieldId: 'custrecord_service_leg_service'});
+                    var deleted_stop_service_text = service_leg_record.getText({ fieldId: 'custrecord_service_leg_service'});
+                    var deleted_stop_name = service_leg_record.getValue({ fieldId: 'name'});
 
-                    var deleted_stop_service = service_leg_record.getValue({
-                        fieldId: 'custrecord_service_leg_service'
-                    }); 
-                    
-
-                    var deleted_stop_service_text = service_leg_record.getText({
-                        fieldId: 'custrecord_service_leg_service'
-                    }); 
-                    
-
-                    var deleted_stop_name = service_leg_record.getValue({
-                        fieldId: 'name'
-                    }); 
-                    
-    
                     var message = '';
                     message += "Customer:  <a href ='https://1048144.app.netsuite.com/app/common/entity/custjob.nl?id=" + deleted_stop_customer + "'>" + deleted_stop_customer_text + "</a></br>";
                     message += "----------------------------------------------------------------------------------</br>";
                     message += "Service: " + deleted_stop_service_text + "</br>";
                     message += "----------------------------------------------------------------------------------</br>";
                     message += 'The Transfer Stop has been deleted by the Owner Franchisee';
-    
+
                     var zee_record = record.load({
                         type: record.Type.PARTNER,
                         id: deleted_linked_zee_email[i],
                         isDynamic: true,
                     });
                     
-                    
-                    var zee_email = zee_record.getValue({
-                        fieldId: 'email'
-                    }); 
-    
+                    var zee_email = zee_record.getValue({ fieldId: 'email' });
+
                     log.debug({
                         title: 'zee_email',
                         details: zee_email
-                    })
+                    });
+
                     email.send({
                         author: 409635,
                         body: message,
                         recipients: zee_email,
                         subject: 'Service Leg Deletetion',
                     });
-
                 }
             }
 
-            
-            for (i = 0; i < stop_array.length; i++) {
-                var stop_id = stop_array[i];
-                log.debug({
-                    title: 'stop_id',
-                    details: stop_id
-                });
+            if (!isNullorEmpty(freq_edited) && !isNullorEmpty(stored_zee) && !isNullorEmpty(linked_zee)) {
 
-                log.debug({
-                    title: 'parseInt(zee_response)',
-                    details: parseInt(zee_response)
-                })
+                var freq_edited_array = freq_edited.split(',');
+                var stored_zee_array = stored_zee.split(',');
+                var linked_zee_array = linked_zee.split(',');
 
-                var leg_record = record.load({
-                    type: 'customrecord_service_leg',
-                    id: stop_id,
-                    isDynamic: true,
-                });
+                for (var i = 0; i < freq_edited_array.length; i++) {
+                    var freq_record = record.load({
+                        type: 'customrecord_service_freq',
+                        id: freq_edited_array[i],
+                        isDynamic: true,
+                    });
+                    
                 
-                leg_record.setValue({
-                    fieldId: 'custrecord_service_leg_franchisee',
-                    value: parseInt(zee_response),
-                });
-                
-                leg_record.setValue({
-                    fieldId: 'custrecord_service_leg_number',
-                    value: (i + 1),
-                });
-                
+                    freq_record.setValue({
+                        fieldId: 'custrecord_service_freq_franchisee',
+                        value: linked_zee_array[i]
+                    });
 
-                if (!isNullorEmpty(transfer_array)) {
-                    for (var y = 0; y < transfer_array.length; y++) {
-                        log.debug({
-                            title: 'transfer_array[y] + 1',
-                            details: parseInt(transfer_array[y]) + 1
-                        });
+                    freq_record.save({
+                        enableSourcing: true,
+                    });
+                }
+            }
 
 
-                        if (i > parseInt(transfer_array[y])) {
-                            log.debug({
-                                title: 'after transfer',
-                            });
+            if (!isNullorEmpty(freq_created) && !isNullorEmpty(freq_created_zees)) {
 
-                            leg_record.setValue({
-                                fieldId: 'custrecord_service_leg_franchisee',
-                                value: transfer_zee_array[y],
-                            });
-                            
-                        }
-                        var trfLinkStopVal = leg_record.getValue({
-                            fieldId: 'custrecord_service_leg_trf_linked_stop'
-                        });
-                        if (!isNullorEmpty(trfLinkStopVal)) {
-                            var linked_stop = leg_record.getValue({
-                                fieldId: 'custrecord_service_leg_trf_linked_stop'
-                            });
-                            
-                            var linked_stop_record = record.load({
-                                type: 'customrecord_service_leg',
-                                id: linked_stop,
-                            });
-                            
+                var freq_created_array = freq_created.split(',');
+                var freq_created_zees_array = freq_created_zees.split(',');
 
-                            linked_stop_record.setValue({
-                                fieldId: 'custrecord_service_leg_franchisee',
-                                value: transfer_zee_array[y],
-                            });
-                            
-                            linked_stop_record.setValue({
-                                fieldId: 'custrecord_service_leg_trf_franchisee',
-                                value: parseInt(zee_response),
-                            });
-                            
-
-                            linked_stop_record.setValue({
-                                fieldId: 'custrecord_service_leg_number',
-                                value: (i + 1),
-                            });
-                            
-                            leg_record.setValue({
-                                fieldId: 'custrecord_service_leg_trf_franchisee',
-                                value: transfer_zee_array[y],
-                            });
-                            
-                            linked_stop_record.save({
-                                enableSourcing: true,
-                            });
-                        }
-                    }
+                for (var i = 0; i < freq_created_array.length; i++) {
+                    var freq_record = record.create({
+                        type: 'customrecord_service_freq',
+                    });
+                    
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_franchisee', value: freq_created_zees_array[i]});
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_customer', value: customer_id });
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_service', value: service_id});
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_stop', value: freq_created_array[i] });
+                    
+                    freq_record.save({
+                        enableSourcing: true,
+                    });
                 }
 
-                leg_record.save({
-                    enableSourcing: true,
-                });
+
             }
+
+
 
             var params = {
                 customerid: customer_id,
                 serviceid: service_id,
-                scriptid: 'customscript_sl_rp_create_stops',
-                deployid: 'customdeploy_sl_rp_create_stops',
+                scriptid: 'customscript_sl_rp_create_stops_test',
+                deployid: 'customdeploy_sl_rp_create_stops_test',
                 zee: zee_response
             };
-    
-    
+
+
             log.debug({
                 title: 'params',
                 details: params
             });
-
             redirect.toSuitelet({
-                scriptId: 'customscript_sl_schedule_service',
-                deploymentId: 'customdeploy_sl_schedule_service',
+                scriptId: 'customscript_sl_schedule_service_test',
+                deploymentId: 'customdeploy_sl_schedule_service_test',
                 parameters: params
             });
-
         }
     }
 
