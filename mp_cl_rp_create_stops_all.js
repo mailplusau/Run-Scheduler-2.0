@@ -438,8 +438,6 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     return false;
                 }
             
-            
-            
                 var row_count = ($('#services tr').length - 2);
             
                 row_count++;
@@ -447,18 +445,17 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                 var inlineQty = '<tr><td class="first_col"><button class="btn btn-success btn-sm add_class glyphicon glyphicon-plus" type="button" data-toggle="tooltip" data-placement="right" title="Add New Package"></button><input type="hidden" class="delete_package" value="F" /></td><td><input type="text" value="' + row_count + '" class="form-control sequence" readonly /></td>';
                 if (isNullorEmpty(customer_id)) {
                     inlineQty += '<td><select class="form-control customer_selected_class" name="customer_selected"><option value="0"></option>';
-                    resultSetCustomer.forEachResult(function(searchResult) {
+                    resultSetCustomer.each(function(searchResult) {
             
-                        var custid = searchResult.getValue('internalid', null, "GROUP");
-                        var entityid = searchResult.getValue('entityid', null, "GROUP");
-                        var companyname = searchResult.getValue('companyname', null, "GROUP");
+                        var custid = searchResult.getValue({ name: 'internalid', join: null, summary: search.Summary.GROUP});
+                        var entityid = searchResult.getValue({ name: 'entityid', join: null, summary: search.Summary.GROUP});
+                        var companyname = searchResult.getValue({ name: 'companyname', join: null, summary: search.Summary.GROUP});
             
                         if (custid == customer_id) {
                             inlineQty += '<option value="' + custid + '" selected>' + entityid + ' ' + companyname + '</option>';
                         } else {
                             inlineQty += '<option value="' + custid + '">' + entityid + ' ' + companyname + '</option>';
                         }
-            
             
                         return true;
                     });
@@ -476,9 +473,9 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                 inlineQty += '<td><input type="checkbox" id="friday" ng-model="friday_checkbox" class="friday" /></td>';
                 inlineQty += '<td><input type="checkbox" id="adhoc" ng-model="adhoc_checkbox" class="adhoc" /></td>';
                 inlineQty += '<td><select class="form-control run_selected_class" name="run_selected"><option value="0"></option>';
-                resultSet_runPlan.forEachResult(function(searchResult_runPlan) {
+                resultSet_runPlan.each(function(searchResult_runPlan) {
             
-                    inlineQty += '<option value="' + searchResult_runPlan.getValue('internalid') + '">' + searchResult_runPlan.getValue('name') + '</option>';
+                    inlineQty += '<option value="' + searchResult_runPlan.getValue({ name: 'internalid'}) + '">' + searchResult_runPlan.getValue({ name: 'name'}) + '</option>';
             
                     return true;
                 });
@@ -533,11 +530,17 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
             });
             
             $(document).on('change', '.address_type', function(e) {
-                var customer_id = nlapiGetFieldValue('custpage_customer_id');
-                if (!isNullorEmpty(customer_id)) {
-            
-                    var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_setup_stops', 'customdeploy_sl_setup_stops');
+                var customer_id = currRecord.getValue({ fieldId: 'custpage_customer_id'});
+                if (!isNullorEmpty(customer_id)) {            
+                    // var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_setup_stops', 'customdeploy_sl_setup_stops');
+                    // window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
+
+                    var upload_url = baseURL + url.resolveScript({
+                        deploymentId: 'customdeploy_sl_setup_stops',
+                        scriptId: 'customscript_sl_setup_stops',
+                    });
                     window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
+
                 } else {
                     if ($('option:selected', this).val() == 1) {
                         $('.ncl_row').addClass('hide');
@@ -697,13 +700,13 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
 
         function saveRecord() {
 
-            zee = parseInt(nlapiGetFieldValue('custpage_zee'));
-            if (!isNullorEmpty(nlapiGetFieldValue('custpage_customer_id'))) {
-                var customer_id = parseInt(nlapiGetFieldValue('custpage_customer_id'));
+            zee = parseInt(currRecord.getValue({ name: 'custpage_zee'}));
+            if (!isNullorEmpty(currRecord.getValue({ name: 'custpage_customer_id'}))) {
+                var customer_id = parseInt(currRecord.getValue({ name: 'custpage_customer_id'}));
             } else {
                 var customer_id = null;
             }
-            var stop_id = nlapiGetFieldValue('custpage_stop_id');
+            var stop_id = currRecord.getValue({ name: 'custpage_stop_id'});
         
             console.log($('option:selected', '.address_type').val());
         
@@ -800,45 +803,52 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                 var stop_id = edit_elem[i].getAttribute('data-stopid');
                 var freq_id = edit_elem[i].getAttribute('data-freqid');
                 if (isNullorEmpty(stop_id)) {
-                    var service_leg_record = nlapiCreateRecord('customrecord_service_leg');
-                    service_leg_record.setFieldValue('custrecord_service_leg_franchisee', zee);
+                    // var service_leg_record = nlapiCreateRecord('customrecord_service_leg');
+                    var service_leg_record = record.create({
+                        type: 'customrecord_service_leg'
+                    })
+                    service_leg_record.setValue({ fieldId: 'custrecord_service_leg_franchisee', value: zee});
         
                     if (!isNullorEmpty(customer_id)) {
                         console.log(customer_id)
-                        service_leg_record.setFieldValue('custrecord_service_leg_customer', customer_id);
+                        service_leg_record.setValue({ fieldId: 'custrecord_service_leg_customer', value: customer_id});
                     } else {
                         console.log(customer_elem[i].value)
-                        service_leg_record.setFieldValue('custrecord_service_leg_customer', customer_elem[i].value);
+                        service_leg_record.setValue({ fieldId: 'custrecord_service_leg_customer', value: customer_elem[i].value});
                     }
                 } else {
-                    var service_leg_record = nlapiLoadRecord('customrecord_service_leg', stop_id);
+                    // var service_leg_record = nlapiLoadRecord('customrecord_service_leg', stop_id);
+                    var service_leg_record = record.load({
+                        type: 'customrecord_service_leg',
+                        id: stop_id
+                    })
                 }
-                service_leg_record.setFieldValue('name', stop_name);
-                service_leg_record.setFieldValue('custrecord_app_service_leg_sequence', sequence_elem[i].value);
-                service_leg_record.setFieldValue('custrecord_service_leg_number', service_leg_elem[i].value);
-                service_leg_record.setFieldValue('custrecord_service_leg_type', service_leg_elem[i].value);
-                service_leg_record.setFieldValue('custrecord_service_leg_service', service_elem[i].value);
+                service_leg_record.setValue({ fieldId: 'name', value: stop_name});
+                service_leg_record.setValue({ fieldId: 'custrecord_app_service_leg_sequence', value: sequence_elem[i].value});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_number', value: service_leg_elem[i].value});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_type', value: service_leg_elem[i].value});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_service', value: service_elem[i].value});
                 if (isNullorEmpty(ncl)) {
-                    service_leg_record.setFieldValue('custrecord_service_leg_location_type', 1);
+                    service_leg_record.setValue({ fieldId: 'custrecord_service_leg_location_type', value: 1});
                 } else {
-                    service_leg_record.setFieldValue('custrecord_service_leg_location_type', 2);
-                    service_leg_record.setFieldValue('custrecord_service_leg_non_cust_location', ncl);
+                    service_leg_record.setValue({ fieldId: 'custrecord_service_leg_location_type', value: 2});
+                    service_leg_record.setValue({ fieldId: 'custrecord_service_leg_non_cust_location', value: ncl});
                 }
                 if (!isNullorEmpty(addressid)) {
-                    service_leg_record.setFieldValue('custrecord_service_leg_addr', addressid);
+                    service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr', value: addressid});
                 }
         
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_subdwelling', addr1);
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_subdwelling', value: addr1});
         
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_st_num_name', addr2);
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_suburb', city);
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_state', state);
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_postcode', postcode);
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_lat', lat);
-                service_leg_record.setFieldValue('custrecord_service_leg_addr_lon', lng);
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_st_num_name', value: addr2});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_suburb', value: city});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_state', value: state});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postcode', value: postcode});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_lat', value: lat});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_lon', value: lng});
         
-                service_leg_record.setFieldValue('custrecord_service_leg_duration', duration);
-                service_leg_record.setFieldValue('custrecord_service_leg_notes', stop_notes);
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_duration', value: duration});
+                service_leg_record.setValue({ fieldId: 'custrecord_service_leg_notes', value: stop_notes});
         
                 var original_service_leg_id = nlapiSubmitRecord(service_leg_record);
                 if (isNullorEmpty(freq_id)) {
@@ -847,46 +857,47 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     var freq_record = nlapiLoadRecord('customrecord_service_freq', run_freq_id);
                 }
         
-                freq_record.setFieldValue('custrecord_service_freq_franchisee', zee);
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_franchisee', value: zee});
                 if (!isNullorEmpty(customer_id)) {
-                    freq_record.setFieldValue('custrecord_service_freq_customer', customer_id);
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_customer', value: customer_id});
                 } else {
-                    freq_record.setFieldValue('custrecord_service_freq_customer', customer_elem[i].value);
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_customer', value: customer_elem[i].value});
                 }
         
-                freq_record.setFieldValue('custrecord_service_freq_run_plan', run_elem[i].value);
-                freq_record.setFieldValue('custrecord_service_freq_service', service_elem[i].value);
-                freq_record.setFieldValue('custrecord_service_freq_stop', original_service_leg_id);
-                freq_record.setFieldValue('custrecord_service_freq_time_start', earliest_time);
-                freq_record.setFieldValue('custrecord_service_freq_time_end', latest_time);
-                freq_record.setFieldValue('custrecord_service_freq_time_current', service_time);
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_run_plan', value: run_elem[i].value});
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_service', value: service_elem[i].value});
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_stop', value: original_service_leg_id});
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_time_start', value: earliest_time});
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_time_end', value: latest_time});
+                freq_record.setValue({ fieldId: 'custrecord_service_freq_time_current', value: service_time});
         
                 if (monday_elem[i].checked) {
-                    freq_record.setFieldValue('custrecord_service_freq_day_mon', 'T');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
                 } else {
-                    freq_record.setFieldValue('custrecord_service_freq_day_mon', 'F');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'F'});
                 }
                 if (tuesday_elem[i].checked) {
-                    freq_record.setFieldValue('custrecord_service_freq_day_tue', 'T');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'T'});
                 } else {
-                    freq_record.setFieldValue('custrecord_service_freq_day_tue', 'F');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'F'});
                 }
                 if (wednesday_elem[i].checked) {
-                    freq_record.setFieldValue('custrecord_service_freq_day_wed', 'T');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'T'});
                 } else {
-                    freq_record.setFieldValue('custrecord_service_freq_day_wed', 'F');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'F'});
                 }
                 if (thursday_elem[i].checked) {
-                    freq_record.setFieldValue('custrecord_service_freq_day_thu', 'T');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'T'});
                 } else {
-                    freq_record.setFieldValue('custrecord_service_freq_day_thu', 'F');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'F'});
                 }
                 if (friday_elem[i].checked) {
-                    freq_record.setFieldValue('custrecord_service_freq_day_fri', 'T');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'T'});
                 } else {
-                    freq_record.setFieldValue('custrecord_service_freq_day_fri', 'F');
+                    freq_record.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'F'});
                 }
-                nlapiSubmitRecord(freq_record);
+                // nlapiSubmitRecord(freq_record);
+                freq_record.save();
                 // service_leg_record.setFieldValue('custrecord_service_leg_addr_postal', table_stop_name_elem[i].getAttribute('data-postbox'));
                 return true;
             }
@@ -943,14 +954,20 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
         
             }
             params = JSON.stringify(params);
-            console.log(nlapiGetFieldValue('custpage_suitlet'))
-            console.log(nlapiGetFieldValue('custpage_deploy'))
-            var upload_url = baseURL + nlapiResolveURL('SUITELET', nlapiGetFieldValue('custpage_suitlet'), nlapiGetFieldValue('custpage_deploy')) + '&unlayered=T&custparam_params=' + params;
+            console.log(currRecord.getValue({ fieldId: 'custpage_suitlet'}))
+            console.log(currRecord.getValue({ fieldId: 'custpage_deploy'}))
+            var upload_url = baseURL + url.resolveScript({
+                deploymentId: currRecord.getValue({ fieldId: 'custpage_deploy'}),
+                scriptId: currRecord.getValue({ fieldId: 'custpage_suitlet'})
+            }) + '&unlayered=T&custparam_params=' + params;
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }
         
         function onclick_mainpage() {
-            var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_full_calendar', 'customdeploy_sl_full_calender') + '&unlayered=T';
+            var upload_url = baseURL + url.resolveScript({
+                deploymentId: customdeploy_sl_full_calender,
+                scriptId: customscript_sl_full_calendar
+            }) + '&unlayered=T';
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }
 
