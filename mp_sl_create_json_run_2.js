@@ -93,40 +93,41 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             resultSet.each(function(searchResult) {
                 stop_id = searchResult.getValue({
                     name: 'internalid',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
+
                 stop_name = searchResult.getValue({
                     name: 'name',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 stop_duration = searchResult.getValue({
                     name: 'custrecord_service_leg_duration',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 stop_duration = parseInt(stop_duration);
                 stop_notes = searchResult.getValue({
                     name: 'custrecord_service_leg_notes',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 service_id = searchResult.getValue({
                     name: 'custrecord_service_leg_service',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 service_text = searchResult.getText({
                     name: 'custrecord_service_leg_service',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 customer_id = searchResult.getValue({
                     name: 'custreco-rd_service_leg_customer',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 customer_text = searchResult.getText({
                     name: 'custrecord_service_leg_customer',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
                 ncl = searchResult.getValue({
                     name: 'custrecord_service_leg_non_cust_location',
-                    summary: "GROUP",
+                    summary: search.Summary.GROUP,
                 });
             
                 if (!isNullorEmpty(stop_notes)) {

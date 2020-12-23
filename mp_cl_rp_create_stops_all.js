@@ -291,8 +291,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     resultSetCustomer.each(function(searchResult_service) {
                         var service_id = searchResult_service.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
                         var service_name = searchResult_service.getText({ name: 'custrecord_service', join: null, summary: search.Summary.GROUP});
-                        var service_leg_freq_count = searchResult_service.getValue({ name: "internalid", "join: CUSTRECORD_SERVICE_FREQ_SERVICE", summary: search.Summary.COUNT});
-                        var service_leg_count = searchResult_service.getValue({ name: "internalid", "join: CUSTRECORD_SERVICE_LEG_SERVICE", summary: search.Summary.COUNT});
+                        var service_leg_freq_count = searchResult_service.getValue({ name: "internalid", join: "CUSTRECORD_SERVICE_FREQ_SERVICE", summary: search.Summary.COUNT});
+                        var service_leg_count = searchResult_service.getValue({ name: "internalid", join: "CUSTRECORD_SERVICE_LEG_SERVICE", summary: search.Summary.COUNT});
                         var service_price = searchResult_service.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
             
                         if (service_leg_count == 0) {
