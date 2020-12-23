@@ -724,7 +724,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 functionName : 'onclick_mainpage()'
             });
 
-            form.setScript('customscript_cl_rp_create_stops');
 
             /**
              * CREATE 2.0 CL SCRIPT AND SWITCH ID
