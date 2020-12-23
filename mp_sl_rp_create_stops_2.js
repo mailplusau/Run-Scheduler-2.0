@@ -752,9 +752,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             var deploy = context.request.parameters.custpage_deploy;
             var zee_response = context.request.parameters.custpage_zee;
     
-            var updated_stop_string = request.getParameter('custpage_updated_stop');
-            var old_stop_string = request.getParameter('custpage_old_stop');
-            var updated_stop_zee_string = request.getParameter('custpage_updated_stop_zee');
+            var updated_stop_string = context.request.parameters.custpage_updated_stop;
+            var old_stop_string = context.request.parameters.custpage_old_stop;
+            var updated_stop_zee_string = context.request.parameters.custpage_updated_stop_zee;
 
             // var new_service_leg_id_string = request.getParameter('new_service_leg_id_string');
             // var zee = request.getParameter('custpage_zee');
