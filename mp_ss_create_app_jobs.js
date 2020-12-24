@@ -305,12 +305,17 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                             params: params,
                                             scriptId: prev_inv_deploy
                                         })
+                                        log.audit({​​​​​
+                                            title: 'Reschedule Return',
+                                            details: task.checkStatus({​​​​​
+                                                taskId: reschedule
+                                            }​​​​​)
+                                        });
                                         var rescheduled = reschedule.submit();
-
-                                        if (reschedule == false) {
+                                        if (task.checkStatus({​​​​​ taskId: reschedule}​​​​​) == false) {​​​​​
                                             exit = true;
                                             return false;
-                                        }
+                                        }​​​​​
                                     }
 
                                     // var service_leg_record = nlapiLoadRecord('customrecord_service_leg', service_leg_id);
@@ -398,12 +403,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     // nlapiSubmitRecord(zee_record, false, true);
                     zee_record.save();
 
-                    reschedule = rescheduleScript(prev_inv_deploy, adhoc_inv_deploy, null);
-                    if (reschedule == false) {
+                    // reschedule = rescheduleScript(prev_inv_deploy, adhoc_inv_deploy, null);
+                    // if (reschedule == false) {
 
-                        return false;
-                    }
-
+                    //     return false;
+                    // }
                     reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
                         deploymentId: adhoc_inv_deploy,
@@ -411,10 +415,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         scriptId: prev_inv_deploy
                     })
                     var rescheduled = reschedule.submit();
-                    if (rescheduled == false) {
-
+                    if (task.checkStatus({​​​​​ taskId: reschedule}​​​​​) == false) {​​​​​
+                        exit = true;
                         return false;
-                    }
+                    }​​​​​
                 }
 
                 return true;
