@@ -62,22 +62,24 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         days_of_week[5] = 'custrecord_service_freq_day_fri';
         days_of_week[6] = 6;
 
-        $('.collapse').on('shown.bs.collapse', function() {
-            $("#main_container").css({
-                "padding-top": "100px"
-            });
-        })
         
-        $('.collapse').on('hide.bs.collapse', function() {
-            $("#main_container").css({
-                "padding-top": "3%"
-            });
-        })
 
         /**
          * On page initialisation
          */
         function pageInit() {
+            $('.collapse').on('shown.bs.collapse', function() {
+                $("#main_container").css({
+                    "padding-top": "100px"
+                });
+            })
+            
+            $('.collapse').on('hide.bs.collapse', function() {
+                $("#main_container").css({
+                    "padding-top": "3%"
+                });
+            })
+
             $('#loader').remove();
             $('.uir-outside-fields-table').css('width', '-webkit-fill-available');
             //$('.zee_dropdown').selectpicker();
@@ -264,7 +266,214 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
 
             $('.map_section').removeClass('hide');
 
+            jQuery();
+        }
 
+        function jQuery() {
+
+            $(document).on('click', '#applyZee', function(event) {
+                var zee = $('.zee_dropdown').selectpicker('val');
+    
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=887&deploy=1";
+    
+                url += "&zee=" + zee + "";
+    
+                window.location.href = url;
+            });
+    
+            $(document).on('change', '.op_dropdown', function(event) {
+                var op = $(this).val();
+                var zee = $(this).attr('data-zeeid');
+                console.log('zee', zee);
+                filterRunDropdown(zee, op);
+            });
+
+                  
+            $(document).on('click', '#apply', function(event) {
+                var day = $('option:selected', '#day_dropdown').val();
+                var before_time_2 = $('#before_time').val();
+                var after_time_2 = $('#after_time').val();
+                var run_array = [];
+                var op_array = [];
+                var optimize_array = [];
+
+                $('.tab-pane').each(function(e) {
+                    console.log($(this));
+                    var id = $(this)[0].id;
+                    run_array[run_array.length] = $('option:selected', '#run_dropdown_' + id + '').val();
+                    op_array[op_array.length] = $('option:selected', '#op_dropdown_' + id + '').val();
+                    optimize_array[optimize_array.length] = $('#optimize_' + id + '').prop('checked');
+                })
+                console.log('day', day);
+                console.log('run_array', run_array);
+                console.log('op_array', op_array);
+                console.log('before_time_2', before_time_2);
+                console.log('after_time_2', after_time_2);
+                console.log('optimize_array', optimize_array);
+
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=887&deploy=1";
+
+                url += "&zee=" + zee_array + "";
+                url += "&day=" + day + "";
+                url += "&op=" + op_array + "";
+                url += "&run=" + run_array + "";
+                url += "&before=" + before_time_2 + "";
+                url += "&after=" + after_time_2 + "";
+                url += "&optimize=" + optimize_array + "";
+
+                window.location.href = url;
+            });
+
+            
+            $(".nav-tabs").on("click", "li a", function(e) {
+                var this_zee = $(this).attr('href');
+                $(".tabs").each(function() {
+                    $(this).find(".nav-tabs li").each(function(index, element) {
+                        var zee_id = $(this).children('a').attr('href');
+                        console.log('zee_id: ' + zee_id);
+                        $(this).children('a').css({
+                            "background-color": "white",
+                            "color": "#337ab7"
+                        });
+                        if ($(this).attr('class') == 'active') {
+
+                        } else if (this_zee == zee_id) {
+                            $(this).children('a').tab('show');
+                        }
+                    });
+
+                });
+                $(this).css({
+                    "background-color": "rgb(50, 122, 183)",
+                    "color": "white"
+                });
+            });
+
+             
+            $(document).on('focus', '#address', function(event) {
+                initAutocomplete();
+            });
+
+                    
+            $(document).on('click', '#viewOnMap', function(event) {
+                var position = {
+                    lat: parseFloat($('#lat').val()),
+                    lng: parseFloat($('#lng').val())
+                }
+                var new_marker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    //icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                    title: 'My New Marker',
+                });
+                search_markers_array[search_markers_array.length] = new_marker; //store the markers created to be able to delete them
+                map.setCenter(position);
+                map.setZoom(14);
+            });
+
+            
+            $(document).on('click', '#clearMarkers', function(event) {
+                for (i = 0; i < search_markers_array.length; i++) {
+                    var marker = search_markers_array[i];
+                    marker.setMap(null);
+                }
+                search_markers_array = [];
+            });
+
+            
+            $(document).on('click', '#runMarkers', function(event) {
+                console.log($(this).val());
+                if ($(this).val() == 'HIDE RUN MARKERS') {
+                    for (i = 0; i < run_markers_array.length; i++) {
+                        var marker = run_markers_array[i];
+                        marker.setMap(null);
+                    }
+                    $('#runMarkers').val('SHOW RUN MARKERS');
+                } else if ($(this).val() == 'SHOW RUN MARKERS') {
+                    for (i = 0; i < run_markers_array.length; i++) {
+                        var marker = run_markers_array[i];
+                        marker.setMap(map);
+                    }
+                    $('#runMarkers').val('HIDE RUN MARKERS');
+                }
+                $('#runMarkers').toggleClass('btn-success');
+                $('#runMarkers').toggleClass('btn-danger');
+            });
+
+            $(document).on('click', '#territoryMap', function(event) {
+                console.log($(this).val());
+                if ($(this).val() == 'HIDE TERRITORY MAP') {
+                    map.data.setStyle({
+                        visible: false
+                    });
+                    $('#territoryMap').val('SHOW TERRITORY MAP');
+                } else if ($(this).val() == 'SHOW TERRITORY MAP') {
+                    map.data.setStyle({
+                        visible: true
+                    });
+                    $('#territoryMap').val('HIDE TERRITORY MAP');
+                }
+                $('#territoryMap').toggleClass('btn-success');
+                $('#territoryMap').toggleClass('btn-danger');
+            });
+
+            
+            $(document).on('click', '#printDirections', function(event) {
+                var currRecord = currentRecord.get();
+
+                var zee_text_array = currRecord.getValue({
+                    fieldId: 'zee_text'
+                });
+                
+                var zee_text = zee_text_array.split(',')[0];
+                var day_text = currRecord.getValue({
+                    fieldId: 'day_text'
+                });
+                
+                var before_time = currRecord.getValue({
+                    fieldId: 'beforetime'
+                });
+                
+                var after_time = currRecord.getValue({
+                    fieldId: 'aftertime'
+                });
+                
+                var run_text_array = currRecord.getValue({
+                    fieldId: 'run_text'
+                });
+                
+                var run_text = run_text_array.split(',')[0];
+                console.log('run_text', run_text);
+
+                if (!isNullorEmpty(run_text)) { //one run
+                    var op_text_array = currRecord.getValue({
+                        fieldId: 'op_text'
+                    });
+                    
+                    var op_text = op_text_array.split(',')[0];
+                    var title = '' + zee_text + ' - ' + run_text + ' (' + op_text + ') - ' + day_text + '';
+                } else { //the all run
+                    var title = '' + zee_text + ' - ALL - ' + day_text + '';
+                }
+                if (!isNullorEmpty(before_time)) {
+                    title += ' - Before ' + onTimeChange(before_time) + '';
+                }
+                if (!isNullorEmpty(after_time)) {
+                    title += ' - After ' + onTimeChange(before_time) + '';
+                }
+                console.log('printing', title);
+                $('#directionsPanel').css("overflow", "visible");
+                $('#directionsPanel').removeClass('hide');
+                printJS({
+                    printable: 'directionsPanel',
+                    type: 'html',
+                    documentTitle: title,
+                    targetStyles: ['*'],
+                    onPrintDialogClose: directionsPanelOverflow,
+                })
+
+            });
+            
         }
 
         
@@ -519,23 +728,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         }
 
         
-        $(document).on('click', '#applyZee', function(event) {
-            var zee = $('.zee_dropdown').selectpicker('val');
-
-            var url = baseURL + "/app/site/hosting/scriptlet.nl?script=887&deploy=1";
-
-            url += "&zee=" + zee + "";
-
-            window.location.href = url;
-        });
-
-        $(document).on('change', '.op_dropdown', function(event) {
-            var op = $(this).val();
-            var zee = $(this).attr('data-zeeid');
-            console.log('zee', zee);
-            filterRunDropdown(zee, op);
-        });
-        
 
         function filterRunDropdown(zee, op) {
             var run_empty = true; //to know if a run exists for this operator
@@ -565,67 +757,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             }
             return $('option:selected', '#run_dropdown_' + zee + '').val()
         }
-           
-        $(document).on('click', '#apply', function(event) {
-            var day = $('option:selected', '#day_dropdown').val();
-            var before_time_2 = $('#before_time').val();
-            var after_time_2 = $('#after_time').val();
-            var run_array = [];
-            var op_array = [];
-            var optimize_array = [];
-
-            $('.tab-pane').each(function(e) {
-                console.log($(this));
-                var id = $(this)[0].id;
-                run_array[run_array.length] = $('option:selected', '#run_dropdown_' + id + '').val();
-                op_array[op_array.length] = $('option:selected', '#op_dropdown_' + id + '').val();
-                optimize_array[optimize_array.length] = $('#optimize_' + id + '').prop('checked');
-            })
-            console.log('day', day);
-            console.log('run_array', run_array);
-            console.log('op_array', op_array);
-            console.log('before_time_2', before_time_2);
-            console.log('after_time_2', after_time_2);
-            console.log('optimize_array', optimize_array);
-
-            var url = baseURL + "/app/site/hosting/scriptlet.nl?script=887&deploy=1";
-
-            url += "&zee=" + zee_array + "";
-            url += "&day=" + day + "";
-            url += "&op=" + op_array + "";
-            url += "&run=" + run_array + "";
-            url += "&before=" + before_time_2 + "";
-            url += "&after=" + after_time_2 + "";
-            url += "&optimize=" + optimize_array + "";
-
-            window.location.href = url;
-        });
-
-        
-        $(".nav-tabs").on("click", "li a", function(e) {
-            var this_zee = $(this).attr('href');
-            $(".tabs").each(function() {
-                $(this).find(".nav-tabs li").each(function(index, element) {
-                    var zee_id = $(this).children('a').attr('href');
-                    console.log('zee_id: ' + zee_id);
-                    $(this).children('a').css({
-                        "background-color": "white",
-                        "color": "#337ab7"
-                    });
-                    if ($(this).attr('class') == 'active') {
-
-                    } else if (this_zee == zee_id) {
-                        $(this).children('a').tab('show');
-                    }
-                });
-
-            });
-            $(this).css({
-                "background-color": "rgb(50, 122, 183)",
-                "color": "white"
-            });
-        });
-
+     
         
         function initAutocomplete() {
             // Create the autocomplete object, restricting the search to geographical location types.
@@ -641,10 +773,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             // When the user selects an address from the dropdown, populate the address fields in the form.
             autocomplete.addListener('place_changed', fillInAddress);
         }
-        
-        $(document).on('focus', '#address', function(event) {
-            initAutocomplete();
-        });
+       
 
         
         //Fill the Street No. & Street Name after selecting an address from the dropdown
@@ -739,125 +868,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             return inside;
         };
 
-        
-        $(document).on('click', '#viewOnMap', function(event) {
-            var position = {
-                lat: parseFloat($('#lat').val()),
-                lng: parseFloat($('#lng').val())
-            }
-            var new_marker = new google.maps.Marker({
-                position: position,
-                map: map,
-                //icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                title: 'My New Marker',
-            });
-            search_markers_array[search_markers_array.length] = new_marker; //store the markers created to be able to delete them
-            map.setCenter(position);
-            map.setZoom(14);
-        });
 
-        
-        $(document).on('click', '#clearMarkers', function(event) {
-            for (i = 0; i < search_markers_array.length; i++) {
-                var marker = search_markers_array[i];
-                marker.setMap(null);
-            }
-            search_markers_array = [];
-        });
-
-        
-        $(document).on('click', '#runMarkers', function(event) {
-            console.log($(this).val());
-            if ($(this).val() == 'HIDE RUN MARKERS') {
-                for (i = 0; i < run_markers_array.length; i++) {
-                    var marker = run_markers_array[i];
-                    marker.setMap(null);
-                }
-                $('#runMarkers').val('SHOW RUN MARKERS');
-            } else if ($(this).val() == 'SHOW RUN MARKERS') {
-                for (i = 0; i < run_markers_array.length; i++) {
-                    var marker = run_markers_array[i];
-                    marker.setMap(map);
-                }
-                $('#runMarkers').val('HIDE RUN MARKERS');
-            }
-            $('#runMarkers').toggleClass('btn-success');
-            $('#runMarkers').toggleClass('btn-danger');
-        });
-
-        $(document).on('click', '#territoryMap', function(event) {
-            console.log($(this).val());
-            if ($(this).val() == 'HIDE TERRITORY MAP') {
-                map.data.setStyle({
-                    visible: false
-                });
-                $('#territoryMap').val('SHOW TERRITORY MAP');
-            } else if ($(this).val() == 'SHOW TERRITORY MAP') {
-                map.data.setStyle({
-                    visible: true
-                });
-                $('#territoryMap').val('HIDE TERRITORY MAP');
-            }
-            $('#territoryMap').toggleClass('btn-success');
-            $('#territoryMap').toggleClass('btn-danger');
-        });
-
-        
-        $(document).on('click', '#printDirections', function(event) {
-            var currRecord = currentRecord.get();
-
-            var zee_text_array = currRecord.getValue({
-                fieldId: 'zee_text'
-            });
-            
-            var zee_text = zee_text_array.split(',')[0];
-            var day_text = currRecord.getValue({
-                fieldId: 'day_text'
-            });
-            
-            var before_time = currRecord.getValue({
-                fieldId: 'beforetime'
-            });
-            
-            var after_time = currRecord.getValue({
-                fieldId: 'aftertime'
-            });
-            
-            var run_text_array = currRecord.getValue({
-                fieldId: 'run_text'
-            });
-            
-            var run_text = run_text_array.split(',')[0];
-            console.log('run_text', run_text);
-
-            if (!isNullorEmpty(run_text)) { //one run
-                var op_text_array = currRecord.getValue({
-                    fieldId: 'op_text'
-                });
-                
-                var op_text = op_text_array.split(',')[0];
-                var title = '' + zee_text + ' - ' + run_text + ' (' + op_text + ') - ' + day_text + '';
-            } else { //the all run
-                var title = '' + zee_text + ' - ALL - ' + day_text + '';
-            }
-            if (!isNullorEmpty(before_time)) {
-                title += ' - Before ' + onTimeChange(before_time) + '';
-            }
-            if (!isNullorEmpty(after_time)) {
-                title += ' - After ' + onTimeChange(before_time) + '';
-            }
-            console.log('printing', title);
-            $('#directionsPanel').css("overflow", "visible");
-            $('#directionsPanel').removeClass('hide');
-            printJS({
-                printable: 'directionsPanel',
-                type: 'html',
-                documentTitle: title,
-                targetStyles: ['*'],
-                onPrintDialogClose: directionsPanelOverflow,
-            })
-
-        });
 
         
         function directionsPanelOverflow() {

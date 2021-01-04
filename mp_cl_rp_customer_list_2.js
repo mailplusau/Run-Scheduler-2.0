@@ -10,11 +10,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             baseURL = 'https://1048144-sb3.app.netsuite.com';
         }
         var role = runtime.getCurrentUser().role;
-        //To show loader while the page is laoding
-        $(window).load(function() {
-            // Animate loader off screen
-            $(".se-pre-con").fadeOut("slow");;
-        });
+        
 
         var table;
         var inactivate_id_array = [];
@@ -24,6 +20,12 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
          * [pageInit description] - On page initialization, load the Dynatable CSS and sort the table based on the customer name and align the table to the center of the page. 
          */
         function pageInit() {
+            //To show loader while the page is laoding
+        
+            $(window).load(function() {
+                // Animate loader off screen
+                $(".se-pre-con").fadeOut("slow");;
+            });
             //Search: RP - Services
             var serviceSearch = search.load({
                 id: 'customsearch_rp_services',
@@ -260,42 +262,455 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 main_table2[i].style.top = "275px";
             }
 
+            jQuery()
         }
 
-        $(document).on('click', '.edit_customer', function() {
+        function jQuery() {
+            $(document).on('click', '.edit_customer', function() {
 
-            var custid = $(this).attr('data-custid')
-            console.log(custid);
-            var params = {
-                custid: custid,
-            }
-            params = JSON.stringify(params);
-            var output = redirect.toSuitelet({
-                scriptId: 'customscript_sl_smc_main',
-                deploymentId: 'customdeploy_sl_smc_main',
+                var custid = $(this).attr('data-custid')
+                console.log(custid);
+                var params = {
+                    custid: custid,
+                }
+                params = JSON.stringify(params);
+                var output = redirect.toSuitelet({
+                    scriptId: 'customscript_sl_smc_main',
+                    deploymentId: 'customdeploy_sl_smc_main',
+                });
+                var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
+                window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
+            
             });
-            var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
-            window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
-        
-        });
+    
+            $('.collapse').on('shown.bs.collapse', function() {
+                $("#customer_wrapper").css({
+                    "padding-top": "500px"
+                });
+                $(".admin_section").css({
+                    "padding-top": "500px"
+                });
+            })
+            
+            $('.collapse').on('hide.bs.collapse', function() {
+                $("#customer_wrapper").css({
+                    "padding-top": "0px"
+                });
+                $(".admin_section").css({
+                    "padding-top": "0px"
+                });
+            })
+            
+            $(document).on('click', '.details-control', function() {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
 
-        $('.collapse').on('shown.bs.collapse', function() {
-            $("#customer_wrapper").css({
-                "padding-top": "500px"
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    $(this).removeClass('btn-danger');
+                    $(this).addClass('btn-success');
+                    $(this).find('.span_class').removeClass('glyphicon-minus');
+                    $(this).find('.span_class').addClass('glyphicon-plus');
+
+                } else {
+                    // Open this row
+                    console.log(row.data());
+                    row.child(format(row.data())).show();
+                    $(this).addClass('btn-danger');
+                    $(this).removeClass('btn-success');
+                    $(this).find('.span_class').removeClass('glyphicon-plus');
+                    $(this).find('.span_class').addClass('glyphicon-minus');
+                }
+
+
+                $(".row_service").each(function() {
+                    if ($(this).find(".setup_service").val() == 'SETUP STOP') {
+                        $(this).find(".service_summary").prop('disabled', true);
+                    }
+                });
+
+                $(function() {
+                    $('[data-toggle="tooltip"]').tooltip()
+                });
             });
-            $(".admin_section").css({
-                "padding-top": "500px"
+
+
+            $(document).on('click', '.setup_service', function() {
+                var service_id = $(this).attr('data-serviceid');
+                var currentScript = currentRecord.get();
+                zee = currentScript.getValue({
+                    fieldId: 'zee',
+                });
+                        
+                var params = {
+                    serviceid: service_id,
+                    scriptid: 'customscript_sl_rp_customer_list',
+                    deployid: 'customdeploy_sl_rp_customer_list',
+                    zee: zee
+                }
+                params = JSON.stringify(params);
+            
+                var output = redirect.toSuitelet({
+                    scriptId: 'customscript_sl_rp_create_stops',
+                    deploymentId: 'customdeploy_sl_rp_create_stops',
+                });
+                var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
+                window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
             });
-        })
+            
+            
+            $(document).on('click', '.service_summary', function() {
+                console.log('click');
+
+                var header = '<div><h3><label class="control-label">Summary Page</label></h3></div>';
+                var body = '';
+                var bodyService = '<div /*class="col-sm-4"*/ id="servicedetails"><h3 style="color: rgb(50, 122, 183);">Service Details</h3>'
+                var bodyStop = '<div /*class="col col-sm-8"*/ id="stopsdetails"><h3 style="color: rgb(50, 122, 183);">Stops Details</h3>';
+
+                var service_id = $(this).attr('data-serviceid');
+
+                // BodyStop
+                var serviceLegSearch = search.load({
+                    id: 'customsearch_rp_leg_freq_all',
+                    type: 'customrecord_service_leg'
+                });
+
+                serviceLegSearch.filters.push(search.createFilter({
+                    name: 'internalid',
+                    join: 'custrecord_service_leg_service',
+                    operator: search.Operator.IS,
+                    values: service_id
+                }));
+
+                serviceLegSearch.filters.push(search.createFilter({
+                    name: 'partner',
+                    join: 'CUSTRECORD_SERVICE_LEG_CUSTOMER',
+                    operator: search.Operator.IS,
+                    values: zee
+                }));
+
+                serviceLegSearch.filters.push(search.createFilter({
+                    name: 'isinactive',
+                    operator: search.Operator.IS,
+                    values: 'F'
+                }));
+
+                var resultSet = serviceLegSearch.run();
+                var old_stop_id;
+                var old_freq_id;
+
+                var stop_count = 0;
+                var freq_id_count = 0;
+                var freq_count = 0;
+                var stop_freq_json = '{ "data": [';
+                resultSet.each(function(searchResult) {
+                    var customer_name = searchResult.getText('custrecord_service_leg_customer');
+                    var service = searchResult.getText('custrecord_service_leg_service');
+                    var stop_id = searchResult.getValue('internalid');
+                    var stop_name = searchResult.getValue('name');
+                    var stop_duration = searchResult.getValue('custrecord_service_leg_duration');
+                    var stop_notes = searchResult.getValue('custrecord_service_leg_notes');
+                    var service_leg_ncl = searchResult.getValue("custrecord_service_leg_non_cust_location");
+                    var service_leg_addr_id = searchResult.getValue("custrecord_service_leg_addr");
+                    var transfer_type = searchResult.getValue("custrecord_service_leg_trf_type");
+                    var transfer_zee = searchResult.getValue("custrecord_service_leg_trf_franchisee");
+
+                    
+                    var freq_id = searchResult.getValue({
+                        name: 'internalid',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+
+                    var operation_zee = searchResult.getValue("custrecord_service_leg_franchisee");
+                    var operation_zee_name = searchResult.getText("custrecord_service_leg_franchisee");
+
+                    var freq_mon = searchResult.getValue({
+                        name: 'custrecord_service_freq_day_mon',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_tue = searchResult.getValue({
+                        name: 'custrecord_service_freq_day_tue',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_wed = searchResult.getValue({
+                        name: 'custrecord_service_freq_day_wed',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_thu = searchResult.getValue({
+                        name: 'custrecord_service_freq_day_thu',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_fri = searchResult.getValue({
+                        name: 'custrecord_service_freq_day_fri',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_adhoc = searchResult.getValue({
+                        name: 'custrecord_service_freq_day_adhoc',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_time_current = searchResult.getValue({
+                        name: 'custrecord_service_freq_time_current',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_time_start = searchResult.getValue({
+                        name: 'custrecord_service_freq_time_start',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_time_end = searchResult.getValue({
+                        name: 'custrecord_service_freq_time_end',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+                    var freq_run_plan = searchResult.getText({
+                        name: 'custrecord_service_freq_run_plan',
+                        join: 'CUSTRECORD_SERVICE_FREQ_STOP'
+                    });
+                    
+
+                    if (stop_count == 0) {
+                        stop_freq_json += '{"customer_name": "' + customer_name + '",';
+                        stop_freq_json += '"service": "' + service + '",';
+                        stop_freq_json += '"stop_id": "' + stop_id + '",';
+                        stop_freq_json += '"stop_name": "' + stop_name + '",';
+                        stop_freq_json += '"stop_duration": "' + stop_duration + '",';
+                        stop_freq_json += '"stop_notes": "' + stop_notes + '",';
+                        stop_freq_json += '"stop_ncl_id": "' + service_leg_ncl + '",';
+                        stop_freq_json += '"stop_addr_id": "' + service_leg_addr_id + '",';
+                        stop_freq_json += '"transfer_type": "' + transfer_type + '",';
+                        stop_freq_json += '"transfer_zee": "' + transfer_zee + '",';
+                        stop_freq_json += '"operation_zee": "' + operation_zee + '",';
+                        stop_freq_json += '"operation_zee_name": "' + operation_zee_name + '",';
+                        stop_freq_json += '"stop_freq": [';
+                        stop_freq_json += '{"freq_id": "' + freq_id + '",';
+                        stop_freq_json += '"freq_mon": "' + freq_mon + '",';
+                        stop_freq_json += '"freq_tue": "' + freq_tue + '",';
+                        stop_freq_json += '"freq_wed": "' + freq_wed + '",';
+                        stop_freq_json += '"freq_thu": "' + freq_thu + '",';
+                        stop_freq_json += '"freq_fri": "' + freq_fri + '",';
+                        stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
+                        stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
+                        stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
+                        stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
+                        stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
+                    } else {
+                        if (old_stop_id == stop_id && old_freq_id == freq_id) {
+                            stop_freq_json += '{"freq_id": "' + freq_id + '",';
+                            stop_freq_json += '"freq_mon": "' + freq_mon + '",';
+                            stop_freq_json += '"freq_tue": "' + freq_tue + '",';
+                            stop_freq_json += '"freq_wed": "' + freq_wed + '",';
+                            stop_freq_json += '"freq_thu": "' + freq_thu + '",';
+                            stop_freq_json += '"freq_fri": "' + freq_fri + '",';
+                            stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
+                            stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
+                            stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
+                            stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
+                            stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
+                        } else if (old_stop_id == stop_id && old_freq_id != freq_id) {
+                            stop_freq_json += '{"freq_id": "' + freq_id + '",';
+                            stop_freq_json += '"freq_mon": "' + freq_mon + '",';
+                            stop_freq_json += '"freq_tue": "' + freq_tue + '",';
+                            stop_freq_json += '"freq_wed": "' + freq_wed + '",';
+                            stop_freq_json += '"freq_thu": "' + freq_thu + '",';
+                            stop_freq_json += '"freq_fri": "' + freq_fri + '",';
+                            stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
+                            stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
+                            stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
+                            stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
+                            stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
+
+                        } else if (old_stop_id != stop_id) {
+                            stop_freq_json = stop_freq_json.substring(0, stop_freq_json.length - 1);
+                            stop_freq_json += ']},';
+
+                            freq_id_count = 0;
+
+                            stop_freq_json += '{"customer_name": "' + customer_name + '",';
+                            stop_freq_json += '"service": "' + service + '",';
+                            stop_freq_json += '"stop_id": "' + stop_id + '",';
+                            stop_freq_json += '"stop_name": "' + stop_name + '",';
+                            stop_freq_json += '"stop_duration": "' + stop_duration + '",';
+                            stop_freq_json += '"stop_notes": "' + stop_notes + '",';
+                            stop_freq_json += '"stop_ncl_id": "' + service_leg_ncl + '",';
+                            stop_freq_json += '"stop_addr_id": "' + service_leg_addr_id + '",';
+                            stop_freq_json += '"transfer_type": "' + transfer_type + '",';
+                            stop_freq_json += '"transfer_zee": "' + transfer_zee + '",';
+                            stop_freq_json += '"operation_zee": "' + operation_zee + '",';
+                            stop_freq_json += '"operation_zee_name": "' + operation_zee_name + '",';
+                            stop_freq_json += '"stop_freq": [';
+                            stop_freq_json += '{"freq_id": "' + freq_id + '",';
+                            stop_freq_json += '"freq_mon": "' + freq_mon + '",';
+                            stop_freq_json += '"freq_tue": "' + freq_tue + '",';
+                            stop_freq_json += '"freq_wed": "' + freq_wed + '",';
+                            stop_freq_json += '"freq_thu": "' + freq_thu + '",';
+                            stop_freq_json += '"freq_fri": "' + freq_fri + '",';
+                            stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
+                            stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
+                            stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
+                            stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
+                            stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
+
+                        }
+                    }
+
+                    //console.log('stop_freq_json', stop_freq_json);
+
+                    old_stop_id = stop_id;
+                    old_freq_id = freq_id;
+                    stop_count++;
+                    freq_id_count++;
+                    return true;
+                });
+
+                if (freq_id_count > 0) {
+                    stop_freq_json = stop_freq_json.substring(0, stop_freq_json.length - 1);
+                    stop_freq_json += ']}';
+                    stop_freq_json += ']}';
+                } else {
+                    stop_freq_json += ']}';
+                }
+
+                console.log('stop_freq_json', stop_freq_json);
+                var parsedStopFreq = JSON.parse(stop_freq_json);
+                var obj = parsedStopFreq.data[0];
+                console.log('obj', obj);
+                var frequency = '';
+
+                bodyStop += '<ol class="list-group">';
+                console.log('parsedStopFreq.data.length', parsedStopFreq.data.length);
+                for (var i = 0; i < parsedStopFreq.data.length; i++) {
+                    var freq_array = [null, null, null, null, null, null];
+                    var obj = parsedStopFreq.data[i];
+                    //console.log('obj_i', obj);
+                    bodyStop += '<li><h5>' + obj['stop_name'] + '<span style="font-style:oblique; color:gray; font-size: x-small;"> ' + obj['operation_zee_name'] + '</span></h5>';
+                    var obj_freq = obj['stop_freq'];
+                    for (y = 0; y < obj_freq.length; y++) {
+                        if (obj_freq[y]['freq_mon'] == 'T') {
+                            var warning = '';
+                            if (!isNullorEmpty(freq_array[0])) {
+                                warning = '<em style="color: red;">WARNING : Duplicates</em>';
+                            }
+                            freq_array[0] = '<strong>Mon : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
+
+                        }
+                        if (obj_freq[y]['freq_tue'] == 'T') {
+                            var warning = '';
+                            if (!isNullorEmpty(freq_array[1])) {
+                                warning = '<em style="color: red;">WARNING : Duplicates</em>';
+                            }
+                            freq_array[1] = '<strong>Tue : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
+                        }
+                        if (obj_freq[y]['freq_wed'] == 'T') {
+                            var warning = '';
+                            if (!isNullorEmpty(freq_array[2])) {
+                                warning = '<em style="color: red;">WARNING : Duplicates</em>';
+                            }
+                            freq_array[2] = '<strong>Wed : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
+                        }
+                        if (obj_freq[y]['freq_thu'] == 'T') {
+                            var warning = '';
+                            if (!isNullorEmpty(freq_array[3])) {
+                                warning = '<em style="color: red;">WARNING : Duplicates</em>';
+                            }
+                            freq_array[3] = '<strong>Thu : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
+                        }
+                        if (obj_freq[y]['freq_fri'] == 'T') {
+                            var warning = '';
+                            if (!isNullorEmpty(freq_array[4])) {
+                                warning = '<em style="color: red;">WARNING : Duplicates</em>';
+                            }
+                            freq_array[4] = '<strong>Fri : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
+                        }
+                        if (obj_freq[y]['freq_adhoc'] == 'T') {
+                            var warning = '';
+                            if (!isNullorEmpty(freq_array[5])) {
+                                warning = '<em style="color: red;">WARNING : Duplicates</em>';
+                            }
+                            freq_array[5] = '<strong>ADHOC : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
+                        }
+                    }
+                    for (k = 0; k < 6; k++) {
+                        if (!isNullorEmpty(freq_array[k])) {
+                            bodyStop += freq_array[k];
+                        }
+                    }
+                    bodyStop += '<div class="stopinfo" style="color: gray;padding-top: 5px;">';
+                    bodyStop += '<div><strong>Stop duration : </strong>' + obj['stop_duration'] + 's<div>';
+                    if (!isNullorEmpty(obj['stop_notes'])) {
+                        bodyStop += '<div style="word-break: normal;"><strong> Notes :</strong> ' + obj['stop_notes'] + '</div>';
+                    }
+                    bodyStop += '</div>';
+                    bodyStop += '</li>';
+
+
+                }
+                bodyStop += '</ol>';
+                bodyStop += '</div>';
+
+                bodyService += '<div style="font-size: medium;"><ul style="list-style: none;"><li style="padding-top: 5px;"><span class="glyphicon glyphicon-user"></span>  ' + obj['customer_name'] + '</li><li style="padding-top: 5px;"><span class="glyphicon glyphicon-list-alt"></span>  ' + obj['service'] + '</li><li style="padding-top: 5px;">'
+
+                bodyService += '</div></div>';
+
+                body += bodyService;
+                body += bodyStop;
+
+
+                $('#myModal .modal-header').html(header);
+                $('#myModal .modal-body').html("");
+                $('#myModal .modal-body').html(body);
+                $('#myModal').modal("show");
+
+            });
+
+            $(document).on("click", ".show_app", function(e) {
+                var service_id = $(this).attr('data-serviceid');
+                inactivate_id_array[inactivate_id_array.length] = service_id;
+                console.log('inactivate service_id', service_id);
+                $(this).prop('disabled', true);
+            });
+    
+            
+            //On selecting zee, reload the SMC - Summary page with selected Zee parameter
+            $(document).on("change", ".zee_dropdown", function(e) {
+    
+                var zee = $(this).val();
+    
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=735&deploy=1&compid=1048144";
+                if (runtime.EnvType == "SANDBOX") {
+                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=735&deploy=1";
+    
+                }
+                console.log('baseURL', baseURL);
+                console.log('url', url);
+    
+                url += "&zee=" + zee + "";
+                console.log('url', url);
+                window.location.href = url;
+            });
+    
+    
+            $(document).on("click", ".remove_service", function(e) {
+                if (confirm('Are you sure you want to remove this service from run?\n\nThis action cannot be undone.')) {
+                    var service_id = $(this).attr('data-serviceid');
+                    remove_id_array[remove_id_array.length] = service_id;
+                    console.log('remove service_id', service_id);
+                    $(this).prop('disabled', true);
+                }
+            
+            
+            });
+
+        }
         
-        $('.collapse').on('hide.bs.collapse', function() {
-            $("#customer_wrapper").css({
-                "padding-top": "0px"
-            });
-            $(".admin_section").css({
-                "padding-top": "0px"
-            });
-        })
 
         
         function onclick_back() {
@@ -337,376 +752,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         }
 
         
-        $(document).on('click', '.details-control', function() {
-            var tr = $(this).closest('tr');
-            var row = table.row(tr);
-
-            if (row.child.isShown()) {
-                // This row is already open - close it
-                row.child.hide();
-                $(this).removeClass('btn-danger');
-                $(this).addClass('btn-success');
-                $(this).find('.span_class').removeClass('glyphicon-minus');
-                $(this).find('.span_class').addClass('glyphicon-plus');
-
-            } else {
-                // Open this row
-                console.log(row.data());
-                row.child(format(row.data())).show();
-                $(this).addClass('btn-danger');
-                $(this).removeClass('btn-success');
-                $(this).find('.span_class').removeClass('glyphicon-plus');
-                $(this).find('.span_class').addClass('glyphicon-minus');
-            }
-
-
-            $(".row_service").each(function() {
-                if ($(this).find(".setup_service").val() == 'SETUP STOP') {
-                    $(this).find(".service_summary").prop('disabled', true);
-                }
-            });
-
-            $(function() {
-                $('[data-toggle="tooltip"]').tooltip()
-            });
-        });
-
-
-        $(document).on('click', '.setup_service', function() {
-            var service_id = $(this).attr('data-serviceid');
-            var currentScript = currentRecord.get();
-            zee = currentScript.getValue({
-                fieldId: 'zee',
-            });
-                    
-            var params = {
-                serviceid: service_id,
-                scriptid: 'customscript_sl_rp_customer_list',
-                deployid: 'customdeploy_sl_rp_customer_list',
-                zee: zee
-            }
-            params = JSON.stringify(params);
-        
-            var output = redirect.toSuitelet({
-                scriptId: 'customscript_sl_rp_create_stops',
-                deploymentId: 'customdeploy_sl_rp_create_stops',
-            });
-            var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
-            window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
-        });
-        
-        
-        $(document).on('click', '.service_summary', function() {
-            console.log('click');
-
-            var header = '<div><h3><label class="control-label">Summary Page</label></h3></div>';
-            var body = '';
-            var bodyService = '<div /*class="col-sm-4"*/ id="servicedetails"><h3 style="color: rgb(50, 122, 183);">Service Details</h3>'
-            var bodyStop = '<div /*class="col col-sm-8"*/ id="stopsdetails"><h3 style="color: rgb(50, 122, 183);">Stops Details</h3>';
-
-            var service_id = $(this).attr('data-serviceid');
-
-            // BodyStop
-            var serviceLegSearch = search.load({
-                id: 'customsearch_rp_leg_freq_all',
-                type: 'customrecord_service_leg'
-            });
-
-            serviceLegSearch.filters.push(search.createFilter({
-                name: 'internalid',
-                join: 'custrecord_service_leg_service',
-                operator: search.Operator.IS,
-                values: service_id
-            }));
-
-            serviceLegSearch.filters.push(search.createFilter({
-                name: 'partner',
-                join: 'CUSTRECORD_SERVICE_LEG_CUSTOMER',
-                operator: search.Operator.IS,
-                values: zee
-            }));
-
-            serviceLegSearch.filters.push(search.createFilter({
-                name: 'isinactive',
-                operator: search.Operator.IS,
-                values: 'F'
-            }));
-
-            var resultSet = serviceLegSearch.run();
-            var old_stop_id;
-            var old_freq_id;
-
-            var stop_count = 0;
-            var freq_id_count = 0;
-            var freq_count = 0;
-            var stop_freq_json = '{ "data": [';
-            resultSet.each(function(searchResult) {
-                var customer_name = searchResult.getText('custrecord_service_leg_customer');
-                var service = searchResult.getText('custrecord_service_leg_service');
-                var stop_id = searchResult.getValue('internalid');
-                var stop_name = searchResult.getValue('name');
-                var stop_duration = searchResult.getValue('custrecord_service_leg_duration');
-                var stop_notes = searchResult.getValue('custrecord_service_leg_notes');
-                var service_leg_ncl = searchResult.getValue("custrecord_service_leg_non_cust_location");
-                var service_leg_addr_id = searchResult.getValue("custrecord_service_leg_addr");
-                var transfer_type = searchResult.getValue("custrecord_service_leg_trf_type");
-                var transfer_zee = searchResult.getValue("custrecord_service_leg_trf_franchisee");
-
-                
-                var freq_id = searchResult.getValue({
-                    name: 'internalid',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-
-                var operation_zee = searchResult.getValue("custrecord_service_leg_franchisee");
-                var operation_zee_name = searchResult.getText("custrecord_service_leg_franchisee");
-
-                var freq_mon = searchResult.getValue({
-                    name: 'custrecord_service_freq_day_mon',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_tue = searchResult.getValue({
-                    name: 'custrecord_service_freq_day_tue',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_wed = searchResult.getValue({
-                    name: 'custrecord_service_freq_day_wed',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_thu = searchResult.getValue({
-                    name: 'custrecord_service_freq_day_thu',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_fri = searchResult.getValue({
-                    name: 'custrecord_service_freq_day_fri',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_adhoc = searchResult.getValue({
-                    name: 'custrecord_service_freq_day_adhoc',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_time_current = searchResult.getValue({
-                    name: 'custrecord_service_freq_time_current',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_time_start = searchResult.getValue({
-                    name: 'custrecord_service_freq_time_start',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_time_end = searchResult.getValue({
-                    name: 'custrecord_service_freq_time_end',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-                var freq_run_plan = searchResult.getText({
-                    name: 'custrecord_service_freq_run_plan',
-                    join: 'CUSTRECORD_SERVICE_FREQ_STOP'
-                });
-                
-
-                if (stop_count == 0) {
-                    stop_freq_json += '{"customer_name": "' + customer_name + '",';
-                    stop_freq_json += '"service": "' + service + '",';
-                    stop_freq_json += '"stop_id": "' + stop_id + '",';
-                    stop_freq_json += '"stop_name": "' + stop_name + '",';
-                    stop_freq_json += '"stop_duration": "' + stop_duration + '",';
-                    stop_freq_json += '"stop_notes": "' + stop_notes + '",';
-                    stop_freq_json += '"stop_ncl_id": "' + service_leg_ncl + '",';
-                    stop_freq_json += '"stop_addr_id": "' + service_leg_addr_id + '",';
-                    stop_freq_json += '"transfer_type": "' + transfer_type + '",';
-                    stop_freq_json += '"transfer_zee": "' + transfer_zee + '",';
-                    stop_freq_json += '"operation_zee": "' + operation_zee + '",';
-                    stop_freq_json += '"operation_zee_name": "' + operation_zee_name + '",';
-                    stop_freq_json += '"stop_freq": [';
-                    stop_freq_json += '{"freq_id": "' + freq_id + '",';
-                    stop_freq_json += '"freq_mon": "' + freq_mon + '",';
-                    stop_freq_json += '"freq_tue": "' + freq_tue + '",';
-                    stop_freq_json += '"freq_wed": "' + freq_wed + '",';
-                    stop_freq_json += '"freq_thu": "' + freq_thu + '",';
-                    stop_freq_json += '"freq_fri": "' + freq_fri + '",';
-                    stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
-                    stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
-                    stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
-                    stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
-                    stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
-                } else {
-                    if (old_stop_id == stop_id && old_freq_id == freq_id) {
-                        stop_freq_json += '{"freq_id": "' + freq_id + '",';
-                        stop_freq_json += '"freq_mon": "' + freq_mon + '",';
-                        stop_freq_json += '"freq_tue": "' + freq_tue + '",';
-                        stop_freq_json += '"freq_wed": "' + freq_wed + '",';
-                        stop_freq_json += '"freq_thu": "' + freq_thu + '",';
-                        stop_freq_json += '"freq_fri": "' + freq_fri + '",';
-                        stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
-                        stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
-                        stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
-                        stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
-                        stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
-                    } else if (old_stop_id == stop_id && old_freq_id != freq_id) {
-                        stop_freq_json += '{"freq_id": "' + freq_id + '",';
-                        stop_freq_json += '"freq_mon": "' + freq_mon + '",';
-                        stop_freq_json += '"freq_tue": "' + freq_tue + '",';
-                        stop_freq_json += '"freq_wed": "' + freq_wed + '",';
-                        stop_freq_json += '"freq_thu": "' + freq_thu + '",';
-                        stop_freq_json += '"freq_fri": "' + freq_fri + '",';
-                        stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
-                        stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
-                        stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
-                        stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
-                        stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
-
-                    } else if (old_stop_id != stop_id) {
-                        stop_freq_json = stop_freq_json.substring(0, stop_freq_json.length - 1);
-                        stop_freq_json += ']},';
-
-                        freq_id_count = 0;
-
-                        stop_freq_json += '{"customer_name": "' + customer_name + '",';
-                        stop_freq_json += '"service": "' + service + '",';
-                        stop_freq_json += '"stop_id": "' + stop_id + '",';
-                        stop_freq_json += '"stop_name": "' + stop_name + '",';
-                        stop_freq_json += '"stop_duration": "' + stop_duration + '",';
-                        stop_freq_json += '"stop_notes": "' + stop_notes + '",';
-                        stop_freq_json += '"stop_ncl_id": "' + service_leg_ncl + '",';
-                        stop_freq_json += '"stop_addr_id": "' + service_leg_addr_id + '",';
-                        stop_freq_json += '"transfer_type": "' + transfer_type + '",';
-                        stop_freq_json += '"transfer_zee": "' + transfer_zee + '",';
-                        stop_freq_json += '"operation_zee": "' + operation_zee + '",';
-                        stop_freq_json += '"operation_zee_name": "' + operation_zee_name + '",';
-                        stop_freq_json += '"stop_freq": [';
-                        stop_freq_json += '{"freq_id": "' + freq_id + '",';
-                        stop_freq_json += '"freq_mon": "' + freq_mon + '",';
-                        stop_freq_json += '"freq_tue": "' + freq_tue + '",';
-                        stop_freq_json += '"freq_wed": "' + freq_wed + '",';
-                        stop_freq_json += '"freq_thu": "' + freq_thu + '",';
-                        stop_freq_json += '"freq_fri": "' + freq_fri + '",';
-                        stop_freq_json += '"freq_adhoc": "' + freq_adhoc + '",';
-                        stop_freq_json += '"freq_time_current": "' + freq_time_current + '",';
-                        stop_freq_json += '"freq_time_start": "' + freq_time_start + '",';
-                        stop_freq_json += '"freq_time_end": "' + freq_time_end + '",';
-                        stop_freq_json += '"freq_run_plan": "' + freq_run_plan + '"},';
-
-                    }
-                }
-
-                //console.log('stop_freq_json', stop_freq_json);
-
-                old_stop_id = stop_id;
-                old_freq_id = freq_id;
-                stop_count++;
-                freq_id_count++;
-                return true;
-            });
-
-            if (freq_id_count > 0) {
-                stop_freq_json = stop_freq_json.substring(0, stop_freq_json.length - 1);
-                stop_freq_json += ']}';
-                stop_freq_json += ']}';
-            } else {
-                stop_freq_json += ']}';
-            }
-
-            console.log('stop_freq_json', stop_freq_json);
-            var parsedStopFreq = JSON.parse(stop_freq_json);
-            var obj = parsedStopFreq.data[0];
-            console.log('obj', obj);
-            var frequency = '';
-
-            bodyStop += '<ol class="list-group">';
-            console.log('parsedStopFreq.data.length', parsedStopFreq.data.length);
-            for (var i = 0; i < parsedStopFreq.data.length; i++) {
-                var freq_array = [null, null, null, null, null, null];
-                var obj = parsedStopFreq.data[i];
-                //console.log('obj_i', obj);
-                bodyStop += '<li><h5>' + obj['stop_name'] + '<span style="font-style:oblique; color:gray; font-size: x-small;"> ' + obj['operation_zee_name'] + '</span></h5>';
-                var obj_freq = obj['stop_freq'];
-                for (y = 0; y < obj_freq.length; y++) {
-                    if (obj_freq[y]['freq_mon'] == 'T') {
-                        var warning = '';
-                        if (!isNullorEmpty(freq_array[0])) {
-                            warning = '<em style="color: red;">WARNING : Duplicates</em>';
-                        }
-                        freq_array[0] = '<strong>Mon : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
-
-                    }
-                    if (obj_freq[y]['freq_tue'] == 'T') {
-                        var warning = '';
-                        if (!isNullorEmpty(freq_array[1])) {
-                            warning = '<em style="color: red;">WARNING : Duplicates</em>';
-                        }
-                        freq_array[1] = '<strong>Tue : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
-                    }
-                    if (obj_freq[y]['freq_wed'] == 'T') {
-                        var warning = '';
-                        if (!isNullorEmpty(freq_array[2])) {
-                            warning = '<em style="color: red;">WARNING : Duplicates</em>';
-                        }
-                        freq_array[2] = '<strong>Wed : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
-                    }
-                    if (obj_freq[y]['freq_thu'] == 'T') {
-                        var warning = '';
-                        if (!isNullorEmpty(freq_array[3])) {
-                            warning = '<em style="color: red;">WARNING : Duplicates</em>';
-                        }
-                        freq_array[3] = '<strong>Thu : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
-                    }
-                    if (obj_freq[y]['freq_fri'] == 'T') {
-                        var warning = '';
-                        if (!isNullorEmpty(freq_array[4])) {
-                            warning = '<em style="color: red;">WARNING : Duplicates</em>';
-                        }
-                        freq_array[4] = '<strong>Fri : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
-                    }
-                    if (obj_freq[y]['freq_adhoc'] == 'T') {
-                        var warning = '';
-                        if (!isNullorEmpty(freq_array[5])) {
-                            warning = '<em style="color: red;">WARNING : Duplicates</em>';
-                        }
-                        freq_array[5] = '<strong>ADHOC : </strong>' + obj_freq[y]['freq_time_current'] + ' - ' + obj_freq[y]['freq_run_plan'] + ' ' + warning + '</br>';
-                    }
-                }
-                for (k = 0; k < 6; k++) {
-                    if (!isNullorEmpty(freq_array[k])) {
-                        bodyStop += freq_array[k];
-                    }
-                }
-                bodyStop += '<div class="stopinfo" style="color: gray;padding-top: 5px;">';
-                bodyStop += '<div><strong>Stop duration : </strong>' + obj['stop_duration'] + 's<div>';
-                if (!isNullorEmpty(obj['stop_notes'])) {
-                    bodyStop += '<div style="word-break: normal;"><strong> Notes :</strong> ' + obj['stop_notes'] + '</div>';
-                }
-                bodyStop += '</div>';
-                bodyStop += '</li>';
-
-
-            }
-            bodyStop += '</ol>';
-            bodyStop += '</div>';
-
-            bodyService += '<div style="font-size: medium;"><ul style="list-style: none;"><li style="padding-top: 5px;"><span class="glyphicon glyphicon-user"></span>  ' + obj['customer_name'] + '</li><li style="padding-top: 5px;"><span class="glyphicon glyphicon-list-alt"></span>  ' + obj['service'] + '</li><li style="padding-top: 5px;">'
-
-            bodyService += '</div></div>';
-
-            body += bodyService;
-            body += bodyStop;
-
-
-            $('#myModal .modal-header').html(header);
-            $('#myModal .modal-body').html("");
-            $('#myModal .modal-body').html(body);
-            $('#myModal').modal("show");
-
-        });
-
 
         function format(index) {
             console.log('index.cust_id', index.cust_id);
@@ -790,43 +835,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         }
         
         
-        $(document).on("click", ".show_app", function(e) {
-            var service_id = $(this).attr('data-serviceid');
-            inactivate_id_array[inactivate_id_array.length] = service_id;
-            console.log('inactivate service_id', service_id);
-            $(this).prop('disabled', true);
-        });
-
         
-        //On selecting zee, reload the SMC - Summary page with selected Zee parameter
-        $(document).on("change", ".zee_dropdown", function(e) {
-
-            var zee = $(this).val();
-
-            var url = baseURL + "/app/site/hosting/scriptlet.nl?script=735&deploy=1&compid=1048144";
-            if (runtime.EnvType == "SANDBOX") {
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=735&deploy=1";
-
-            }
-            console.log('baseURL', baseURL);
-            console.log('url', url);
-
-            url += "&zee=" + zee + "";
-            console.log('url', url);
-            window.location.href = url;
-        });
-
-
-        $(document).on("click", ".remove_service", function(e) {
-            if (confirm('Are you sure you want to remove this service from run?\n\nThis action cannot be undone.')) {
-                var service_id = $(this).attr('data-serviceid');
-                remove_id_array[remove_id_array.length] = service_id;
-                console.log('remove service_id', service_id);
-                $(this).prop('disabled', true);
-            }
-        
-        
-        });
         
         
         /**

@@ -14,10 +14,10 @@
  *
  */
 
- define(['require', 'dependency'], 
-    function(require, factory) {
+define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
+    function(error, runtime, search, url, record, format, email, currentRecord) {
         var baseURL = 'https://1048144.app.netsuite.com';
-        if (nlapiGetContext().getEnvironment() == "SANDBOX") {
+        if (runtime.EnvType == "SANDBOX") {
             baseURL = 'https://system.sandbox.netsuite.com';
         }
 

@@ -1,6 +1,6 @@
 /**
  * @NApiVersion 2.x
- * @NScriptType ClientScript
+ * @NScriptType Suitelet
  * 
  * Module Description
  * 

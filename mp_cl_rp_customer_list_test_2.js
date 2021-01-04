@@ -11,16 +11,18 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         }
         var role = runtime.getCurrentUser().role;
         //To show loader while the page is laoding
-        $(window).load(function() {
-            // Animate loader off screen
-            $(".se-pre-con").fadeOut("slow");;
-        });
+        
         
         var table;
         /**
          * [pageInit description] - On page initialization, load the Dynatable CSS and sort the table based on the customer name and align the table to the center of the page. 
          */
         function pageInit() {
+            $(window).load(function() {
+                // Animate loader off screen
+                $(".se-pre-con").fadeOut("slow");;
+            });
+
             console.log(document.getElementsByClassName('instruction_button'));
 
             //Search: RP - Services
@@ -231,43 +233,105 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 main_table2[i].style.top = "275px";
             }
 
+            jQuery();
         }
 
-        $(document).on('click', '.edit_customer', function() {
+        function jQuery() {
+            $(document).on('click', '.edit_customer', function() {
 
-            var custid = $(this).attr('data-custid')
-            console.log(custid);
-            var params = {
-                custid: custid,
-            }
-            params = JSON.stringify(params);
-        
-            var output = redirect.toSuitelet({
-                scriptId: 'customscript_sl_smc_main',
-                deploymentId: 'customdeploy_sl_smc_main'
+                var custid = $(this).attr('data-custid')
+                console.log(custid);
+                var params = {
+                    custid: custid,
+                }
+                params = JSON.stringify(params);
+            
+                var output = redirect.toSuitelet({
+                    scriptId: 'customscript_sl_smc_main',
+                    deploymentId: 'customdeploy_sl_smc_main'
+                });
+                var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
+                window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
+            
             });
-            var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
-            window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
-        
-        });
+    
+            $('.collapse').on('shown.bs.collapse', function() {
+                $("#customer_wrapper").css({
+                    "padding-top": "300px"
+                });
+                $(".admin_section").css({
+                    "padding-top": "300px"
+                });
+            })
+            
+            $('.collapse').on('hide.bs.collapse', function() {
+                $("#customer_wrapper").css({
+                    "padding-top": "0px"
+                });
+                $(".admin_section").css({
+                    "padding-top": "0px"
+                });
+            })
 
-        $('.collapse').on('shown.bs.collapse', function() {
-            $("#customer_wrapper").css({
-                "padding-top": "300px"
+            $(document).on('click', '.details-control', function() {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+            
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    $(this).removeClass('btn-danger');
+                    $(this).addClass('btn-success');
+                    $(this).find('.span_class').removeClass('glyphicon-minus');
+                    $(this).find('.span_class').addClass('glyphicon-plus');
+                } else {
+                    // Open this row
+                    console.log(row.data());
+                    row.child(format(row.data())).show();
+                    $(this).addClass('btn-danger');
+                    $(this).removeClass('btn-success');
+                    $(this).find('.span_class').removeClass('glyphicon-plus');
+                    $(this).find('.span_class').addClass('glyphicon-minus');
+                }
             });
-            $(".admin_section").css({
-                "padding-top": "300px"
+    
+            $(document).on('click', '.setup_service', function() {
+                var service_id = $(this).attr('data-serviceid');
+                var currRecord = currentRecord.get();
+                zee = currRecord.getValue({
+                    fieldId: 'zee'
+                });
+            
+                var params = {
+                    serviceid: service_id,
+                    scriptid: 'customscript_sl_rp_customer_list_test',
+                    deployid: 'customdeploy_sl_rp_customer_list_test',
+                    zee: zee
+                }
+                params = JSON.stringify(params);
+                var output = redirect.toSuitelet({
+                    scriptId: 'customscript_sl_rp_create_stops_test',
+                    deploymentId: 'customdeploy_sl_rp_create_stops_test',
+                });
+    
+                var upload_url = baseURL + '&unlayered=T&custparam_params=' + params;
+                window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
             });
-        })
+
+             //On selecting zee, reload the SMC - Summary page with selected Zee parameter
+            $(document).on("change", ".zee_dropdown", function(e) {
+
+                var zee = $(this).val();
+
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=921&deploy=1&compid=1048144";
+
+                url += "&zee=" + zee + "";
+
+                window.location.href = url;
+            });
+    
+        }
         
-        $('.collapse').on('hide.bs.collapse', function() {
-            $("#customer_wrapper").css({
-                "padding-top": "0px"
-            });
-            $(".admin_section").css({
-                "padding-top": "0px"
-            });
-        })
 
        
         function onclick_back() {
@@ -289,51 +353,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }
 
-        $(document).on('click', '.details-control', function() {
-            var tr = $(this).closest('tr');
-            var row = table.row(tr);
         
-            if (row.child.isShown()) {
-                // This row is already open - close it
-                row.child.hide();
-                $(this).removeClass('btn-danger');
-                $(this).addClass('btn-success');
-                $(this).find('.span_class').removeClass('glyphicon-minus');
-                $(this).find('.span_class').addClass('glyphicon-plus');
-            } else {
-                // Open this row
-                console.log(row.data());
-                row.child(format(row.data())).show();
-                $(this).addClass('btn-danger');
-                $(this).removeClass('btn-success');
-                $(this).find('.span_class').removeClass('glyphicon-plus');
-                $(this).find('.span_class').addClass('glyphicon-minus');
-            }
-        });
-
-        $(document).on('click', '.setup_service', function() {
-            var service_id = $(this).attr('data-serviceid');
-            var currRecord = currentRecord.get();
-            zee = currRecord.getValue({
-                fieldId: 'zee'
-            });
-        
-            var params = {
-                serviceid: service_id,
-                scriptid: 'customscript_sl_rp_customer_list_test',
-                deployid: 'customdeploy_sl_rp_customer_list_test',
-                zee: zee
-            }
-            params = JSON.stringify(params);
-            var output = redirect.toSuitelet({
-                scriptId: 'customscript_sl_rp_create_stops_test',
-                deploymentId: 'customdeploy_sl_rp_create_stops_test',
-            });
-
-            var upload_url = baseURL + '&unlayered=T&custparam_params=' + params;
-            window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
-        });
-
 
         function format(index) {
             // var json_data = data[parseInt(index)];
@@ -382,17 +402,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         }
         
         
-        //On selecting zee, reload the SMC - Summary page with selected Zee parameter
-        $(document).on("change", ".zee_dropdown", function(e) {
-
-            var zee = $(this).val();
-
-            var url = baseURL + "/app/site/hosting/scriptlet.nl?script=921&deploy=1&compid=1048144";
-
-            url += "&zee=" + zee + "";
-
-            window.location.href = url;
-        });
+       
 
         
         /**

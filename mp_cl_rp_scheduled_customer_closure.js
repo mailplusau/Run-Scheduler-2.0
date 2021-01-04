@@ -1,21 +1,10 @@
 /**
- * @NApiVersion 2.0
- * @NScriptType Suitelet
- * 
- * Module Description
- * 
- * NSVersion    Date                        Author         
- * 2.00         2020-10-22 09:33:08         Anesu
- *
- * Description: Automation of Debt Collection Process   
- * 
- * @Last Modified by:   Anesu
- * @Last Modified time: 2020-10-22 16:49:26
- * 
+ *@NApiVersion 2.x
+ *@NScriptType ClientScript
  */
 
-define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/task'],
-    function(ui, email, runtime, search, record, http, log, redirect, task) {
+define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
+    function(error, runtime, search, url, record, format, email, currentRecord) {
         var zee = 0;
         var role = 0;
 
@@ -195,7 +184,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         // }
 
         return {
-            onRequest: onRequest
-        }
-});
+            pageInit: pageInit,
+            saveRecord: saveRecord,
+        };
+    }
+);
 

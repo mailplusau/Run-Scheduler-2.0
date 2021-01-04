@@ -30,10 +30,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             zee = parseInt(zeeCustPage);
         }
 
-        
-
-        
-        function jQuery() {
+        function startJQuery() {
             $(window).load(function() {
                 // Animate loader off screen
                 $(".se-pre-con").fadeOut("slow");;
@@ -47,6 +44,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             
             });
 
+            
             $(document).on('click', '#create_new', function(e) {
                 var currentScript = currentRecord.get();
                 var customerIdCustPage = currentScript.getValue({
@@ -65,11 +63,61 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                     deploymentId: 'customdeploy_sl_create_new_ncl',
                     returnExternalUrl: false,
                 });
-    
+
                 var upload_url = baseURL + output + '&custparam_params=' + params;
                 window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
             });
+        }
+        
 
+
+        /**
+         * On page initialisation
+         */
+        function pageInit() {
+            startJQuery()
+            $('#alert').hide();
+
+            $('#duration').durationPicker();
+
+            $('.durationpicker-container').addClass('hide');
+
+            $(function() {
+                $('[data-toggle="tooltip"]').tooltip()
+            })
+
+            var currentScript = currentRecord.get();
+            var transfer_stop_linked = currentScript.getValue({
+                fieldId: 'custpage_transfer_stop_linked',
+            });
+            
+            transfer_stop_linked = transfer_stop_linked.split(',');
+            console.log('transfer_stop_linked', transfer_stop_linked);
+
+            for (i = 0; i < transfer_stop_linked.length; i++) {
+                if (!isNullorEmpty(transfer_stop_linked[i])) {
+                    $('#services tbody > tr').each(function() {
+                        console.log('$(this).find(delete_stop).attr(data-oldstop)', $(this).find('.delete_stop').attr('data-oldstop'));
+                        if ($(this).find('.delete_stop').attr('data-oldstop') == transfer_stop_linked[i]) {
+                            $(this).addClass('hide');
+                            $(this).find('.add_stop').removeClass('add_stop');
+                            $(this).find('.edit_stop').removeClass('edit_stop');
+                            $(this).find('.delete_stop_input').removeClass('delete_stop_input');
+                            $(this).find('.table_info').removeClass('table_info');
+                            $(this).find('.table_duration').removeClass('table_duration');
+                            $(this).find('.table_stop_name').removeClass('table_stop_name');
+                            $(this).find('.table_notes').removeClass('table_notes');
+        
+                        }
+                    });
+                }
+            }
+            JQuery()
+        
+        
+        }
+
+        function JQuery() {
             $(document).on('click', '#alert .close', function(e) {
                 $(this).parent().hide();
             });
@@ -602,10 +650,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
     
     
             });
-    
 
-    
-            
             $(document).on('change', '.address_type', function(e) {
                 if ($('option:selected', this).val() == 1) {
                     $('.ncl_row').addClass('hide');
@@ -710,88 +755,9 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             
                 }
             });
-    
-    
-        }
-        /**
-         * On page initialisation
-         */
-        function pageInit() {
-            $('#alert').hide();
-
-            $('#duration').durationPicker();
-
-            $('.durationpicker-container').addClass('hide');
-
-            $(function() {
-                $('[data-toggle="tooltip"]').tooltip()
-            })
-
-            var currentScript = currentRecord.get();
-            var transfer_stop_linked = currentScript.getValue({
-                fieldId: 'custpage_transfer_stop_linked',
-            });
-            
-            transfer_stop_linked = transfer_stop_linked.split(',');
-            console.log('transfer_stop_linked', transfer_stop_linked);
-
-            for (i = 0; i < transfer_stop_linked.length; i++) {
-                if (!isNullorEmpty(transfer_stop_linked[i])) {
-                    $('#services tbody > tr').each(function() {
-                        console.log('$(this).find(delete_stop).attr(data-oldstop)', $(this).find('.delete_stop').attr('data-oldstop'));
-                        if ($(this).find('.delete_stop').attr('data-oldstop') == transfer_stop_linked[i]) {
-                            $(this).addClass('hide');
-                            $(this).find('.add_stop').removeClass('add_stop');
-                            $(this).find('.edit_stop').removeClass('edit_stop');
-                            $(this).find('.delete_stop_input').removeClass('delete_stop_input');
-                            $(this).find('.table_info').removeClass('table_info');
-                            $(this).find('.table_duration').removeClass('table_duration');
-                            $(this).find('.table_stop_name').removeClass('table_stop_name');
-                            $(this).find('.table_notes').removeClass('table_notes');
-        
-                        }
-                    });
-                }
-            }
-
-            jQuery();
-        
-        
         }
 
-        function resetTransferQuestions() {
-            $('.transfer_question').prop('checked', false);
-            $('.transfer_position').val(0);
-            $('.transfer_row').addClass('hide');
-            $('.transfer_position_row').addClass('hide');
-            $('#transfer_type').val(0);
-            $('#zee').val(0);
-        }
 
-        function reset_all() {
-            $('.ncl_row').addClass('hide');
-            $('.customer_address_row').addClass('hide');
-            $('.duration_row').addClass('hide');
-            $('.notes_row').addClass('hide');
-            $('.stop_name_row').addClass('hide');
-            $('.stop_duration_row').addClass('hide');
-            $('.durationpicker-container').addClass('hide');
-            $('.stop_notes_row').addClass('hide');
-            $('.row_button').addClass('hide');
-            $('.address_type_row').addClass('hide');
-            $('.transfer_type_row').addClass('hide');
-            $('.zee_row').addClass('hide');
-            $('.zee_operator_row').addClass('hide');
-            $('.address_type').val(0);
-            $('.ncl_type').val(0);
-            $('.customer_address_type').val(0);
-            $('.stop_name').val("");
-            $('.stop_duration').val("");
-            $('.stop_notes').val("");
-            $('.duration').val("");
-            $('.notes').val("");
-            resetTransferQuestions();
-        }
 
         function showAlert(message) {
             $('#myModal .modal-header').html('<div class="form-group"><h4><label class="control-label" for="inputError1" style="color: #e93578; ">Error!!</label></h4></div>');
@@ -799,6 +765,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             $('#myModal .modal-body').html(message);
             $('#myModal').modal("show");
         }
+
 
 
         function onclick_back() {
@@ -850,6 +817,43 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             });
         }
 
+
+
+        function resetTransferQuestions() {
+            $('.transfer_question').prop('checked', false);
+            $('.transfer_position').val(0);
+            $('.transfer_row').addClass('hide');
+            $('.transfer_position_row').addClass('hide');
+            $('#transfer_type').val(0);
+            $('#zee').val(0);
+        }
+
+        function reset_all() {
+            $('.ncl_row').addClass('hide');
+            $('.customer_address_row').addClass('hide');
+            $('.duration_row').addClass('hide');
+            $('.notes_row').addClass('hide');
+            $('.stop_name_row').addClass('hide');
+            $('.stop_duration_row').addClass('hide');
+            $('.durationpicker-container').addClass('hide');
+            $('.stop_notes_row').addClass('hide');
+            $('.row_button').addClass('hide');
+            $('.address_type_row').addClass('hide');
+            $('.transfer_type_row').addClass('hide');
+            $('.zee_row').addClass('hide');
+            $('.zee_operator_row').addClass('hide');
+            $('.address_type').val(0);
+            $('.ncl_type').val(0);
+            $('.customer_address_type').val(0);
+            $('.stop_name').val("");
+            $('.stop_duration').val("");
+            $('.stop_notes').val("");
+            $('.duration').val("");
+            $('.notes').val("");
+            resetTransferQuestions();
+        }
+
+        
 
         
         
