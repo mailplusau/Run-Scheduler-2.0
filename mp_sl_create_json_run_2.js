@@ -971,12 +971,12 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 ignoreMandatoryFields: true
             });
 
-            var parsedStopFreq = JSON.parse(stop_freq_json);
+            //var parsedStopFreq = JSON.parse(stop_freq_json);
 
-            log.debug({
-                title: 'JSON Parsed Freq',
-                details: parsedStopFreq
-            });
+            // log.debug({
+            //     title: 'JSON Parsed Freq',
+            //     details: parsedStopFreq
+            // });
 
         } else {
 

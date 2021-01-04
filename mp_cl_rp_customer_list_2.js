@@ -21,7 +21,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
          */
         function pageInit() {
             //To show loader while the page is laoding
-        
+            console.log("1");
             $(window).load(function() {
                 // Animate loader off screen
                 $(".se-pre-con").fadeOut("slow");;
@@ -35,12 +35,14 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var zeeVal = currRecord.getValue({
                 fieldId: 'zee'
             });
+            console.log(JSON.stringify(zeeVal));
             serviceSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_franchisee',
                 operator: search.Operator.ANYOF,
                 values: zeeVal
             }));
-            
+            console.log("2");
+
 
             var resultSetCustomer = serviceSearch.run();
             var old_customer_id;
@@ -48,6 +50,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var old_entity_id;
             var old_company_name;
             var old_scheduled;
+            console.log("3");
 
             var count = 0;
             var customer_count = 0;
@@ -67,6 +70,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
 
             
             resultSetCustomer.each(function(searchResult) {
+                console.log("4");
 
                 var custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
                 
@@ -168,6 +172,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 count++;
                 return true;
             });
+            console.log("5");
 
             if (count > 0) {
                 dataSet += '{"cust_id":"' + old_customer_id + '", "entity_id":"' + old_entity_id + '", "company_name":"' + old_company_name + '","scheduled": "' + old_scheduled + '","services_suspended": "' + services_suspended + '",'
@@ -186,18 +191,22 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 dataSet = dataSet.substring(0, dataSet.length - 1);
                 dataSet += ']},'
             }
+            console.log("6");
 
             dataSet = dataSet.substring(0, dataSet.length - 1);
             dataSet += ']}';
             console.log(dataSet);
             var parsedData = JSON.parse(dataSet);
             console.log(parsedData.data);
-        
+            console.log("7");
+
             
             // AddStyle('https://1048144.app.netsuite.com/core/media/media.nl?id=1988776&c=1048144&h=58352d0b4544df20b40f&_xt=.css', 'head');
 
             //JQuery to sort table based on click of header. Attached library  
             $(document).ready(function() {
+                console.log("8");
+
                 table = $("#customer").DataTable({
                     "data": parsedData.data,
                     "columns": [{
@@ -250,7 +259,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var main_table = document.getElementsByClassName("uir-outside-fields-table");
             var main_table2 = document.getElementsByClassName("uir-inline-tag");
 
-            
+            console.log("9");
+
             for (var i = 0; i < main_table.length; i++) {
                 main_table[i].style.width = "50%";
             }
@@ -261,8 +271,11 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 main_table2[i].style.width = "80%";
                 main_table2[i].style.top = "275px";
             }
+            console.log("10");
 
-            jQuery()
+            jQuery();
+            console.log("11");
+
         }
 
         function jQuery() {
@@ -747,6 +760,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 fieldId: 'custpage_inactivate_service',
                 value: inactivate_id_string,
             });
+            console.log("12");
 
             return true;
         }

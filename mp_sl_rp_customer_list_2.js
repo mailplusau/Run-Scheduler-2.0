@@ -25,7 +25,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
     function onRequest(context) {  
         
         if (context.request.method === 'GET') {
-            var form = nlapiCreateForm('Run Scheduler - Customer List View');
+            var form = ui.createForm({
+                title: 'Run Scheduler - Customer List View'
+            });
 
             var inlineQty = '';
             var inlinehtml2 = '';
@@ -73,7 +75,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     // WS Edit: Updated entityid to companyname
                     zee_name = searchResult_zee.getValue('companyname');
 
-                    if (request.getParameter('zee') == zee_id) {
+                    if (context.request.parameters.zee == zee_id) {
                         inlinehtml2 += '<option value="' + zee_id + '" selected="selected">' + zee_name + '</option>';
                     } else {
                         inlinehtml2 += '<option value="' + zee_id + '">' + zee_name + '</option>';
@@ -157,7 +159,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 label : 'Save changes'
             });
 
-            form.clientScriptFileId = 2188375;
+            form.clientScriptFileId = 4597166; // SB = 2188375; PROD = 4597166
             context.response.writePage(form);
     
 
@@ -336,8 +338,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 zee: parseInt(zee),
             }
             redirect.toSuitelet({
-                scriptId: 'customscript_sl_rp_customer_list',
-                deploymentId: 'customdeploy_sl_rp_customer_list',
+                scriptId: 'customscript_sl_rp_customer_list_2',
+                deploymentId: 'customdeploy_sl_rp_customer_list_2',
                 parameters: params
             })
         
@@ -348,14 +350,14 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
      * [getDate description] - Function to get the current date
      * @return {[String]} [description] - Return the current date
      */
-    function getDate() {
-        var date = new Date();
-        if (date.getHours() > 6) {
-            date = nlapiAddDays(date, 1);
-        }
-        date = nlapiDateToString(date);
-        return date;
-    }
+    // function getDate() {
+    //     var date = new Date();
+    //     if (date.getHours() > 6) {
+    //         date = nlapiAddDays(date, 1);
+    //     }
+    //     date = nlapiDateToString(date);
+    //     return date;
+    // }
 
     function getDate() {
         var date = new Date();
