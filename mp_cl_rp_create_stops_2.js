@@ -36,9 +36,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 $(".se-pre-con").fadeOut("slow");;
             });
             
-            /**
-             * CONVERT ANGULAR??
-             */
             var app = angular.module('myApp', []);
             app.controller('myCtrl', function($scope) {
             
@@ -817,8 +814,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             });
         }
 
-
-
         function resetTransferQuestions() {
             $('.transfer_question').prop('checked', false);
             $('.transfer_position').val(0);
@@ -852,11 +847,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             $('.notes').val("");
             resetTransferQuestions();
         }
-
-        
-
-        
-        
+           
         function saveRecord(context) {
             var currentScript = currentRecord.get();
             var custZee = currentScript.getValue({
@@ -1523,7 +1514,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         return {
             pageInit: pageInit,
             saveRecord: saveRecord,
-            
+            onclick_back: onclick_back,
+            onclick_mainpage: onclick_mainpage
         };  
     }
 

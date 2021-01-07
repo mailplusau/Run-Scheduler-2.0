@@ -330,7 +330,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
             var resultSet = serviceLegSearch.run();
 
-            var serviceLegResult = ResultSet.getRange({
+            var serviceLegResult = resultSet.getRange({
                 start: 0,
                 end: 1
             });
@@ -355,7 +355,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             inlineQty += '<li class="active">Add / Edit Stops</li>';
             inlineQty += '</ol>';
 
-            inlineQty += '<div class="se-pre-con"></div><button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="margin-top: 50px;position: absolute;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute; margin-top:90px;" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b><ul><li>This page is used to Create / Add / Edit Stops for a particular service. The information required are the stop address, time spent at that stop & notes with respect to the stop</li><li><button class="btn btn-success btn-sm  glyphicon glyphicon-log-out" type="button"  title="Add Stop"></button>';
+            //inlineQty += '<div class="se-pre-con"></div>
+            inlineQty += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="margin-top: 50px;position: absolute;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute; margin-top:90px;" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b><ul><li>This page is used to Create / Add / Edit Stops for a particular service. The information required are the stop address, time spent at that stop & notes with respect to the stop</li><li><button class="btn btn-success btn-sm  glyphicon glyphicon-log-out" type="button"  title="Add Stop"></button>';
             inlineQty += ' - <b>ADD STOP</b><ul><li>Click to Add Stop Information</li></ul></li><li><button class="btn btn-warning btn-sm glyphicon glyphicon-pencil" type="button" title="Edit Stop" ></button> - <b>EDIT STOP</b> </li><ul><li>Click to Edit Stop Information.</li></ul><li><button class="btn btn-danger btn-sm  glyphicon glyphicon-trash" type="button"  title="Delete Stop" ></button> - <b>DELETE STOP</b></li><ul><li>Click to Delete the Stop</li></ul><li><button type="button" class="btn btn-sm glyphicon glyphicon-plus" value="+" style="color: green;" title="Add Row" ></button> - <b>CREATE STOP</b><ul><li>Click to create a New Stop</li></ul></li><ul></div>';
 
             inlineQty += '<div class="container" id="container" style="padding-top: 120px;">';
@@ -728,7 +729,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             /**
              * CREATE 2.0 CL SCRIPT AND SWITCH ID
              */
-            form.clientScriptFileId = 2188514;
+            form.clientScriptFileId = 4596055; //PROD = 4596055
             context.response.writePage(form);
 
 

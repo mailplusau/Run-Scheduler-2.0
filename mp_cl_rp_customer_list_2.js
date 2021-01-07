@@ -22,10 +22,10 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         function pageInit() {
             //To show loader while the page is laoding
             console.log("1");
-            $(window).load(function() {
-                // Animate loader off screen
-                $(".se-pre-con").fadeOut("slow");;
-            });
+            // $(window).load(function() {
+            //     // Animate loader off screen
+            //     $(".se-pre-con").fadeOut("slow");;
+            // });
             //Search: RP - Services
             var serviceSearch = search.load({
                 id: 'customsearch_rp_services',
@@ -35,12 +35,28 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var zeeVal = currRecord.getValue({
                 fieldId: 'zee'
             });
-            console.log(JSON.stringify(zeeVal));
-            serviceSearch.filters.push(search.createFilter({
+            
+            if (zeeVal == NaN) {
+                console.log("nan");
+            } else {
+                console.log("no");
+            }
+            if (isNullorEmpty(zeeVal)) {
+                console.log("nan1");
+            } else {
+                console.log("no1");
+
+            }
+
+            var defaultFilters = serviceSearch.filters;
+
+            defaultFilters.push(search.createFilter({
                 name: 'custrecord_service_franchisee',
                 operator: search.Operator.ANYOF,
                 values: zeeVal
             }));
+
+            serviceSearch.filters = defaultFilters;
             console.log("2");
 
 
@@ -329,7 +345,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 } else {
                     // Open this row
                     console.log(row.data());
-                    row.child(format(row.data())).show();
+                    row.child(format2(row.data())).show();
                     $(this).addClass('btn-danger');
                     $(this).removeClass('btn-success');
                     $(this).find('.span_class').removeClass('glyphicon-plus');
@@ -358,8 +374,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                         
                 var params = {
                     serviceid: service_id,
-                    scriptid: 'customscript_sl_rp_customer_list',
-                    deployid: 'customdeploy_sl_rp_customer_list',
+                    scriptid: 'customscript_sl_rp_customer_list_2',
+                    deployid: 'customdeploy_sl_rp_customer_list_2',
                     zee: zee
                 }
                 params = JSON.stringify(params);
@@ -697,9 +713,11 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
     
                 var zee = $(this).val();
     
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=735&deploy=1&compid=1048144";
+                console.log(zee);
+                console.log("hello");
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1124&deploy=1&compid=1048144";
                 if (runtime.EnvType == "SANDBOX") {
-                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=735&deploy=1";
+                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1124&deploy=1";
     
                 }
                 console.log('baseURL', baseURL);
@@ -767,7 +785,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
 
         
 
-        function format(index) {
+        function format2(index) {
             console.log('index.cust_id', index.cust_id);
             var html = '<table class="table table-responsive" cellpadding="5" cellspacing="0" border="0" style="padding-left:50px;">';
         

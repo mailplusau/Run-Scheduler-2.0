@@ -12,7 +12,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
         baseURL = 'https://1048144-sb3.app.netsuite.com';
     }
     var role = runtime.getCurrentUser().role;
-    
+    if (role == 1000) {
+        //Franchisee
+        zee = runtime.getCurrentUser();
+    }
     function onRequest(context) {  
         
         if (context.request.method === 'GET') {

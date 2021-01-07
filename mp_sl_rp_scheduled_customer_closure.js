@@ -2,16 +2,6 @@
  * @NApiVersion 2.0
  * @NScriptType Suitelet
  * 
- * Module Description
- * 
- * NSVersion    Date                        Author         
- * 2.00         2020-10-22 09:33:08         Anesu
- *
- * Description: Automation of Debt Collection Process   
- * 
- * @Last Modified by:   Anesu
- * @Last Modified time: 2020-10-22 16:49:26
- * 
  */
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/task'],
@@ -45,47 +35,56 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var inlineQty = '';
                 var inlinehtml2 = '';
 
-                inlinehtml2 += '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css"><script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.js"></script><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
+                inlinehtml2 += '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.css"><script type="text/javascript" charset="utf8" src="https://cdn.datata';
+                inlinehtml2 += 'bles.net/1.10.16/js/jquery.dataTables.js"></script><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
 
-                var params = context.request.parameters.custparam_params
-
+                var params = context.request.parameters.custparam_params;
+                
                 params = JSON.parse(params);
+                zee = params.zee;
 
-                zee = params.zee
-
+                //zee='';
                 // form.addField('zee', 'text', 'zee').setDisplayType('hidden').setDefaultValue(zee);
                 // form.addField('custpage_suitlet', 'textarea', 'Latitude').setDisplayType('hidden').setDefaultValue(params.scriptid);
                 // form.addField('custpage_deploy', 'textarea', 'Latitude').setDisplayType('hidden').setDefaultValue(params.deployid);
                 form.addField({
                     id: 'zee',
                     label: 'zee',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldLayoutType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = zee;
+                
+                
                 form.addField({
                     id: 'custpage_suitlet',
                     label: 'Latitude',
-                    type: 'textarea'
-                }).updateLayoutType({
-                    layoutType: ui.FieldLayoutType.HIDDEN
+                    type: ui.FieldType.TEXTAREA
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = params.scriptid;
+
                 form.addField({
                     id: 'custpage_deploy',
                     label: 'Latitude',
-                    type: 'textarea'
-                }).updateLayoutType({
-                    layoutType: ui.FieldLayoutType.HIDDEN
+                    type: ui.FieldType.TEXTAREA
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = params.deployid;
 
                 // form.addField('custpage_html2', 'inlinehtml').setPadding(1).setLayoutType('outsideabove').setDefaultValue(inlinehtml2);
+                
+
                 form.addField({
                     id: 'custpage_html2',
-                    label: 'Latitude',
-                    type: 'inlinehtml'
+                    type: ui.FieldType.INLINEHTML,
+                    label: 'Latitude'
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.OUTSIDEABOVE
+                }).updateBreakType({
+                    breakType: ui.FieldBreakType.STARTROW
                 }).defaultValue = inlinehtml2;
+
 
                 // var serviceFreqSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_rp_cust_hol_closure_dates');
                 // var addFilterExpression = new nlobjSearchFilter('custrecord_service_leg_franchisee', null, 'anyof', zee);
@@ -95,7 +94,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     id: 'customsearch_rp_cust_hol_closure_dates',
                     type: 'customrecord_service_leg'
                 });
-                var addFilterExpression = serachsearch.createFilter({
+                var addFilterExpression = search.createFilter({
                     name: 'custrecord_service_leg_franchisee',
                     join: null,
                     operator: search.Operator.ANYOF,
@@ -115,7 +114,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var customer_count = 0;
 
 
-                inlineQty += '<div class="se-pre-con"></div><br><br><style>table#customer {font-size:12px; font-weight:bold; border-color: #24385b;} </style><table border="0" cellpadding="15" id="customer" class="tablesorter table table-striped table-condensed" cellspacing="0" style="width: 100%;"><thead style="color: white;background-color: #607799;"><tr><th class="col-xs-1"><b>ID</b></th><th class="col-xs-2"><b>CUSTOMER NAME</b></th><th class="col-xs-1"><b>CLOSING DATE</b></th><th class="col-xs-1"><b>OPENING DATE</b></th><th class="col-xs-1"><b>SAME AS ABOVE</b></th></tr></thead>';
+                //inlineQty += '<div class="se-pre-con"> LOADING WHEEL
+                inlineQty += '</div><br><br><style>table#customer {font-size:12px; font-weight:bold; border-color: #24385b;} </style><table border="0" cellpadding="15" id="customer" class="tablesorter table table-striped table-condensed" cellspacing="0" style="width: 100%;"><thead style="color: white;background-color: #607799;"><tr><th class="col-xs-1"><b>ID</b></th><th class="col-xs-2"><b>CUSTOMER NAME</b></th><th class="col-xs-1"><b>CLOSING DATE</b></th><th class="col-xs-1"><b>OPENING DATE</b></th><th class="col-xs-1"><b>SAME AS ABOVE</b></th></tr></thead>';
 
 
                 inlineQty += '<tbody>';
@@ -178,7 +178,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     type: 'inlinehtml'
                 }).updateLayoutType({
                     layoutType: ui.FieldLayoutType.STARTROW
-                }).defaultValue = inlineHtml;
+                }).defaultValue = inlineQty;
                 
                 form.addSubmitButton({
                     label: 'SAVE'
@@ -186,10 +186,10 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 form.addButton({
                     id: 'back',
                     label: 'Back',
-                    functionName: string
-                })
+                    functionName: 'onclick_back()'
+                });
                 
-                form.clientScriptFileId = '';
+                form.clientScriptFileId = 4604805;
 
                 context.response.writePage(form);
             } else {
@@ -201,15 +201,17 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         }
 
         function GetFormattedDate(stringDate) {
+            var today = format.parse({value:stringDate, type: format.Type.DATE});
             var todayDate = nlapiStringToDate(stringDate);
             var month = pad(todayDate.getMonth() + 1);
             var day = pad(todayDate.getDate());
             var year = (todayDate.getFullYear());
             return year + "-" + month + "-" + day;
         }
-          
+        
+        
         function pad(s) {
-        return (s < 10) ? '0' + s : s;
+            return (s < 10) ? '0' + s : s;
         }
 
         function isNullorEmpty(val) {

@@ -14,9 +14,9 @@
  *
  */
 
-define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentRecord', 'N/email'],
-    function(runtime, search, url, record, format, currentRecord, email) { //require, factory
-        var baseURL = 'https://1048144.app.netsuite.com';
+define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 
+function(ui, email, runtime, search, record, http, log, redirect, format) {
+    var baseURL = 'https://1048144.app.netsuite.com';
         if (runtime.EnvType == "SANDBOX") {
             baseURL = 'https://system.sandbox.netsuite.com';
         }
@@ -41,8 +41,6 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
             zee = 425904; //test-AR
         }
 
-        var currRecord = currentRecord.get();
-
         function createStops(context){
             if (context.request.method === 'GET') {
                 var script_id = null;
@@ -63,8 +61,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     title: 'Add / Edit Stops for Customer'
                 });
 
-                if (!isNullorEmpty(ctx.getParameter({ fieldId: 'custparam_params'}))) {
-                    var params = ctx.getParameter({ fieldId: 'custparam_params'});
+                if (!isNullorEmpty(context.request.parameters.custparam_params)) {
+                    var params = context.request.parameters.custparam_params;
 
                     params = JSON.parse(params);
 
@@ -134,7 +132,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                 /**
                 * Description - To add all the API's to the begining of the page
                 */
-                var inlineQty = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><link href="https://1048144.app.netsuite.com/core/media/media.nl?id=2292066&c=1048144&h=c91c35bfd9670a7ee512&_xt=.css" rel="stylesheet"><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2292065&c=1048144&h=5c70d98090661029c8b2&_xt=.js"></script>';
+                var inlineQty = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><script src="https://ajax.go';
+                inlineQty += 'ogleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css"><link href="https://1048144.app.netsuite.com/core/media/media.nl?id=2292066&c=1048144&h=c91c35bfd9670a7ee512&_xt=.css" rel="stylesheet"><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2292065&c=1048144&h=5c70d98090661029c8b2&_xt=.js"></script>';
 
                 inlineQty += '<ol class="breadcrumb" style="margin-left: 0px !important;position: absolute;">';
                 inlineQty += '<li>Run Scheduler</li>';
@@ -142,7 +141,9 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                 inlineQty += '<li class="active">Add / Edit Stops</li>';
                 inlineQty += '</ol>';
 
-                inlineQty += '<div class="se-pre-con"></div><button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="margin-top: 50px;position: absolute;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b><ul><li>This page is used to Create / Add / Edit Stops for a particular service. The information required are the stop address, time spent at that stop & notes with respect to the stop</li><li><button class="btn btn-success btn-sm  glyphicon glyphicon-log-out" type="button"  title="Add Stop"></button> - <b>ADD STOP</b><ul><li>Click to Add Stop Information</li></ul></li><li><button class="btn btn-warning btn-sm glyphicon glyphicon-pencil" type="button" title="Edit Stop" ></button> - <b>EDIT STOP</b> </li><ul><li>Click to Edit Stop Information.</li></ul><li><button class="btn btn-danger btn-sm  glyphicon glyphicon-trash" type="button"  title="Delete Stop" ></button> - <b>DELETE STOP</b></li><ul><li>Click to Delete the Stop</li></ul><li><button type="button" class="btn btn-sm glyphicon glyphicon-plus" value="+" style="color: green;" title="Add Row" ></button> - <b>CREATE STOP</b><ul><li>Click to create a New Stop</li></ul></li><ul></div>';
+                //inlineQty += '<div class="se-pre-con"></div>
+                inlineQty += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo" style="margin-top: 50px;position: absolute;">Click for Instructions</button><div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 10px 10px 10px 20px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b><ul><li>This page is used to Create / Add / Edit Stops for a particular service. The information required are the stop address, time spent at that stop & notes with respect to the stop</li><li><button class="btn btn-success btn-sm  glyphicon glyphicon-log-out" type="button"  title="Add Stop"></button> - <b>ADD STOP</b><ul><li>Click to Add Stop Information</li></ul></li><li><button class="btn btn-warning btn-sm glyphicon glyphicon-pencil" type="button" title="Edit St';
+                inlineQty += 'op" ></button> - <b>EDIT STOP</b> </li><ul><li>Click to Edit Stop Information.</li></ul><li><button class="btn btn-danger btn-sm  glyphicon glyphicon-trash" type="button"  title="Delete Stop" ></button> - <b>DELETE STOP</b></li><ul><li>Click to Delete the Stop</li></ul><li><button type="button" class="btn btn-sm glyphicon glyphicon-plus" value="+" style="color: green;" title="Add Row" ></button> - <b>CREATE STOP</b><ul><li>Click to create a New Stop</li></ul></li><ul></div>';
 
                 inlineQty += '<br><br><style>table#services {font-size:12px; text-align:center; border-color: #24385b}</style><form id="package_form" class="form-horizontal"><div class="form-group container-fluid"><div><div id="alert" class="alert alert-danger fade in"></div><div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true"><div class="modal-dialog modal-sm" role="document"><div class="modal-content" style="width: max-content;"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title panel panel-info" id="exampleModalLabel">Information</h4><br> </div><div class="modal-body"></div><div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>';
 
@@ -168,7 +169,7 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                         // WS Edit: Updated entityid to companyname
                         zee_name = searchResult_zee.getValue({ name: 'companyname'});
 
-                        if (ctx.getParameter({ fieldId: 'zee'}) == zee_id) {
+                        if (context.request.parameters.zee == zee_id) {
                             inlineQty += '<option value="' + zee_id + '" selected="selected">' + zee_name + '</option>';
                         } else {
                             inlineQty += '<option value="' + zee_id + '">' + zee_name + '</option>';
@@ -180,120 +181,110 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     inlineQty += '</select></div>';
                 }
 
-                if (!isNullorEmpty(ctx.getParameter({ fieldId: 'zee'}))) {
-                    zee = ctx.getParameter({ fieldId: 'zee'});
+                if (!isNullorEmpty(context.request.parameters.zee)) {
+                    zee = context.request.parameters.zee;
                 }
                 // form.addField('custpage_zee', 'textarea', 'zee').setDisplayType('hidden').setDefaultValue(zee);
                 form.addField({
                     id: 'custpage_zee',
                     label: 'zee',
-                    type: 'textarea'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXTAREA
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = zee;
-                // form.addField('custpage_customer_id', 'text', 'Customer ID').setDisplayType('hidden').setDefaultValue(customer_id);
-                // form.addField('custpage_freq_created', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_freq_created_zees', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_freq_edited', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_stored_zee', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_linked_zee', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_deleted_stop', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_deleted_linked_zee', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_deleted_message', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_updated_stop', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_old_stop', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('custpage_updated_stop_zee', 'text', 'Service ID').setDisplayType('hidden');
-                // form.addField('new_service_leg_id_string', 'text', 'Service ID').setDisplayType('hidden');
-                form.addField({
+
+               form.addField({
                     id: 'custpage_customer_id',
                     label: 'Customer ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = customer_id;
+
+                
                 form.addField({
                     id: 'custpage_freq_created',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = zee;
                 form.addField({
                     id: 'custpage_freq_created_zees',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_freq_edited',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_stored_zee',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_linked_zee',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_deleted_stop',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_deleted_linked_zee',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_deleted_message',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_updated_stop',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_old_stop',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'custpage_updated_stop_zee',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
                 form.addField({
                     id: 'new_service_leg_id_string',
                     label: 'Service ID',
-                    type: 'text'
-                }).updateLayoutType({
-                    layoutType: ui.FieldDisplayType.HIDDEN
+                    type: ui.FieldType.TEXT
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
                 });
 
                 /**
@@ -863,7 +854,7 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
 
                     inlineQty += '<tr><td class="first_col"><button class="btn btn-success btn-sm add_class glyphicon glyphicon-plus" type="button" data-toggle="tooltip" data-placement="right" title="Add New Package" data-stopid="" data-freqid=""></button><input type="hidden" class="delete_package" value="F" /></td><td><input type="text" value="1" class="form-control sequence" readonly /></td>';
                     inlineQty += '<td><select class="form-control customer_selected_class" name="customer_selected"><option value="0"></option>';
-                    resultSetCustomer.forEachResult(function(searchResult) {
+                    resultSetCustomer.each(function(searchResult) {
 
                         var custid = searchResult.getValue({ name: 'internalid', join: null, summary: search.Summary.GROUP });
                         var entityid = searchResult.getValue({ name: 'entityid', join: null, summary: search.Summary.GROUP });
@@ -935,7 +926,7 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     functionName: 'onclick_mainpage()'
                 });
 
-                form.clientScriptFileId = '';
+                form.clientScriptFileId = 4604808; // PROD = 4604808, SB = ??
 
                 context.response.writePage(form);
             } else {

@@ -53,7 +53,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 breakType: ui.FieldBreakType.STARTROW
             }).defaultValue = inlineQty;
 
-            form.clientScriptFileId = 3771766;
+            form.clientScriptFileId = 4597375; // PROD = 4597375, SB = 
             context.response.writePage(form);
 
         } else {
