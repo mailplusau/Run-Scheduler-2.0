@@ -97,14 +97,14 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 });
                 
                 var multi = zeeRecord.getValue({ fieldId: 'custentity_zee_multiple_territory' });
-                console.log("multi" + multi);
+                console.log("multi" + multi.toString());
                 if (!isNullorEmpty(multi)) {
                     currentScript.setValue({
                         fieldId: 'multi_zee',
                         value: multi.toString()
                     });
                 }
-        
+                console.log("test", zeeRecord.getText({ fieldId: 'custentity_zee_run_0' }));
                 var stop_freq_json_array = [];
 
                 var i = 0;

@@ -140,9 +140,16 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     isDynamic: true,
                 });
                 var delimiter =  /\u0005/;
-                var multi = zee_record.getValue({ fieldId: 'custentity_zee_multiple_territory' }).split(delimeter);
+                var multi = zee_record.getValue({ fieldId: 'custentity_zee_multiple_territory' });
+                log.debug({
+                    title: "zee multi territory",
+                    details: multi.toString()
+                });
                 var multi_text = zee_record.getText({ fieldId: 'custentity_zee_multiple_territory' });
-
+                log.debug({
+                    title: "zee multi territory text",
+                    details: multi_text
+                });
                 if (!isNullorEmpty(multi)) {
                     var multi_zee_text = '';
                     
