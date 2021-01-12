@@ -22,10 +22,10 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         function pageInit() {
             //To show loader while the page is laoding
             console.log("1");
-            // $(window).load(function() {
-            //     // Animate loader off screen
-            //     $(".se-pre-con").fadeOut("slow");;
-            // });
+            $(window).load(function() {
+                // Animate loader off screen
+                $(".se-pre-con").fadeOut("slow");;
+            });
             //Search: RP - Services
             var serviceSearch = search.load({
                 id: 'customsearch_rp_services',
@@ -35,19 +35,29 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var zeeVal = currRecord.getValue({
                 fieldId: 'zee'
             });
-            
-            if (zeeVal == NaN) {
-                console.log("nan");
-            } else {
-                console.log("no");
-            }
-            if (isNullorEmpty(zeeVal)) {
-                console.log("nan1");
-            } else {
-                console.log("no1");
 
-            }
-
+            //On selecting zee, reload the SMC - Summary page with selected Zee parameter
+            $(document).on("change", ".zee_dropdown", function(e) {
+    
+                var zee = $(this).val();
+    
+                console.log(zee);
+                console.log("hello");
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1150&deploy=1&compid=1048144";
+                if (runtime.EnvType == "SANDBOX") {
+                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1150&deploy=1";
+    
+                }
+                console.log('baseURL', baseURL);
+                console.log('url', url);
+    
+                url += "&zee=" + zee + "";
+                console.log('url', url);
+                window.location.href = url;
+            });
+            if (isNaN(zeeVal)) {
+                zeeVal = 0;
+            } 
             var defaultFilters = serviceSearch.filters;
 
             defaultFilters.push(search.createFilter({
@@ -57,8 +67,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             }));
 
             serviceSearch.filters = defaultFilters;
-            console.log("2");
-
 
             var resultSetCustomer = serviceSearch.run();
             var old_customer_id;
@@ -66,7 +74,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var old_entity_id;
             var old_company_name;
             var old_scheduled;
-            console.log("3");
 
             var count = 0;
             var customer_count = 0;
@@ -89,29 +96,17 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 console.log("4");
 
                 var custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
-                
                 var entityid = searchResult.getValue({ name: "entityid", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                
                 var companyname = searchResult.getValue({ name: "companyname", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                
                 var scheduled = searchResult.getValue({ name: "custentity_run_scheduled", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                
                 var service_id = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
-                
                 var service_name = searchResult.getValue({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
-                
                 var service_descp = searchResult.getValue({ name: "custrecord_service_description", join: null, summary: search.Summary.GROUP});
-                
                 var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
-                
                 var service_scheduled = searchResult.getValue({ name: "custrecord_service_run_scheduled", join: null, summary: search.Summary.GROUP});
-                
                 var service_leg_freq_count = searchResult.getValue({ name: "internalid", join: "CUSTRECORD_SERVICE_FREQ_SERVICE", summary: search.Summary.COUNT});
-                
                 var service_leg_count = searchResult.getValue({ name: "internalid", join: "CUSTRECORD_SERVICE_LEG_SERVICE", summary: search.Summary.COUNT});
-                
                 var no_of_legs = searchResult.getValue({ name: "custrecord_service_type_leg_no", join: "CUSTRECORD_SERVICE", summary: search.Summary.GROUP});
-                
                 var show_on_app = searchResult.getValue({ name: "custrecord_show_on_app", join: null, summary: search.Summary.GROUP});
                 
                 if (service_price == '.00'){
@@ -207,94 +202,86 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 dataSet = dataSet.substring(0, dataSet.length - 1);
                 dataSet += ']},'
             }
-            console.log("6");
 
-            dataSet = dataSet.substring(0, dataSet.length - 1);
+            if (zeeVal != 0) {
+                dataSet = dataSet.substring(0, dataSet.length - 1);
+
+            
             dataSet += ']}';
             console.log(dataSet);
             var parsedData = JSON.parse(dataSet);
             console.log(parsedData.data);
-            console.log("7");
 
             
-            // AddStyle('https://1048144.app.netsuite.com/core/media/media.nl?id=1988776&c=1048144&h=58352d0b4544df20b40f&_xt=.css', 'head');
+                AddStyle('https://1048144.app.netsuite.com/core/media/media.nl?id=1988776&c=1048144&h=58352d0b4544df20b40f&_xt=.css', 'head');
 
-            //JQuery to sort table based on click of header. Attached library  
-            $(document).ready(function() {
-                console.log("8");
-
-                table = $("#customer").DataTable({
-                    "data": parsedData.data,
-                    "columns": [{
-                        "orderable": false,
-                        "data": null,
-                        "defaultContent": '<button type="button" class="details-control form-control btn-xs btn-success " ><span class="span_class glyphicon glyphicon-plus"></span></button>'
-                    }, {
-                        "data": null,
-                        "render": function(data, type, row) {
-                            return '<button type="button" data-custid="' + data.cust_id + '" class="edit_customer form-control btn-xs btn-warning " ><span class="span_class glyphicon glyphicon-pencil"></span></button>';
-                        }
-                    }, {
-                        "data": "entity_id"
-                    }, {
-                        "data": "company_name"
-                    }, {
-                        "data": null,
-                        "defaultContent": ''
-                    }, {
-                        "data": null,
-                        "defaultContent": ''
-
-                    }],
-                    "columnDefs": [{
-
-                        "render": function(data, type, row) {
-                            if (data.scheduled == 1) {
-                                return '<img src="https://1048144.app.netsuite.com/core/media/media.nl?id=1990778&c=1048144&h=e7f4f60576de531265f7" height="25" width="25">';
+                //JQuery to sort table based on click of header. Attached library  
+                $(document).ready(function() {
+                    table = $("#customer").DataTable({
+                        "data": parsedData.data,
+                        "columns": [{
+                            "orderable": false,
+                            "data": null,
+                            "defaultContent": '<button type="button" class="details-control form-control btn-xs btn-success " ><span class="span_class glyphicon glyphicon-plus"></span></button>'
+                        }, {
+                            "data": null,
+                            "render": function(data, type, row) {
+                                return '<button type="button" data-custid="' + data.cust_id + '" class="edit_customer form-control btn-xs btn-warning " ><span class="span_class glyphicon glyphicon-pencil"></span></button>';
                             }
-                        },
-                        "targets": [4]
-                    }, {
-                        "render": function(data, type, row) {
-                            if (data.services_suspended == 1) {
-                                //return 'All services appear on the app'
-                                return '<button type="button" class="form-control btn-xs btn-info" disabled><span style="font-size: large;">' + data.services_suspended + '</span> SUSPENDED SERVICE</button>';
-                            } else if (data.services_suspended > 1) {
-                                return '<button type="button" class="form-control btn-xs btn-info" disabled><span style="font-size: large;">' + data.services_suspended + '</span> SUSPENDED SERVICES</button>';
-                            }
-                        },
-                        "targets": [5]
+                        }, {
+                            "data": "entity_id"
+                        }, {
+                            "data": "company_name"
+                        }, {
+                            "data": null,
+                            "defaultContent": ''
+                        }, {
+                            "data": null,
+                            "defaultContent": ''
 
-                    }],
-                    "order": [
-                        [1, 'asc']
-                    ],
-                    "pageLength": 100
+                        }],
+                        "columnDefs": [{
+
+                            "render": function(data, type, row) {
+                                if (data.scheduled == 1) {
+                                    return '<img src="https://1048144.app.netsuite.com/core/media/media.nl?id=1990778&c=1048144&h=e7f4f60576de531265f7" height="25" width="25">';
+                                }
+                            },
+                            "targets": [4]
+                        }, {
+                            "render": function(data, type, row) {
+                                if (data.services_suspended == 1) {
+                                    //return 'All services appear on the app'
+                                    return '<button type="button" class="form-control btn-xs btn-info" disabled><span style="font-size: large;">' + data.services_suspended + '</span> SUSPENDED SERVICE</button>';
+                                } else if (data.services_suspended > 1) {
+                                    return '<button type="button" class="form-control btn-xs btn-info" disabled><span style="font-size: large;">' + data.services_suspended + '</span> SUSPENDED SERVICES</button>';
+                                }
+                            },
+                            "targets": [5]
+
+                        }],
+                        "order": [
+                            [1, 'asc']
+                        ],
+                        "pageLength": 100
+                    });
                 });
-            });
-            var main_table = document.getElementsByClassName("uir-outside-fields-table");
-            var main_table2 = document.getElementsByClassName("uir-inline-tag");
+                var main_table = document.getElementsByClassName("uir-outside-fields-table");
+                var main_table2 = document.getElementsByClassName("uir-inline-tag");
 
-            console.log("9");
+                console.log(main_table, 'ddd');
+                console.log(main_table2, 'sss');
+                for (var i = 0; i < main_table.length; i++) {
+                    main_table[i].style.width = "50%";
+                }
 
-            for (var i = 0; i < main_table.length; i++) {
-                main_table[i].style.width = "50%";
+                for (var i = 1; i < main_table2.length; i++) {
+                    main_table2[i].style.position = "absolute";
+                    main_table2[i].style.left = "10%";
+                    main_table2[i].style.width = "80%";
+                    main_table2[i].style.top = "275px";
+                }
             }
-
-            for (var i = 0; i < main_table2.length; i++) {
-                main_table2[i].style.position = "absolute";
-                main_table2[i].style.left = "10%";
-                main_table2[i].style.width = "80%";
-                main_table2[i].style.top = "275px";
-            }
-            console.log("10");
-
-            jQuery();
-            console.log("11");
-
-        }
-
-        function jQuery() {
             $(document).on('click', '.edit_customer', function() {
 
                 var custid = $(this).attr('data-custid')
@@ -303,7 +290,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                     custid: custid,
                 }
                 params = JSON.stringify(params);
-                var output = redirect.toSuitelet({
+                var output = url.resolveScript({
                     scriptId: 'customscript_sl_smc_main',
                     deploymentId: 'customdeploy_sl_smc_main',
                 });
@@ -313,21 +300,15 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             });
     
             $('.collapse').on('shown.bs.collapse', function() {
-                $("#customer_wrapper").css({
-                    "padding-top": "500px"
-                });
-                $(".admin_section").css({
-                    "padding-top": "500px"
-                });
+                $("#customer_wrapper").css("padding-top", "500px");
+                $(".admin_section").css("padding-top","500px");
+
+                
             })
             
             $('.collapse').on('hide.bs.collapse', function() {
-                $("#customer_wrapper").css({
-                    "padding-top": "0px"
-                });
-                $(".admin_section").css({
-                    "padding-top": "0px"
-                });
+                $("#customer_wrapper").css("padding-top", "0px");
+                $(".admin_section").css("padding-top","0px");
             })
             
             $(document).on('click', '.details-control', function() {
@@ -380,7 +361,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 }
                 params = JSON.stringify(params);
             
-                var output = redirect.toSuitelet({
+                var output = url.resolveScript({
                     scriptId: 'customscript_sl_rp_create_stops',
                     deploymentId: 'customdeploy_sl_rp_create_stops',
                 });
@@ -708,25 +689,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             });
     
             
-            //On selecting zee, reload the SMC - Summary page with selected Zee parameter
-            $(document).on("change", ".zee_dropdown", function(e) {
-    
-                var zee = $(this).val();
-    
-                console.log(zee);
-                console.log("hello");
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1124&deploy=1&compid=1048144";
-                if (runtime.EnvType == "SANDBOX") {
-                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1124&deploy=1";
-    
-                }
-                console.log('baseURL', baseURL);
-                console.log('url', url);
-    
-                url += "&zee=" + zee + "";
-                console.log('url', url);
-                window.location.href = url;
-            });
+            
     
     
             $(document).on("click", ".remove_service", function(e) {
@@ -740,9 +703,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             
             });
 
-        }
-        
 
+        }
         
         function onclick_back() {
             var params = {
@@ -753,10 +715,11 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var zeeVal = currentScript.getValue({
                 fieldId: 'zee',
             });
-            var output = redirect.toSuitelet({
-                scriptId: 'customscript_sl_full_calendar',
-                deploymentId: 'customdeploy_sl_full_calender',
+            var output = url.resolveScript({
+                scriptId: 'customscript_sl_full_calendar_2',
+                deploymentId: 'customdeploy_sl_full_calender_2',
             });
+            
             var upload_url = baseURL + output + '&unlayered=T&zee=' + parseInt(zeeVal) + '&custparam_params=' + params;
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }
@@ -904,6 +867,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         return {
             pageInit: pageInit,
             saveRecord: saveRecord,
+            onclick_back: onclick_back
             
         };  
     }

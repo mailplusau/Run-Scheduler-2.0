@@ -23,40 +23,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         var freqs_array = [];
         var freqs_start_array = [];
         
-        function startJQuery() {
-            $(window).load(function() {
-                // Animate loader off screen
-                $(".se-pre-con").fadeOut("slow");;
-            });
-            
-            
-            $(document).on('change', '.zee_dropdown', function(event) {
-                var zee = $(this).val();
-            
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1146&deploy=1";
-            
-                url += "&zee=" + zee + "";
-            
-                window.location.href = url;
-            });
-
-            $(document).on('change', '.run_dropdown', function(event) {
-                var run = $(this).val();
-                var zee = $('option:selected', '.zee_dropdown').val();
-            
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1146&deploy=1";
-            
-                url += "&zee=" + zee + "&run=" + run;
-            
-                window.location.href = url;
-            });
-
-            $(document).on('click', '#alert .close', function(e) {
-                $(this).parent().hide();
-            });
-            
-        }
-
         function showAlert(message) {
             $('#alert').html('<button type="button" class="close">&times;</button>' + message);
             $('#alert').show();
@@ -86,10 +52,37 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 zee = parseInt(zeeCustPage);
             }
 
-            startJQuery();
+            $(window).load(function() {
+                // Animate loader off screen
+                $(".se-pre-con").fadeOut("slow");;
+            });
             
+            
+            $(document).on('change', '.zee_dropdown', function(event) {
+                var zee = $(this).val();
+            
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1149&deploy=1";
+            
+                url += "&zee=" + zee + "";
+            
+                window.location.href = url;
+            });
+
+            $(document).on('change', '.run_dropdown', function(event) {
+                var run = $(this).val();
+                var zee = $('option:selected', '.zee_dropdown').val();
+            
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1149&deploy=1";
+            
+                url += "&zee=" + zee + "&run=" + run;
+            
+                window.location.href = url;
+            });
+
+            $(document).on('click', '#alert .close', function(e) {
+                $(this).parent().hide();
+            });            
             if (zee != 0) {
-                console.log("hello");
                 var zeeRecord = record.load({
                     type: record.Type.PARTNER,
                     id: zee,
@@ -97,29 +90,26 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 });
                 
                 var multi = zeeRecord.getValue({ fieldId: 'custentity_zee_multiple_territory' });
-                console.log("multi" + multi.toString());
                 if (!isNullorEmpty(multi)) {
                     currentScript.setValue({
                         fieldId: 'multi_zee',
                         value: multi.toString()
                     });
                 }
-                console.log("test", zeeRecord.getText({ fieldId: 'custentity_zee_run_0' }));
+        
                 var stop_freq_json_array = [];
-
                 var i = 0;
                 while (!isNullorEmpty(zeeRecord.getValue({ fieldId: 'custentity_zee_run_' + i }))){
-                    console.log("HHHH");
-                    console.log(zeeRecord.getValue({ fieldId: 'custentity_zee_run_' + i }));
                     stop_freq_json_array[stop_freq_json_array.length] = zeeRecord.getValue({ fieldId: 'custentity_zee_run_' + i });
                     i++;
                 }
                 var stop_freq_json_all = stop_freq_json_array.join('},');
                 stop_freq_json_all += ']}';
 
-                console.log('stop_freq_json_all', stop_freq_json_all);
+                //console.log('stop_freq_json_all', stop_freq_json_all);
                 var parsedStopFreq = JSON.parse(stop_freq_json_all);
-
+                console.log("parsed", parsedStopFreq);
+                console.log("data", parsedStopFreq.data);
                 $('#calendar').fullCalendar({
                     themeSystem: 'bootstrap4',
                     header: {

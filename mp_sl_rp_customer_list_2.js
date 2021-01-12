@@ -6,29 +6,30 @@
  */
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 
-function(ui, email, runtime, search, record, http, log, redirect, format) {
+    function(ui, email, runtime, search, record, http, log, redirect, format) {
     var baseURL = 'https://1048144.app.netsuite.com';
     if (runtime.EnvType == "SANDBOX") {
         baseURL = 'https://1048144-sb3.app.netsuite.com';
     }
+    
     var zee = 0;
     var role = runtime.getCurrentUser().role;
     if (role == 1000) {
         //Franchisee
-        zee = runtime.getCurrentUser();
+        zee = runtime.getCurrentUser().id;
     }  else if (role == 3) { //Administrator
         zee = 6; //test
     } else if (role == 1032) { // System Support
         zee = 425904; //test-AR
     }
-
     function onRequest(context) {  
         
+
         if (context.request.method === 'GET') {
             var form = ui.createForm({
                 title: 'Run Scheduler - Customer List View'
             });
-
+        
             var inlineQty = '';
             var inlinehtml2 = '';
 
@@ -92,6 +93,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                 zee = context.request.parameters.zee;
             }
 
+            log.debug({
+                title: 'ZEEEE',
+                details: zee
+            });
             form.addField({
                 id: 'zee',
                 type: ui.FieldType.TEXT,
@@ -110,12 +115,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             }).updateBreakType({
                 breakType: ui.FieldBreakType.STARTROW
             }).defaultValue = inlinehtml2;
-            
-            
-            // form.addField('custpage_html2', 'inlinehtml').setPadding(1).setLayoutType('outsideabove').setDefaultValue(inlinehtml2);
-    
+                
             inlineQty += '<br><br><table border="0" cellpadding="15" id="customer" class="display tablesorter table table-striped" cellspacing="0" style="width: 100%;"><thead style="color: white;background-color: #607799;"><tr><th><b>SELECT</b></th><th><b>EDIT</b></th><th><b>ID</b></th><th><b>CUSTOMER NAME</b></th><th class=""><b>CUSTOMER SCHEDULED</b></th><th><b>SUSPENDED SERVICES</b></th></tr></thead>';
-    
     
     
             /**
@@ -265,7 +266,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                         isDynamic: true,
                     });
                     
-                    legRecord.setValue({ fieldId: 'isinactive', value: 'T'});
+                    legRecord.setValue({ fieldId: 'isinactive', value: true});
                     legRecord.setValue({ fieldId: 'custrecord_service_leg_trf_linked_stop', value: null});
                     
                     legRecord.save({
@@ -285,7 +286,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                         id: freq_id,
                     });
                     
-                    freqRecord.setValue({ fieldId: 'isinactive', value: 'T' });
+                    freqRecord.setValue({ fieldId: 'isinactive', value: true });
                     freqRecord.save({
                         enableSourcing: true,
                     });

@@ -2,7 +2,7 @@
  * 
  * @NApiVersion 2.0
  * @NScriptType Suitelet
- * 
+ * @NAmdConfig ./custom_modules_config.json 
  * Description: Calendar view page of the run
  * 
  * @Last Modified by:   Sruti Desai
@@ -11,8 +11,8 @@
 
  
 
-define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 
-function(ui, email, runtime, search, record, http, log, redirect, format) {
+define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format', 'moment'], 
+function(ui, email, runtime, search, record, http, log, redirect, format, moment) {
     var baseURL = 'https://1048144.app.netsuite.com';
     if (runtime.EnvType == "SANDBOX") {
         baseURL = 'https://1048144-sb3.app.netsuite.com';
@@ -139,17 +139,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     id: parseInt(zee),
                     isDynamic: true,
                 });
-                var delimiter =  /\u0005/;
                 var multi = zee_record.getValue({ fieldId: 'custentity_zee_multiple_territory' });
-                log.debug({
-                    title: "zee multi territory",
-                    details: multi.toString()
-                });
                 var multi_text = zee_record.getText({ fieldId: 'custentity_zee_multiple_territory' });
-                log.debug({
-                    title: "zee multi territory text",
-                    details: multi_text
-                });
+
                 if (!isNullorEmpty(multi)) {
                     var multi_zee_text = '';
                     
@@ -426,6 +418,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     if (stop_count != 0 && old_stop_name != stop_name) {
 
                         if (!isNullorEmpty(old_freq_id.length)) {
+                            log.debug({
+                                title: 'dd',
+                                details: stop_freq_json_array
+                            });
                             if (stop_freq_json_array[stop_freq_json_array.length - 1].length < 900000) {
                                 stop_freq_json_array[stop_freq_json_array.length - 1] += updateJSON(old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri);
                             } else {
@@ -493,6 +489,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                         var result = arraysEqual(freq, old_freq);
                         if (old_service_time != freq_time_current && stop_count != 0) {
                             if (!isNullorEmpty(old_freq_id.length)) {
+                                log.debug({
+                                    title: 'cc',
+                                    details: stop_freq_json_array
+                                });
                                 if (stop_freq_json_array[stop_freq_json_array.length - 1].length < 900000) {
                                     stop_freq_json_array[stop_freq_json_array.length - 1] += updateJSON(old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri);
                                 } else {
@@ -560,6 +560,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                             }
                         }  else if (result == false && stop_count != 0) {
                             if (!isNullorEmpty(old_freq_id.length)) {
+                                log.debug({
+                                    title: 'bb',
+                                    details: stop_freq_json_array
+                                });
                                 if (stop_freq_json_array[stop_freq_json_array.length - 1].length < 900000) {
                                     stop_freq_json_array[stop_freq_json_array.length - 1] += updateJSON(old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri);
                                 } else {
@@ -675,6 +679,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
                 if (stop_count > 0) {
                     if (stop_freq_json_array[stop_freq_json_array.length - 1].length < 900000) {
+                        log.debug({
+                            title: 'aa',
+                            details: stop_freq_json_array
+                        });
                         stop_freq_json_array[stop_freq_json_array.length - 1] += updateJSON(old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri);
                     } else {
                         stop_freq_json_array[stop_freq_json_array.length - 1] = stop_freq_json_array[stop_freq_json_array.length - 1].substring(0, stop_freq_json_array[stop_freq_json_array.length - 1].length - 1);
@@ -711,7 +719,16 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     isDynamic: true,
                 });
 
+                log.debug({
+                    title: 'ttt',
+                    details: zeeRecord.getValue({ fieldId: 'custentity_zee_run_0'})
+                });
+
                 for (i = 0; i < stop_freq_json_array.length; i++) {
+                    log.debug({
+                        title: i,
+                        details: stop_freq_json_array[i]
+                    });
                     zeeRecord.setValue({
                         fieldId: 'custentity_zee_run_' + i,
                         value: stop_freq_json_array[i].substring(0, stop_freq_json_array[i].length - 1)
@@ -776,7 +793,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
             /**
              * CONVERT CL AND PUT CL ID
-             */            
+             */      
+            //form.clientScriptModulePath = 'SuiteScripts/jQuery Plugins/Moment JS/moment-with-locales.min.js';
+      
             form.clientScriptFileId = 4609635; //PROD = 4609635 SB = ?
             context.response.writePage(form);
             
@@ -796,7 +815,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     var serviceLegRecord = record.load({
                         type: 'customrecord_service_leg',
                         id: stops[x],
-                        isDynamic: true,
                     });
                     
                     serviceLegRecord.setValue({ fieldId: 'custrecord_service_leg_duration', value: duration[x]});
@@ -933,6 +951,14 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
 
     
     function updateJSON(old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri) {
+        log.debug({
+            title: 'old_stop_name',
+            details: old_stop_name
+        });
+        log.debug({
+            title: 'stop_freq_jsonINSIDE2',
+            details: old_stop_notes
+        });
         var stop_freq_json = '';
         var freq_time_current_array = old_freq_time_current.split(':');
 
@@ -945,29 +971,38 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
         } else {
             var bg_color = '#009688';
         }
-        if (old_freq_mon == 'T') {
+        if (old_freq_mon == true) {
+            
             var day_number = 1;
             stop_freq_json += addDayJSON(day_number, old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri, bg_color, freq_time_current_array, min_array);
         }
-        if (old_freq_tue == 'T') {
+        if (old_freq_tue == true) {
+            
             var day_number = 2;
             stop_freq_json += addDayJSON(day_number, old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri, bg_color, freq_time_current_array, min_array);
         }
-        if (old_freq_wed == 'T') {
+        if (old_freq_wed == true) {
+            
             var day_number = 3;
             stop_freq_json += addDayJSON(day_number, old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri, bg_color, freq_time_current_array, min_array);
         }
-        if (old_freq_thu == 'T') {
+        if (old_freq_thu == true) {
+            
             var day_number = 4;
+            
             stop_freq_json += addDayJSON(day_number, old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri, bg_color, freq_time_current_array, min_array);
         }
-        if (old_freq_fri == 'T') {
+        if (old_freq_fri == true) {
+            
             var day_number = 5;
             stop_freq_json += addDayJSON(day_number, old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri, bg_color, freq_time_current_array, min_array);
         }
 
-        if (old_freq_mon == 'F' && old_freq_tue == 'F' && old_freq_wed == 'F' && old_freq_thu == 'F' && old_freq_fri == 'F') {
+        if (old_freq_mon == false && old_freq_tue == false && old_freq_wed == false && old_freq_thu == false && old_freq_fri == false) {
+            
             stop_freq_json += '{"id": "' + old_stop_id + '",';
+            
+            
             stop_freq_json += '"closing_days": "' + old_closing_day + '",';
             stop_freq_json += '"opening_days": "' + old_opening_day + '",';
             stop_freq_json += '"lat": "' + old_stop_lat + '",';
@@ -1002,11 +1037,22 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             stop_freq_json = stop_freq_json.substring(0, stop_freq_json.length - 1); //to remove the last coma
             stop_freq_json += ']},'
         }
+
+        log.debug({
+            title: 'stop_freq_json',
+            details: stop_freq_json
+        });
+
+        
         return stop_freq_json;
     }
 
     
     function addDayJSON(day_number, old_stop_name, old_freq_time_current, old_stop_duration, old_stop_id, old_closing_day, old_opening_day, old_stop_lat, old_stop_lon, old_stop_notes, old_ncl, old_freq_id, old_customer_id_array, old_customer_text_array, old_customer_zee_array, old_service_notes, old_run_plan_array, old_run_plan_text_array, service_id_array, service_name_array, old_freq_mon, old_freq_tue, old_freq_wed, old_freq_thu, old_freq_fri, bg_color, freq_time_current_array, min_array) {
+        log.debug({
+            title: 'in add json',
+            details: 'in add json'
+        })
         var date = moment().day(day_number).date();
         var month = moment().day(day_number).month();
         var year = moment().day(day_number).year();
@@ -1066,7 +1112,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
         }
         stop_freq_json = stop_freq_json.substring(0, stop_freq_json.length - 1); //to remove the last coma
         stop_freq_json += ']},'
-
+        log.debug({
+            title: 'stop_freq_json',
+            details: stop_freq_json
+        });
         return stop_freq_json
     }
 
