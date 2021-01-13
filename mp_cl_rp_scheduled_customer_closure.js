@@ -1,7 +1,13 @@
-/**
- *@NApiVersion 2.x
- *@NScriptType ClientScript
+ /**
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType ClientScript
+ * 
+ * Description: 
+ * @Last Modified by: Sruti Desai
+ * 
  */
+
 
 define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
     function(error, runtime, search, url, record, format, email, currentRecord) {
@@ -76,8 +82,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             params = JSON.stringify(params);
             // var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_full_calendar', 'customdeploy_sl_full_calender') + '&unlayered=T&custparam_params=' + params + '&zee=' + parseInt(nlapiGetFieldValue('zee'));
             var upload_url = baseURL + url.resolveScript({
-                deploymentId: 'customdeploy_sl_full_calender',
-                scriptId: 'customscript_sl_full_calendar'
+                deploymentId: 'customdeploy_sl_full_calender_2',
+                scriptId: 'customscript_sl_full_calendar_2'
             }) + '&unlayered=T&custparam_params=' + params + '&zee=' + parseInt(currRecord.getValue({ fieldId: 'zee'}));
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }

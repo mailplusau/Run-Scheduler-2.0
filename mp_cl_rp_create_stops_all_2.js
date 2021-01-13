@@ -1,18 +1,11 @@
 /**
+ * 
  * @NApiVersion 2.0
  * @NScriptType ClientScript
  * 
- * 
- * Module Description
- * 
- * NSVersion    Date            			Author         
- * 1.00       	2019-03-04 16:53:48   		ankith.ravindran
- *
  * Description: Ability to setup a stop and link all customers per service to that stop.          
+ * @Last Modified by: Sruti Desai
  * 
- * @Last Modified by:   ankith.ravindran
- * @Last Modified time: 2019-05-07 10:56:51
- *
  */
 
 define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentRecord', 'N/email'],
@@ -54,8 +47,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
             $(document).on('click', '#create_new', function(e) {
                 var params = {
                     custid: parseInt(currRecord.getValue({ fieldId: 'custpage_customer_id'})),
-                    id: 'customscript_sl_rp_create_stops',
-                    deploy: 'customdeploy_sl_rp_create_stops'
+                    id: 'customscript_sl_rp_create_stops_2',
+                    deploy: 'customdeploy_sl_rp_create_stops_2'
                 };
                 params = JSON.stringify(params);
                 // var params2 = {
@@ -146,12 +139,23 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                 $(this).parent().hide();
             });
             
-            $(document).on('click', '.instruction_button', function() {
-                $(".container").css({
-                    "padding-top": "150px"
-                });
+            // $(document).on('click', '.instruction_button', function() {
+            //     $(".container").css({
+            //         "padding-top": "150px"
+            //     });
             
-            });
+            // });
+
+            $('.collapse').on('shown.bs.collapse', function() {
+                $(".container").css("padding-top","150px");
+
+                
+            })
+            
+            $('.collapse').on('hide.bs.collapse', function() {
+                $(".container").css("padding-top","0px");
+
+            })
             
             
             
@@ -251,8 +255,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     // }
                     console.log('inside create new ncl')
                     var upload_url = baseURL + url.resolveScript({
-                        deploymentId: 'customdeploy_sl_setup_stops',
-                        scriptId: 'customscript_sl_setup_stops',
+                        deploymentId: 'customdeploy_sl_rp_create_stops_all_2',
+                        scriptId: 'customscript_sl_rp_create_stops_all_2',
                     }) + '&custparam_params=' + params;
                     window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
                 }
@@ -536,8 +540,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
                     // window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
 
                     var upload_url = baseURL + url.resolveScript({
-                        deploymentId: 'customdeploy_sl_setup_stops',
-                        scriptId: 'customscript_sl_setup_stops',
+                        deploymentId: 'customdeploy_sl_rp_create_stops_all_2',
+                        scriptId: 'customscript_sl_rp_create_stops_all_2',
                     });
                     window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
 
@@ -965,8 +969,8 @@ define(['N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/currentReco
         
         function onclick_mainpage() {
             var upload_url = baseURL + url.resolveScript({
-                deploymentId: customdeploy_sl_full_calender,
-                scriptId: customscript_sl_full_calendar
+                deploymentId: 'customdeploy_sl_full_calendar_2',
+                scriptId: 'customscript_sl_full_calendar_2'
             }) + '&unlayered=T';
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }

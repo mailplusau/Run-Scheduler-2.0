@@ -858,8 +858,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format, moment
                 }
 
                 redirect.toSuitelet({
-                    scriptId: 'customscript_sl_rp_customer_list',
-                    deploymentId: 'customdeploy_sl_rp_customer_list',
+                    scriptId: 'customscript_sl_rp_customer_list_2',
+                    deploymentId: 'customdeploy_sl_rp_customer_list_2',
                     parameters: params
                 });
             }

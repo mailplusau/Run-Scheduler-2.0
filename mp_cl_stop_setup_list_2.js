@@ -1,17 +1,11 @@
-/**
- * @NApiVersion 2.x
+ /**
+ * 
+ * @NApiVersion 2.0
  * @NScriptType ClientScript
  * 
- * Module Description
+ * Description: Page to show the list of all the customers based on the franchisee. To convert all the items listed in the financial tab into service records. Ability for the franchisee to cancel a customer as well.        
+ * @Last Modified by: Sruti Desai
  * 
- * NSVersion    Date                Author         
- * 1.00         2017-08-03 16:59:04 Ankith 
- *
- * Remarks: Page to show the list of all the customers based on the franchisee. To convert all the items listed in the financial tab into service records. Ability for the franchisee to cancel a customer as well.        
- * 
- * @Last Modified by:   ankith.ravindran
- * @Last Modified time: 2019-05-07 10:55:07
- *
  */
 
 define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
@@ -26,28 +20,29 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         var currRecord = currentRecord.get();
 
         function pageInit(){
+            //To show loader while the page is laoding
+            $(window).load(function() {
+                // Animate loader off screen
+                $(".se-pre-con").fadeOut("slow");;
+            });
+
             //Search: RP - Service Setup
-            var serviceSetupSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch2971');
-
-            var addFilterExpression = new nlobjSearchFilter('custrecord_service_leg_franchisee', null, 'anyof', nlapiGetFieldValue('zee'));
-            serviceSetupSearch.addFilter(addFilterExpression);
-
-            var resultSetStops = serviceSetupSearch.runSearch();
-
             var serviceSetupSearch = search.load({
                 id: 'customsearch2971',
                 type: 'customrecord_service_leg'
+            })
+            var currRecord = currentRecord.get();
+
+            var val2 = currRecord.getValue({
+                fieldId: 'zee',
             });
-            var addFilterExpression = search.createFilter({
+            serviceSetupSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_leg_franchisee',
-                join: null,
                 operator: search.Operator.ANYOF,
-                values: currRecord.getValue({
-                    fieldId: zee
-                })
-            });
-            serviceSetupSearch.filters.push(serviceSetupSearch);
-            var serviceSetupSearch = serviceSetupSearch.run();
+                values: val2
+            }));
+            
+            var resultSetStops = serviceSetupSearch.run();
 
             var old_service_leg_id;
             var old_service_leg_name;
@@ -62,11 +57,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             var dataSet = '{"data":[';
 
             resultSetStops.each(function(searchResult) {
-                // var service_leg_id = searchResult.getValue("internalid", null, "GROUP");
-                // var service_leg_name = searchResult.getValue("name", null, "GROUP");
-                // var service_freq_service_time = searchResult.getValue("custrecord_service_freq_time_current", "CUSTRECORD_SERVICE_FREQ_STOP", "GROUP");
-                // var service_freq_run_plan = searchResult.getText("custrecord_service_freq_run_plan", "CUSTRECORD_SERVICE_FREQ_STOP", "GROUP");
-                // var service_freq_run_plan_id = searchResult.getValue("custrecord_service_freq_run_plan", "CUSTRECORD_SERVICE_FREQ_STOP", "GROUP");
                 var service_leg_id = searchResult.getValue({ name: 'internalid', summary: search.Summary.GROUP})
                 var service_leg_name = searchResult.getValue({ name: 'name', summary: search.Summary.GROUP})
                 var service_freq_service_time = searchResult.getValue({ name: "custrecord_service_freq_time_current", join: "CUSTRECORD_SERVICE_FREQ_STOP", summary: search.Summary.GROUP})
@@ -134,25 +124,22 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 main_table[i].style.width = "50%";
             }
 
-            for (var i = 0; i < main_table2.length; i++) {
+            for (var i = 1; i < main_table2.length; i++) {
                 main_table2[i].style.position = "absolute";
                 main_table2[i].style.left = "10%";
                 main_table2[i].style.width = "80%";
                 main_table2[i].style.top = "275px";
             }
 
-            jQuery();
-        }
+            var currRecord = currentRecord.get();
 
-        function jQuery(){
-            //To show loader while the page is laoding
-            $(window).load(function() {
-                // Animate loader off screen
-                $(".se-pre-con").fadeOut("slow");;
-            });
 
             $(document).on('click', '.edit_customer', function() {
-                var zee = parseInt(nlapiGetFieldValue('zee'))
+                
+                var zeeVal = currRecord.getValue({
+                    fieldId: 'zee'
+                });
+                var zee = parseInt(zeeVal);
                 var legid = $(this).attr('data-legid');
                 var legname = $(this).attr('data-legname');
                 var servicetime = $(this).attr('data-servicetime');
@@ -165,20 +152,26 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                     zee: zee
                 }
                 params = JSON.stringify(params);
-            
-                var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_setup_stops', 'customdeploy_sl_setup_stops') + '&unlayered=T&custparam_params=' + params;
+                var output = url.resolveScript({
+                    scriptId: 'customscript_sl_rp_create_stops_all_2',
+                    deploymentId: 'customdeploy_sl_rp_create_stops_all_2',
+                });
+                var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
                 window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
             
             });
             
-            $(document).on('click', '.instruction_button', function() {
-                $("#customer_wrapper").css({
-                    "padding-top": "400px"
-                });
-                $(".admin_section").css({
-                    "padding-top": "400px"
-                });
-            });
+            $('.collapse').on('shown.bs.collapse', function() {
+                $("#customer_wrapper").css("padding-top", "300px");
+                $(".admin_section").css("padding-top","300px");
+
+                
+            })
+            
+            $('.collapse').on('hide.bs.collapse', function() {
+                $("#customer_wrapper").css("padding-top", "0px");
+                $(".admin_section").css("padding-top","0px");
+            })
 
             $(document).on('click', '.details-control', function() {
                 var tr = $(this).closest('tr');
@@ -205,17 +198,22 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             $(document).on('click', '.setup_service', function() {
                 var service_id = $(this).attr('data-serviceid');
             
-                zee = nlapiGetFieldValue('zee');
+                zee = currRecord.getValue({
+                    fieldId: 'zee'
+                });
             
                 var params = {
                     serviceid: service_id,
-                    scriptid: 'customscript_sl_rp_customer_list',
-                    deployid: 'customdeploy_sl_rp_customer_list',
+                    scriptid: 'customscript_sl_rp_customer_list_2',
+                    deployid: 'customdeploy_sl_rp_customer_list_2',
                     zee: zee
                 }
                 params = JSON.stringify(params);
-            
-                var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_rp_create_stops', 'customdeploy_sl_rp_create_stops') + '&unlayered=T&custparam_params=' + params;
+                var output = url.resolveScript({
+                    scriptId: 'customscript_sl_rp_create_stops_2',
+                    deploymentId: 'customdeploy_sl_rp_create_stops_2',
+                });
+                var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
                 window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
             });
 
@@ -224,7 +222,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
 
                 var zee = $(this).val();
 
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=846&deploy=1";
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1144&deploy=1";
 
                 url += "&zee=" + zee + "";
 
@@ -232,15 +230,14 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             });
         }
 
+
         function onclick_back() {
             var params = {}
             params = JSON.stringify(params);
-            // var upload_url = baseURL + nlapiResolveURL('SUITELET', 'customscript_sl_full_calendar', 'customdeploy_sl_full_calender') + '&unlayered=T&zee=' + parseInt(nlapiGetFieldValue('zee')) + '&custparam_params=' + params;
-            // window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
             
             var upload_url = baseURL + url.resolveScript({
-                deploymentId: 'customdeploy_sl_full_calender',
-                scriptId: 'customscript_sl_full_calendar'
+                deploymentId: 'customdeploy_sl_full_calender_2',
+                scriptId: 'customscript_sl_full_calendar_2'
             }) + '&unlayered=T&zee=' + parseInt(currRecord.getValue({fieldId: 'zee'})) + '&custparam_params=' + params;
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
 
@@ -320,6 +317,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         }
 
         return {
-            pageInit: pageInit
+            pageInit: pageInit,
+            onclick_back: onclick_back
         }
 });

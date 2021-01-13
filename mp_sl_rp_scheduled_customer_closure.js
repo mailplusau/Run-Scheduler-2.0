@@ -1,6 +1,10 @@
 /**
+ * 
  * @NApiVersion 2.0
  * @NScriptType Suitelet
+ * 
+ * Description: 
+ * @Last Modified by: Sruti Desai
  * 
  */
 
@@ -189,13 +193,13 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     functionName: 'onclick_back()'
                 });
                 
-                form.clientScriptFileId = 4604805;
+                form.clientScriptFileId = 4604805;  // PROD = 4604805
 
                 context.response.writePage(form);
             } else {
                 url.resolveScript({
-                    deploymentId: 'customdeploy_sl_full_calender',
-                    scriptId: 'customscript_sl_full_calendar'
+                    deploymentId: 'customdeploy_sl_full_calender_2',
+                    scriptId: 'customscript_sl_full_calendar_2'
                 });
             }
         }

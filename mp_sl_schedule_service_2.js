@@ -898,13 +898,13 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 var zee_response = context.request.parameters.zee;
                 zee_response = parseInt(zee_response);
                 var params = {
-                    scriptid: 'customscript_sl_full_calendar',
-                    deployid: 'customdeploy_sl_full_calender',
+                    scriptid: 'customscript_sl_full_calendar_2',
+                    deployid: 'customdeploy_sl_full_calender_2',
                     zee: zee_response
                 }
                 redirect.toSuitelet({
-                    scriptId: 'customscript_sl_rp_customer_list',
-                    deploymentId: 'customdeploy_sl_rp_customer_list',
+                    scriptId: 'customscript_sl_rp_customer_list_2',
+                    deploymentId: 'customdeploy_sl_rp_customer_list_2',
                     parameters: params
                 });
         

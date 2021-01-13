@@ -1,8 +1,11 @@
 /**
- 
- *@NApiVersion 2.0
- *@NScriptType Suitelet
-
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType Suitelet
+ * 
+ * Description: 
+ * @Last Modified by: Sruti Desai
+ * 
  */
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 

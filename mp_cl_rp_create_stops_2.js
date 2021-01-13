@@ -1,6 +1,11 @@
-/**
- *@NApiVersion 2.x
- *@NScriptType ClientScript
+ /**
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType ClientScript
+ * 
+ * Description: To create stops based on the service selected for each customer. Enter the stop address, time spent at that stop as well as notes related to that stop.      
+ * @Last Modified by: Sruti Desai
+ * 
  */
 
 define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
@@ -49,8 +54,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 });
                 var params = {
                     custid: parseInt(customerIdCustPage),
-                    id: 'customscript_sl_rp_create_stops',
-                    deploy: 'customdeploy_sl_rp_create_stops'
+                    id: 'customscript_sl_rp_create_stops_2',
+                    deploy: 'customdeploy_sl_rp_create_stops_2'
                 };
                 params = JSON.stringify(params);
                 

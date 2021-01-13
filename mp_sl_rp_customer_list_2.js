@@ -1,9 +1,13 @@
 /**
- 
- *@NApiVersion 2.0
- *@NScriptType Suitelet
-
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType Suitelet
+ * 
+ * Description: Page to show the list of all the customers based on the franchisee. To convert all the items listed in the financial tab into service records. Ability for the franchisee to cancel a customer as well.
+ * @Last Modified by: Sruti Desai
+ * 
  */
+
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 
     function(ui, email, runtime, search, record, http, log, redirect, format) {
@@ -348,18 +352,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         }
     }
 
-    /**
-     * [getDate description] - Function to get the current date
-     * @return {[String]} [description] - Return the current date
-     */
-    // function getDate() {
-    //     var date = new Date();
-    //     if (date.getHours() > 6) {
-    //         date = nlapiAddDays(date, 1);
-    //     }
-    //     date = nlapiDateToString(date);
-    //     return date;
-    // }
 
     function getDate() {
         var date = new Date();

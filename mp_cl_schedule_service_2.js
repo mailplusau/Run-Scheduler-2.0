@@ -111,8 +111,8 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
         
         function onclick_mainpage() {
             var upload_url = baseURL + url.resolveScript({
-                deploymentId: 'customdeploy_sl_full_calender',
-                scriptId: 'customscript_sl_full_calendar'
+                deploymentId: 'customdeploy_sl_full_calender_2',
+                scriptId: 'customscript_sl_full_calendar_2'
             }) + '&unlayered=T';
             window.open(upload_url, "_self", "height=750,width=650,modal=yes,alwaysRaised=yes");
         }

@@ -1,17 +1,11 @@
 /**
- * @NApiVersion 2.x
+ * 
+ * @NApiVersion 2.0
  * @NScriptType Suitelet
  * 
- * Module Description
- * 
- * NSVersion    Date            			Author         
- * 1.00       	2019-03-04 16:53:48   		ankith.ravindran
- *
  * Description: Ability to setup a stop and link all customers per service to that stop.          
+ * @Last Modified by: Sruti Desai
  * 
- * @Last Modified by:   ankith.ravindran
- * @Last Modified time: 2019-05-07 10:56:51
- *
  */
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 
@@ -932,8 +926,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             } else {
                 // nlapiSetRedirectURL('SUITELET', 'customscript_sl_setup_stops', 'customdeploy_sl_setup_stops', null, null);
                 redirect.toSuitelet({
-                    scriptId: 'customscript_sl_setup_stops',
-                    deploymentId: 'customdeploy_sl_setup_stops'
+                    scriptId: 'customscript_sl_rp_create_stops_all_2',
+                    deploymentId: 'customdeploy_sl_rp_create_stops_all_2'
                 });
             }
         }

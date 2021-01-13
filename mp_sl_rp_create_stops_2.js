@@ -1,8 +1,11 @@
 /**
- 
- *@NApiVersion 2.0
- *@NScriptType Suitelet
-
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType Suitelet
+ * 
+ * Description: To create stops based on the service selected for each customer. Enter the stop address, time spent at that stop as well as notes related to that stop.      
+ * @Last Modified by: Sruti Desai
+ * 
  */
 
 define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format'], 
@@ -1017,8 +1020,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             var params = {
                 customerid: customer_id,
                 serviceid: service_id,
-                scriptid: 'customscript_sl_rp_create_stops',
-                deployid: 'customdeploy_sl_rp_create_stops',
+                scriptid: 'customscript_sl_rp_create_stops_2',
+                deployid: 'customdeploy_sl_rp_create_stops_2',
                 zee: zee_response
             };
     
@@ -1029,8 +1032,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
             });
 
             redirect.toSuitelet({
-                scriptId: 'customscript_sl_schedule_service',
-                deploymentId: 'customdeploy_sl_schedule_service',
+                scriptId: 'customscript_sl_schedule_service_2',
+                deploymentId: 'customdeploy_sl_schedule_service_2',
                 parameters: params
             });
 

@@ -466,8 +466,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 params = JSON.stringify(params);
 
                 var output = url.resolveScript({
-                    scriptId: 'customscript_sl_rp_create_stops',
-                    deploymentId: 'customdeploy_sl_rp_create_stops',
+                    scriptId: 'customscript_sl_rp_create_stops_2',
+                    deploymentId: 'customdeploy_sl_rp_create_stops_2',
                 });
                 
                 var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
@@ -816,8 +816,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
 
 
                 var output = url.resolveScript({
-                    scriptId: 'customscript_sl_scheduled_cust_closure',
-                    deploymentId: 'customdeploy_sl_scheduled_cust_closure',
+                    scriptId: 'customscript_sl_scheduled_cust_closure_2',
+                    deploymentId: 'customdeploy_sl_scheduled_cust_closure_2',
                 });
 
                 var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
@@ -828,8 +828,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
         function onclick_networkMap(zee){
 
             var output = url.resolveScript({
-                scriptId: 'customscript_sl_run_planner_map',
-                deploymentId: 'customdeploy_sl_run_planner_map',
+                scriptId: 'customscript_sl_run_planner_map_2',
+                deploymentId: 'customdeploy_sl_run_planner_map_2',
             });
             window.open(output + "&zee=" + zee +'');
         }

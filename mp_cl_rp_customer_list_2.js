@@ -1,6 +1,11 @@
-/**
- *@NApiVersion 2.x
- *@NScriptType ClientScript
+ /**
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType ClientScript
+ * 
+ * Description: Page to show the list of all the customers based on the franchisee. To convert all the items listed in the financial tab into service records. Ability for the franchisee to cancel a customer as well.
+ * @Last Modified by: Sruti Desai
+ * 
  */
 
 define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
@@ -291,8 +296,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 }
                 params = JSON.stringify(params);
                 var output = url.resolveScript({
-                    scriptId: 'customscript_sl_smc_main',
-                    deploymentId: 'customdeploy_sl_smc_main',
+                    scriptId: 'customscript_service_pricing_review_2',
+                    deploymentId: 'customdeploy1',
                 });
                 var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
                 window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");
@@ -362,8 +367,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 params = JSON.stringify(params);
             
                 var output = url.resolveScript({
-                    scriptId: 'customscript_sl_rp_create_stops',
-                    deploymentId: 'customdeploy_sl_rp_create_stops',
+                    scriptId: 'customscript_sl_rp_create_stops_2',
+                    deploymentId: 'customdeploy_sl_rp_create_stops_2',
                 });
                 var upload_url = baseURL + output + '&unlayered=T&custparam_params=' + params;
                 window.open(upload_url, "_blank", "height=750,width=650,modal=yes,alwaysRaised=yes");

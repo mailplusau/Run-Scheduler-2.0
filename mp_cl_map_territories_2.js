@@ -1,6 +1,11 @@
-/**
- *@NApiVersion 2.x
- *@NScriptType ClientScript
+ /**
+ * 
+ * @NApiVersion 2.0
+ * @NScriptType ClientScript
+ * 
+ * Description: 
+ * @Last Modified by: Sruti Desai
+ * 
  */
 
 define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
@@ -15,10 +20,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
          * On page initialisation
          */
         function pageInit() {
-            jQuery();
-        }
-
-        function jQuery() {
             $(document).on('click', '#try', function(event) {
                 console.time('getTerritory');
                 var lat = parseFloat($('#lat').val());
