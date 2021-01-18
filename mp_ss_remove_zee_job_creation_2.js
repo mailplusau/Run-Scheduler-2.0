@@ -4,7 +4,7 @@
  * 
  * Description: Change the Daily App Job Creation field on Franchisee record to "NO"         
  * 
- * @Last Modified by:   Sruti Desai
+ * @Last Modified by:   Anesu Chakaingesu
  * 
  */
 
@@ -93,7 +93,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     }
                 }
 
-                var zee_id = searchResult.getValue("internalid");
+                var zee_id = searchResult.getValue({ name: "internalid"});
                 var zee_record = record.load({
                     type: record.Type.PARTNER,
                     id: zee_id,
@@ -109,6 +109,15 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 return true;
             });
         }
+
+        function isNullorEmpty(val) {
+            if (val == '' || val == null) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
         return {
             execute: main
         }

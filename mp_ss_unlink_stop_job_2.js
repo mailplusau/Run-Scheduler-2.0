@@ -2,6 +2,9 @@
  * @NApiVersion 2.x
  * @NScriptType ScheduledScript
  * 
+ * Module Description
+ * 
+ * @Last Modified by:   Anesu Chakaingesu
  */
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'], 
@@ -31,7 +34,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_service_leg'
             });
             var resultSetStop = stopSearch.run();
-            resultSetStop.forEach(function(searchResult) {
+            resultSetStop.each(function(searchResult) {
+                log.debug({
+                    title: 'In the Loop',
+                    details: any
+                })
                 var usage_loopstart_cust = ctx.getRemainingUsage();
                 log.audit({
                     title: 'usage_loopstart_cust',
@@ -58,7 +65,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         title: 'Reschedule Return',
                         details: reschedule_id
                     })
-                    if (reschedulereschedule_id == false) {
+                    if (reschedule_id == false) {
+
                         return false;
                     }
                 }
@@ -66,9 +74,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 var leg_id = searchResult.getValue({ name: 'internalid' });
                 var job_id = searchResult.getValue({ name: 'internalid', join: 'CUSTRECORD159', summary: null});
                 var freq_id = searchResult.getValue({ name: 'internalid', join: 'CUSTRECORD_SERVICE_FREQ_STOP', sumarry: null});
-                // nlapiLogExecution('DEBUG', 'count', count);
-                // nlapiLogExecution('DEBUG', 'leg_id', leg_id);
-                // nlapiLogExecution('DEBUG', 'old_leg_id', old_leg_id);
                 log.debug({
                     title: 'count',
                     details: count
@@ -98,10 +103,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             freq_id_array[freq_id_array.length] = freq_id;
                         }
                     } else if (leg_id != old_leg_id) {
-                        // nlapiLogExecution('DEBUG', 'leg_id', leg_id);
-                        // nlapiLogExecution('DEBUG', 'old_leg_id', old_leg_id);
-                        // nlapiLogExecution('DEBUG', 'job_id_array', job_id_array);
-                        // nlapiLogExecution('DEBUG', 'freq_id_array', freq_id_array);
                         log.debug({
                             title: 'leg_id',
                             details: leg_id
@@ -120,14 +121,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         })
 
                         for (i = 0; i < job_id_array.length; i++) {
-                            // nlapiLogExecution('DEBUG', 'job_id_array[i]', job_id_array[i]);
-                            // var jobRecord = nlapiLoadRecord('customrecord_job', job_id_array[i]);
-                            // var stop = jobRecord.getFieldValue('custrecord_job_stop');
-                            // nlapiLogExecution('DEBUG', 'stop', stop);
-                            // jobRecord.setFieldValue('custrecord_job_stop', null);
-                            // jobRecord.setFieldValue('custrecord159', null);
-                            // nlapiSubmitRecord(jobRecord);
-
                             log.debug({
                                 title: 'job_id_array[i]',
                                 details: job_id_array[i]
@@ -148,16 +141,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 details: freq_id_array[i]
                             });
                             record.delete({
-                                type: customrecord_service_freq,
+                                type: 'customrecord_service_freq',
                                 id: freq_id_array[i]
                             });
                         }
-                        // var legRecord = nlapiLoadRecord('customrecord_service_leg', old_leg_id);
-                        // legRecord.setFieldValue('custrecord_service_leg_trf_linked_stop', null);
-                        // old_leg_id = nlapiSubmitRecord(legRecord);
-                        // nlapiLogExecution('DEBUG', 'old_leg_id', old_leg_id);
-                        // nlapiDeleteRecord('customrecord_service_leg', old_leg_id);
-
                         var legRecord = record.load({
                             type: 'customrecord_service_leg',
                             id: old_leg_id
@@ -203,10 +190,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         title: 'job_id_array[i]',
                         details: job_id_array[i]
                     })
-                    // var jobRecord = nlapiLoadRecord('customrecord_job', job_id_array[i]);
-                    // jobRecord.setFieldValue('custrecord_job_stop', null);
-                    // jobRecord.setFieldValue('custrecord159', null);
-                    // nlapiSubmitRecord(jobRecord);
                     var jobRecord = record.load({
                         id: job_id_array[i],
                         type: 'customrecord_job'
@@ -218,18 +201,15 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     jobRecord.save();
                 }
                 for (i = 0; i < freq_id_array.length; i++) {
-                    // nlapiLogExecution('DEBUG', 'freq_id_array[i]', freq_id_array[i]);
-                    // nlapiDeleteRecord('customrecord_service_freq', freq_id_array[i]);
+                    log.debug({
+                        title: 'freq_id_array[i]',
+                        details: freq_id_array[i]
+                    })
                     record.delete({
                         type: 'customrecord_service_leg',
                         id: old_leg_id
                     });
                 }
-                // var legRecord = nlapiLoadRecord('customrecord_service_leg', old_leg_id);
-                // legRecord.setFieldValue('custrecord_service_leg_trf_linked_stop', null);
-                // old_leg_id = nlapiSubmitRecord(legRecord);
-                // nlapiLogExecution('DEBUG', 'old_leg_id', old_leg_id);
-                // nlapiDeleteRecord('customrecord_service_leg', old_leg_id);
                 var jobRecord = record.load({
                     id: job_id_array[i],
                     type: 'customrecord_job'

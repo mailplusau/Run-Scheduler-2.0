@@ -1,15 +1,16 @@
 /**
  * @NApiVersion 2.x
  * @NScriptType ScheduledScript
+ * @NAmdConfig ./custom_modules_config.json
  * 
  * Module Description
  * 
- * @Last Modified by:   Sruti Desai
+ * @Last Modified by:   Anesu Chakaingesu
  * 
  */
 
-define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
-    function(runtime, search, record, log, task, currentRecord, format) {
+define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/task', 'moment2'],
+    function(ui, email, runtime, search, record, http, log, redirect, task, moment) {
         var zee = 0;
         var role = 0;
 
@@ -72,50 +73,49 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var old_freq = [];
         
             resultRunPlan.each(function(searchResult) {
-        
 
                 var run_plan_id = searchResult.getValue({
                     name: 'internalid',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var run_plan_name = searchResult.getValue({
                     name: 'name',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var operator_id = searchResult.getValue({
                     name: 'custrecord_run_operator',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var operator_text = searchResult.getText({
                     name: 'custrecord_run_operator',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var operator_prem_id = searchResult.getValue({
                     name: 'custrecord_operator_prem_id',
                     join: 'CUSTRECORD_RUN_OPERATOR',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var operator_email = searchResult.getValue({
                     name: 'custrecord_operator_email',
                     join: 'CUSTRECORD_RUN_OPERATOR',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var operator_phone = searchResult.getValue({
                     name: 'custrecord_operator_phone',
                     join: 'CUSTRECORD_RUN_OPERATOR',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 var run_plan_start_time = searchResult.getValue({
                     name: 'custrecord_service_freq_time_start',
                     join: 'CUSTRECORD_SERVICE_FREQ_RUN_PLAN',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
                 run_plan_start_time = convertTo24Hour(run_plan_start_time);
 
                 var run_plan_end_time = searchResult.getValue({
                     name: 'custrecord_service_freq_time_end',
                     join: 'CUSTRECORD_SERVICE_FREQ_RUN_PLAN',
-                    summary: "GROUP",
+                    summary: search.Operator.GROUP,
                 });
 
                 run_plan_end_time = convertTo24Hour(run_plan_end_time);
@@ -173,9 +173,13 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             value: old_run_plan_id,
                         });
 
+                        var parse_date = format.parse({
+                            value: getDate(),
+                            type: format.Type.DATE
+                        })
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_date',
-                            value: getDate(),
+                            value: parse_date
                         });
 
                         shiftsRecord.setValue({
@@ -188,7 +192,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             value: onTimeChange(old_end_time),
                         });
 
-                       
                         var shiftID = shiftsRecord.save({
                             enableSourcing: true
                         });
@@ -216,24 +219,27 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_ns_run_plan_id',
-                            value: old_run_plan_id,
+                            value: old_run_plan_id
                         });
 
+                        var parse_date = format.parse({
+                            value: getDate(),
+                            type: format.Type.DATE
+                        })
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_date',
-                            value: getDate(),
+                            value: parse_date
                         });
 
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_start_time',
-                            value: onTimeChange(start_time),
+                            value: onTimeChange(start_time)
                         });
 
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_end_time',
-                            value: onTimeChange(old_end_time),
+                            value: onTimeChange(old_end_time)
                         });
-
                        
                         var shiftID = shiftsRecord.save({
                             enableSourcing: true
@@ -275,10 +281,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     fieldId: 'custrecord_ns_run_plan_id',
                     value: old_run_plan_id,
                 });
-
+                
+                var parse_date = format.parse({
+                    value: getDate(),
+                    type: format.Type.DATE
+                })
                 shiftsRecord.setValue({
                     fieldId: 'custrecord_shift_date',
-                    value: getDate(),
+                    value: parse_date
                 });
 
                 shiftsRecord.setValue({
