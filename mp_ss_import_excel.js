@@ -91,6 +91,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             log.audit({
                 title: 'SS Initialised'
             });
+            
 
             var rs_values = line.value.split(',');
             var custId = rs_values[0];
