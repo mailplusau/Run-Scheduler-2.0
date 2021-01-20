@@ -123,6 +123,16 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                     });
                 }
             }
+
+            // CALL SCHEDULED SCRIPT
+            // var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
+            // scriptTask.scriptId = 'customscript_ss_import_excel';
+            // scriptTask.deploymentId = 'customdeploy_ss_import_excel';
+            // scriptTask.params = {
+            //     fileid: f_id
+            // };
+            // var scriptTaskId = scriptTask.submit();
+
             //var file = nlapiLoadFile(id);
             var file1 = file.load({
                 id: f_id
@@ -227,3 +237,43 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
     };
 
 });
+
+
+function aa() {
+    var file_id = context.request.parameters.fileid;
+    var file1 = file.load({
+        id: file_id
+    });
+
+    var iterator = file1.lines.iterator();
+
+    // skip first line (header)
+    iterator.each(function () {return false;});
+
+    iterator.each(function (line) {
+
+        run(line);
+
+        return true;
+    });
+
+}
+
+function run(line) {
+    var rs_values = line.value.split(',');
+    var custId = rs_values[0];
+    var companyName = "\"" + rs_values[1]+ "\"";
+    var service_id = rs_values[2];
+    var service_name = rs_values[3];
+    var price = rs_values[4];
+    var frequency = rs_values[5];
+    var poBox = "\"" + rs_values[6]+ "\"";
+    var stop1_location = "\"" + rs_values[7]+ "\"";
+    var stop1_time = rs_values[8];
+    var stop2_location = "\"" + rs_values[9]+ "\"";
+    var stop2_time = rs_values[10];
+    var notes = "\"" + rs_values[11]+ "\"";
+    var driver = rs_values[12];
+
+            
+}

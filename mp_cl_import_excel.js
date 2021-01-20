@@ -49,19 +49,11 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 fieldId: 'zee',
             });
 
-            var zeeRec = record.load({
-                type: record.Type.PARTNER,
-                id: zee,
-            });
-            
-            var zee_text = zeeRec.getValue({
-                fieldId: 'entityid'
-            })
 
             if (zee == 0 && role != 1000) {
                 alert('Please Select a Zee before downloading a template');
             } else {
-                downloadCsv(zee_text);
+                downloadCsv(zee);
 
                 alert('worked');
             }  
@@ -128,7 +120,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var content_type = 'text/csv';
             var csvFile = new Blob([csv], { type: content_type });
             var url = window.URL.createObjectURL(csvFile);
-            var filename = zeeVal + '_template.csv';
+            var filename = zeeVal + '_zee_template.csv';
             a.href = url;
             a.download = filename;
             a.click();
