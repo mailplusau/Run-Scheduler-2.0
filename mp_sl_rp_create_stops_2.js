@@ -276,7 +276,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format) {
                     operator: search.Operator.ANYOF,
                     values: [1, 6]
                 }));
-                newFilters[0] = new nlobjSearchFilter('custrecord_ap_lodgement_site_state', null, 'anyof', [1, 6]);
+                //newFilters[0] = new nlobjSearchFilter('custrecord_ap_lodgement_site_state', null, 'anyof', [1, 6]);
 
             } else {
                 searched_ncl.filters.push(search.createFilter({

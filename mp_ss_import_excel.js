@@ -71,6 +71,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         
         function main(context){
             var file_id = context.request.parameters.fileid;
+            var zee_id = context.request.parameters.zee_id
             var file1 = file.load({
                 id: file_id
             });
@@ -92,6 +93,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 title: 'SS Initialised'
             });
 
+            // ADD ENTITYID i.e. 751172738 id of customer in excel
             var rs_values = line.value.split(',');
             var custId = rs_values[0];
             var companyName = "\"" + rs_values[1]+ "\"";
@@ -106,6 +108,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var stop2_time = rs_values[10];
             var notes = "\"" + rs_values[11]+ "\"";
             var driver = rs_values[12];
+            var run_name = rs_values[13];
+
 
             log.debug({
                 title: 'comp',
@@ -650,6 +654,209 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     }
 
                 }
+            }
+        }
+        /*
+        *  2. Schedule Service
+        *      Frequency (Daily, ADHOC. M,T,W,T,F,S,S)
+        *      2.1 Stop 1 Info
+        *          Select Run - Run created yet?
+        *          Service Time - Earliest & Latest Time (AM/PM)
+        *      2.2 Stop 2 Info
+        *          Select Run
+        *          Service Time
+        * 
+        */
+
+        //only for setting up new stops atm
+
+        function scheduleService(stop_1_id, stop_2_id, frequency, custID, zee_id, driver, run_input_name, service_id, stop1_time, stop2_time ) {
+            // GET STOP 1 and STOP 2 ID from createStop()
+            if(!isNullorEmpty(stop_1_id) && !isNullorEmpty(stop_2_id)) {
+                //check line 970 in cl schedule service; check if new stop was created?
+                // what is rows??
+                if (rows.length == 1 || rows.length == 0 ) {
+                    // this if statement will change for edit stop
+                    if(!isNullorEmpty(frequency)) {
+
+                        //what;s the id??
+                        var freq_record1 = record.load({
+                            type: 'customrecord_service_freq',
+                            id: 1
+                        });
+
+                        var runPlan_search = search.load({
+                            id: 'customsearch_app_run_plan_active',
+                            type: 'customrecord_run_plan'
+                        });
+                        
+                        runPlan_search.filters.push(search.createFilter({
+                            name: 'partner',
+                            operator: search.Operator.IS,
+                            values: zee_id
+                        }));
+
+                        var run_id = 0;
+                        var runPlan_results = runPlan_search.run();
+                        runPlan_results.each(function(searchResult) {
+                            run_id = searchResult.getValue('internalid');
+                            run_name = searchResult_zee.getValue('name');
+                            if(run_name.isEqualTo(run_input_name)) {
+                                break;
+                            }
+                
+                        });
+
+                        //what format will stop1 times be etc?
+                        //var stop1_24hr_time = convertto24Hour(stop1_time);
+                        var hours_string = (stop1_time.substr(0, 2));
+                        var hours = parseInt(stop1_time.substr(0, 2));
+                        var earliest_time = stop1_time;
+                        var latest_time = stop1_time;
+                        
+                        if (hours < 9 && hours != 0) {
+                            earliest_time = service_time.replace(hours_string, '0' + (hours - 1));
+                            latest_time = service_time.replace(hours_string, '0' + (hours + 1));
+                        } else if (hours == 9) {
+                            earliest_time = service_time.replace(hours_string, '0' + (hours - 1));
+                            latest_time = service_time.replace(hours_string, (hours + 1));
+                        } else if (hours == 10) {
+                            earliest_time = service_time.replace(hours_string, '0' + (hours - 1));
+                            latest_time = service_time.replace(hours_string, (hours + 1));
+                        } else if (hours > 10) {
+                            earliest_time = service_time.replace(hours_string, (hours - 1));
+                            latest_time = service_time.replace(hours_string, (hours + 1));
+                        }
+
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_customer', value: custID });
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_run_plan', value: run_id });
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_service', value:  service_id });
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_stop', value: stop_1_id });
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_time_start', value: earliest_time});
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_time_end', value: latest_time});
+                        freq_record1.setValue({ fieldId: 'custrecord_service_freq_time_current', value: stop1_time});
+
+                        
+
+
+                        var freq_record2 = record.load({
+                            type: 'customrecord_service_freq',
+                            id: 2
+                        });
+
+                        var hours_string2 = (stop2_time.substr(0, 2));
+                        var hours2 = parseInt(stop2_time.substr(0, 2));
+                        var earliest_time2 = stop2_time;
+                        var latest_time2 = stop2_time;
+                        
+                        if (hours2 < 9 && hours2 != 0) {
+                            earliest_time2 = service_time.replace(hours_string2, '0' + (hours2 - 1));
+                            latest_time2 = service_time.replace(hours_string2, '0' + (hours2 + 1));
+                        } else if (hours2 == 9) {
+                            earliest_time2 = service_time.replace(hours_string2, '0' + (hours2 - 1));
+                            latest_time2 = service_time.replace(hours_string2, (hours2 + 1));
+                        } else if (hours2 == 10) {
+                            earliest_time2 = service_time.replace(hours_string2, '0' + (hours2 - 1));
+                            latest_time2 = service_time.replace(hours_string2, (hours2 + 1));
+                        } else if (hours2 > 10) {
+                            earliest_time2 = service_time.replace(hours_string2, (hours2 - 1));
+                            latest_time2 = service_time.replace(hours_string2, (hours2 + 1));
+                        }
+
+
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_customer', value:  custID });
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_run_plan', value: run_id });
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_service', value:  service_id });
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_stop', value: stop2_id });
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_time_start', value: earliest_time2});
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_time_end', value: latest_time2});
+                        freq_record2.setValue({ fieldId: 'custrecord_service_freq_time_current', value: stop2_time });
+
+                        var freq = frequency.split('/');
+                        freq.map(name => name.toLowerCase());
+
+                        if (freq.includes("mon") || freq.includes("monday")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
+
+                        } else {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'F'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'F'});
+
+                        }
+                        if (freq.includes("tue") || freq.includes("tuesday")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'T'});
+
+                        } else {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'F'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'F'});
+
+                        }
+                        if (freq.includes("wed") || freq.includes("wednesday")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'T'});
+
+                        } else {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'F'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'F'});
+
+                        }
+                        if (freq.includes("thurs") || freq.includes("thursday")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'T'});
+
+                        } else {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'F'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'F'});
+
+                        }
+                        if (freq.includes("fri") || freq.includes("friday")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'T'});
+
+                        } else {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'F'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'F'});
+
+                        }
+
+                        if (freq.includes("adhoc")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: 'T'});
+
+                        } else {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: 'F'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: 'F'});
+
+                        }
+
+                        //check if daily is mon to fri
+                        if (freq.includes("daily")) {
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'T'});
+                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'T'});
+
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: 'T'});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: 'T'});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: 'T'});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: 'T'});
+                        }
+                        freq_record1.save({
+                            enableSourcing: true,
+                            ignoreMandatoryFields: true
+                        });
+
+                        freq_record2.save({
+                            enableSourcing: true,
+                            ignoreMandatoryFields: true
+                        });
+
+                    }   
+                }               
             }
         }
 
