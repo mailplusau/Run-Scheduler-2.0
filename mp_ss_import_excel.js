@@ -94,6 +94,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
 
             // ADD ENTITYID i.e. 751172738 id of customer in excel
+            // FIX UP NAMES AND "\""- match with cl
             var rs_values = line.value.split(',');
             var custId = rs_values[0];
             var companyName = "\"" + rs_values[1]+ "\"";
@@ -104,8 +105,15 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var poBox = "\"" + rs_values[6]+ "\"";
             var stop1_location = "\"" + rs_values[7]+ "\"";
             var stop1_time = rs_values[8];
+            var stop1_time = rs_values[8];
+            var stop1_duration = rs_values[8];
+            var stop1_notes = rs_values[8];
+
             var stop2_location = "\"" + rs_values[9]+ "\"";
             var stop2_time = rs_values[10];
+            var stop2_duration = rs_values[8];
+            var stop2_notes = rs_values[8];
+
             var notes = "\"" + rs_values[11]+ "\"";
             var driver = rs_values[12];
             var run_name = rs_values[13];
@@ -162,15 +170,20 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     custIdSet.push(service_id);
                     if (!isNullorEmpty(stop1_location)){
                         // Start Functions here.
-
+                        var stop1_id = 0;
+                        var stop2_id = 0;
                         if (stage == 0){ // Create Stops
                             stage++;
 
-                            createStop();
+                            var service_leg_1 = 1;
+                            var service_leg_2 = 2;
+                            var stop1_id = createStop(service_leg_1);
+                            var stop2_id = createStop(service_leg_2);
                         }
 
                         if (stage == 1){ // Schedule Service 
                             stage++;
+                            scheduleService(stop1_id, stop2_id);
 
                         }
 
@@ -184,477 +197,207 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             
             return true;   
         }
+        /*
+         *  Adding Stop Process:
+         *  1. Create Stop
+         *      Add Stop - Address Type (Customers Location and Non Customer Location)
+         *      Add Duration 
+         *      Add Notes
+         *      Transfer? (Before or After) -- COMPLETE THIS
+         *  po box?? or dx? what is the diff, zee will have to outline
+         *  Stop1_location_type == customer or non-customer; field in excel
+         * stop1_duration must be in sec= add field in excel and stop2_duration
+         * why is there no po box for the second stop in raine excel? because one is always guaranteed tp be customer?
+         * check service_leg_record.setValue('name') ==> not sure if accessing the right values
+         * assuming it's either po box or subdwelling i.e. level 4/ground floor/suite 4 etc
+         * haven't included transfer yet
+         * leg number is hardcoded i.e. stop1 = 1, stop2 = 2
+        */
+        function createStop(service_leg_number, custId, zee, companyName, serviceId, stop_location_type, stop_location, poBox, stop_duration, stop_notes ){
 
-        function createStop(){
-            var customer_id = currentScript.getValue({
-                fieldId: 'custpage_customer_id',
+            //Create Service Leg record for stop 1
+            var service_leg_record = record.create({
+                type: 'customrecord_service_leg',
+                isDynamic: true
             });
 
-            var service_id = currentScript.getValue({
-                fieldId: 'custpage_service_id',
+            //Set customer id in service  record for stop 1
+            service_leg_record.setValue({
+                fieldId: 'custrecord_service_leg_customer',
+                value: custId
             });
 
-            for (var i = 0; i < edit_stop_elem.length; i++) {
-                var stop_id = edit_stop_elem[i].getAttribute('data-newstop');
-                console.log('edit_stop_elem[i]', edit_stop_elem[i]);
-                console.log('stop_id', stop_id);
-                var old_stop_id = table_info_elem[i].getAttribute('data-oldstop');
-                console.log('old_stop_id', old_stop_id);
+            //set service id in service leg record for stop 1
+            service_leg_record.setValue({
+                fieldId: 'custrecord_service_leg_service',
+                value: serviceId
+            });
 
-                var delete_stop_id = delete_stop_elem[i].getAttribute('data-stopid');
+            //set location type in service leg rec for stop 1
+            service_leg_record.setValue({
+                fieldId: 'custrecord_service_leg_location_type',
+                value: stop_location_type
+            });
 
-                var transfer_type = table_stop_name_elem[i].getAttribute('data-transfertype');
-                var linked_zee = table_stop_name_elem[i].getAttribute('data-linkedzee');
-                var linked_stop = table_stop_name_elem[i].getAttribute('data-linkedstop');
-                var old_value = table_stop_name_elem[i].getAttribute('data-oldvalue');
-                var notes = table_stop_name_elem[i].getAttribute('data-notes');
+            
+            //set address in service leg rec- dependent on if customer or not cust location
+            if (stop_location_type == 'Customer') {
+                service_leg_record.setValue({ fieldId: 'name', value: companyName });
+                var searched_address = search.load({
+                    id: 'customsearch_smc_address',
+                    type: search.Type.CUSTOMER
+                });
+                
+                searched_address.filters.push(search.createFilter({
+                    name: 'internalid',
+                    operator: search.Operator.IS,
+                    values: custId
+                }));
 
-                if (delete_stop_elem[i].value == 'T' && !isNullorEmpty(delete_stop_id)) {
-                    var serviceLegSearch = search.load({
-                        id: 'customsearch_rp_servicefreq',
-                        type: 'customrecord_service_freq'
-                    }) 
+                var resultSet_addresses = searched_address.run();
+
+                resultSet_addresses.each(function(searchResult_address) {
+                    var addr_id = searchResult_address.getValue({name: 'addressinternalid', join: 'Address'});
+                    //potentially might be getText
+                    var addr_label = searchResult_address.getValue({ name: "addresslabel",join: "Address" }),
+                    //sometimes is postal i.e. PO and else it is "ground floor etc"
+                    var addr1 = searchResult_address.getValue({name: 'address1',join: 'Address'});
+                    //street num name
+                    var addr2 = searchResult_address.getValue({name: 'address2',join: 'Address'});
+                    var city = searchResult_address.getValue({name: 'city',join: 'Address'});
+                    var state = searchResult_address.getValue({name: 'state',join: 'Address'});
+                    var zip = searchResult_address.getValue({name: 'zipcode',join: 'Address'});
+                    var lat = searchResult_address.getValue({name: 'custrecord_address_lat',join: 'Address'});
+                    var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'});
                     
-                    serviceLegSearch.filters.push(search.createFilter({
-                        name: 'custrecord_service_freq_service',
-                        operator: search.Operator.IS,
-                        values: service_id
-                    }));
-                    if (!isNullorEmpty(linked_stop)) {
-                        serviceLegSearch.filters.push(search.createFilter({
-                            name: 'custrecord_service_freq_stop',
-                            operator: search.Operator.ANYOF,
-                            values: delete_stop_id
-                        }));
+                    if (isNullorEmpty(poBox)) {
+                        if (stop_location.contains(addr2) && stop_location.contains(city) && stop_location.contains(state) && stop_location.contains(zip)) {
+                            //type of address i.e. site address, billing addr etc
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_label});
+                            
+                            //might fail if po box is null value?
+                            // service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr_postal,});
+
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: addr1});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
+                            
+                            break;
+                        }
                     } else {
-                        serviceLegSearch.filters.push(search.createFilter({
-                            name: 'custrecord_service_freq_stop',
-                            operator: search.Operator.IS,
-                            values: delete_stop_id
-                        }));
-                    }
+                        //case when po box is in addr2 col
+                        if (addr2.startsWith("PO Box") && addr2.contains(poBox) && stop_location.contains(city) && stop_location.contains(state) && stop_location.contains(zip)) {
+                            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr', value: addr_label });
+                            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr2,});
+                            //NULL VALUR ERRORS?
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: ''});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
 
-
-                    var resultSet = serviceLegSearch.run();
-
-                    resultSet.each(function(searchResult) {
-
-                        var freq_id = searchResult.getValue('internalid');
-
-                        if (!isNullorEmpty(freq_id)) {
-                            var freq_record = record.load({
-                                type: 'customrecord_service_freq',
-                                id: freq_id,
-                            });
-
-                            freq_record.setValue({
-                                fieldId: 'isinactive',
-                                value: 'T',
-                            });
-
-                            freq_record.save({
-                                enableSourcing: true,
-                            });
-
+                        } else if(addr2.contains(poBox) && stop_location.contains(addr2) && stop_location.contains(city) && stop_location.contains(state) && stop_location.contains(zip)) {
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_label});
+                            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
+                            //service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
                         }
-                        return true;
-                    });
+                    }                         
+                    
+                    return true;
+                });
 
-
-                    var service_leg_record = record.load({
-                        type: 'customrecord_service_leg',
-                        id: delete_stop_id,
-                    });
-
-                    var deleted_link_zee = service_leg_record.getValue({
-                        fieldId: 'custrecord_service_leg_trf_franchisee'
-                    });
-
-                    if (!isNullorEmpty(deleted_link_zee)) {
-
-                        deleted_stop_array[deleted_stop_array.length] = delete_stop_id;
-                        deleted_linked_zee_email[deleted_linked_zee_email.length] = deleted_link_zee;
-
-                    }
-
-                    service_leg_record.setValue({
-                        fieldId: 'isinactive',
-                        value: 'T',
-                    })
-
-                    service_leg_record.save({
-                        enableSourcing: true,
-                    });
-
-                    //FOR TRANSFERS
-                    if (!isNullorEmpty(linked_stop)) {
-                        var linked_service_leg_record = record.load({
-                            type: 'customrecord_service_leg',
-                            id: linked_stop,
-                        });
-                        linked_service_leg_record.setValue({
-                            fieldId: 'isinactive',
-                            value: 'T',
-                        });
-                        linked_service_leg_record.save({
-                            enableSourcing: true
-                        });
-                    }
-
-
+                
+            } else {
+                
+                var zeeRec = record.load({
+                    type: record.Type.PARTNER,
+                    id: zee,
+                });
+                var zeeLocation = zeeRec.getValue({ fieldId: 'location' })
+                var searched_ncl = search.load({
+                    id: 'customsearch_smc_noncust_location',
+                    type: 'customrecord_ap_lodgment_location'
+                })
+                
+                if (zeeLocation == 6) {
+                    searched_ncl.filters.push(search.createFilter({
+                        name: 'custrecord_ap_lodgement_site_state',
+                        operator: search.Operator.ANYOF,
+                        values: [1, 6]
+                    }));
+    
                 } else {
-                    var transfer_created = false;
-                    var edited = false;
-                    console.log('transfer_type', transfer_type);
-                    console.log('old_stop_id', old_stop_id);
-
-                    if (isNullorEmpty(old_stop_id)) {
-                        edited = true;
-                        var service_leg_record = record.create({
-                            type: 'customrecord_service_leg',
-                            isDynamic: true
-                        });
-                        
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_customer',
-                            value: customer_id
-                        });
-
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_service',
-                            value: service_id
-                        });
-
-                        if (!isNullorEmpty(transfer_type) && transfer_type != 0) {
-                            transfer_created = true;
-                            transfer_array[transfer_array.length] = i;
-                            transfer_zee_array[transfer_zee_array.length] = linked_zee;
-                            console.log('creating transfer stop');
-                            var service_leg_record_transfer = record.create({
-                                type: 'customrecord_service_leg',
-                                isDynamic: true,
-                            });
-                            
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_customer',
-                                value: customer_id
-                            });
-
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_service',
-                                value: service_id
-                            });
-
-                        }
-                    } else if (!isNullorEmpty(old_stop_id)) {
-                        if (!isNullorEmpty(transfer_type) && transfer_type != 0) {
-                            transfer_array[transfer_array.length] = i;
-                            transfer_zee_array[transfer_zee_array.length] = linked_zee;
-                        }
-                        for (k = 0; k < edited_stop_array.length; k++) {
-                            if (old_stop_id == edited_stop_array[k]) {
-                                edited = true;
-                                var service_leg_record = record.load({
-                                    type: 'customrecord_service_leg',
-                                    id: old_stop_id,
-                                });
-
-                                if (!isNullorEmpty(transfer_type) && transfer_type != 0) {
-                                    
-                                    var transfer_app_service_leg = service_leg_record.getValue({
-                                        fieldId: 'custrecord_service_leg_trf_leg'
-                                    });
-                                    
-                                    console.log('transfer_app_service_leg', transfer_app_service_leg);
-                                    if (transfer_app_service_leg == 1) {
-                                        var transfer_stop_linked_id = service_leg_record.getValue({
-                                            fieldId: 'custrecord_service_leg_trf_linked_stop'
-                                        });
-                                        
-                                        var service_leg_record_transfer = record.load({
-                                            type: 'customrecord_service_leg',
-                                            id: transfer_stop_linked_id,
-                                        });
-                                        
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                    console.log('edited', edited);
-                    if (edited == false) {
-                        stop_array[stop_array.length] = old_stop_id;
-                        continue;
-                    }
-
-                    //Array with the stops of which the name has changed
-                    if (old_value != table_stop_name_elem[i].value && !isNullorEmpty(old_value)) {
-                        updated_stop_array[updated_stop_array.length] = table_stop_name_elem[i].value;
-                        old_stop_array[old_stop_array.length] = old_value;
-                        if (linked_zee != 0) {
-                            updated_stop_zee[updated_stop_zee.length] = linked_zee;
-                        }
-                    }
-
-                    service_leg_record.setValue({
-                        fieldId: 'name',
-                        value: table_stop_name_elem[i].value,
-                    });
-                    console.log('table_stop_name_elem[i].value', table_stop_name_elem[i].value);
-
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_location_type',
-                        value: table_info_elem[i].getAttribute('data-addresstype'),
-                    });
-
-                    if (!isNullorEmpty(table_stop_name_elem[i].getAttribute('data-ncl')) && table_stop_name_elem[i].getAttribute('data-ncl') != 0) {
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_non_cust_location',
-                            value: table_stop_name_elem[i].getAttribute('data-ncl'),
-                        });
-                        
-                        var ncl_inactiveSearch = search.load({
-                            id: 'customsearch_noncust_inactiv',
-                            type: 'customrecord_ap_lodgment_location'
-                        });
-                        
-                        //CONVERT
-
-                        ncl_inactiveSearch.filters.push(search.createFilter({
-                            name: 'internalid',
-                            operator: search.Operator.IS,
-                            values: table_stop_name_elem[i].getAttribute('data-ncl')
-                        }));
-
-                        var resultSet_ncl_inactive = ncl_inactiveSearch.run();
-                        var error = false;
-
-                        resultSet_ncl_inactive.each(function(ResultSet) {
-                            var ncl_name = ResultSet.getValue('name');
-                            showAlert(ncl_name + ' is inactive. Please choose another location for that stop.');
-                            error = true;
-                            return true
-                        })
-                        if (error == true) {
-                            return false;
-                        }
-                    }
-
-                    if (table_stop_name_elem[i].getAttribute('data-customeraddressid') != 0) {
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_addr',
-                            value: table_stop_name_elem[i].getAttribute('data-customeraddressid'),
-                        });
-                        
-                    }
-
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_postal',
-                        value: table_stop_name_elem[i].getAttribute('data-postbox'),
-                    });
+                    searched_ncl.filters.push(search.createFilter({
+                        name: 'custrecord_ap_lodgement_site_state',
+                        operator: search.Operator.IS,
+                        values: zeeLocation
+                    }));
+    
                     
-                    if (isNullorEmpty(table_stop_name_elem[i].getAttribute('data-postbox'))) {
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_addr_subdwelling',
-                            value: table_stop_name_elem[i].getAttribute('data-addr1'),
-                        });
-                        
-                    }
-
-                    if (!isNullorEmpty(transfer_type) && transfer_type != 0) {
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_trf_type',
-                            value: transfer_type,
-                        });
-                        
-                        service_leg_record.setValue({
-                            fieldId: 'custrecord_service_leg_trf_leg',
-                            value: 1,
-                        });
-
-                    }
-
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_st_num_name',
-                        value: table_stop_name_elem[i].getAttribute('data-addr2'),
-                    });
-                    
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_suburb',
-                        value: table_stop_name_elem[i].getAttribute('data-city'),
-                    });
-                    
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_state',
-                        value: table_stop_name_elem[i].getAttribute('data-state'),
-                    });
-                    
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_postcode',
-                        value: table_stop_name_elem[i].getAttribute('data-zip'),
-                    });
-                    
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_lat',
-                        value: table_stop_name_elem[i].getAttribute('data-lat'),
-                    });
-                    
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_addr_lon',
-                        value: table_stop_name_elem[i].getAttribute('data-lng'),
-                    });
-                    
-                    var duration = table_duration_elem[i].value;
-
-
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_duration',
-                        value: duration,
-                    });
-                    
-                    service_leg_record.setValue({
-                        fieldId: 'custrecord_service_leg_notes',
-                        value: notes,
-                    });
-                    
-
-                    var original_service_leg_id = service_leg_record.save({
-                        enableSourcing: true,
-                    });
-                    
-                    stop_array[stop_array.length] = original_service_leg_id;
-
-
-
-                    if (!isNullorEmpty(transfer_type) && transfer_type != 0 && !isNullorEmpty(service_leg_record_transfer)) {
-                        console.log('editing transfer stop');
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'name',
-                            value: table_stop_name_elem[i].value,
-                        });
-                        
-
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_location_type',
-                            value: table_info_elem[i].getAttribute('data-addresstype'),
-                        });
-                        
-                        if (!isNullorEmpty(table_stop_name_elem[i].getAttribute('data-ncl')) && table_stop_name_elem[i].getAttribute('data-ncl') != 0) {
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_non_cust_location',
-                                value: table_stop_name_elem[i].getAttribute('data-ncl'),
-                            });
-                            
-                        }
-
-                        if (table_stop_name_elem[i].getAttribute('data-customeraddressid') != 0) {
-                            service_leg_record.setValue({
-                                fieldId: 'custrecord_service_leg_addr',
-                                value: table_stop_name_elem[i].getAttribute('data-customeraddressid'),
-                            });
-                            
-                        }
-
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_postal',
-                            value: table_stop_name_elem[i].getAttribute('data-postbox'),
-                        });
-                        
-                        if (isNullorEmpty(table_stop_name_elem[i].getAttribute('data-postbox'))) {
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_addr_subdwelling',
-                                value: table_stop_name_elem[i].getAttribute('data-addr1'),
-                            });
-                            
-                        }
-
-                        if (!isNullorEmpty(transfer_type) && transfer_type != 0) {
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_trf_type',
-                                value: transfer_type,
-                            });
-                            
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_trf_leg',
-                                value: 2,
-                            });
-                            
-                            service_leg_record_transfer.setValue({
-                                fieldId: 'custrecord_service_leg_trf_linked_stop',
-                                value: original_service_leg_id,
-                            });
-                            
-                        }
-
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_st_num_name',
-                            value: table_stop_name_elem[i].getAttribute('data-addr2'),
-                        });
-                        
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_suburb',
-                            value: table_stop_name_elem[i].getAttribute('data-city'),
-                        });
-                        
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_state',
-                            value: table_stop_name_elem[i].getAttribute('data-state'),
-                        });
-                        
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_postcode',
-                            value: table_stop_name_elem[i].getAttribute('data-zip'),
-                        });
-                        
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_lat',
-                            value: table_stop_name_elem[i].getAttribute('data-lat'),
-                        });
-                        
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_addr_lon',
-                            value: table_stop_name_elem[i].getAttribute('data-lng'),
-                        });
-                        
-                        var duration = table_duration_elem[i].value;
-
-
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_duration',
-                            value: duration,
-                        });
-                        
-                        service_leg_record_transfer.setValue({
-                            fieldId: 'custrecord_service_leg_notes',
-                            value: notes,
-                        });
-
-                        var original_service_leg_id_transfer = service_leg_record_transfer.save({
-                            enableSourcing: true,
-                        });
-
-                        console.log('transfer_created', transfer_created);
-                        if (transfer_created == true) {
-                            var service_leg_record = record.load({
-                                type: 'customrecord_service_leg',
-                                id: original_service_leg_id,
-                                isDynamic: true,
-                            });
-
-                            service_leg_record.setValue({
-                                fieldId: 'custrecord_service_leg_trf_linked_stop',
-                                value: original_service_leg_id_transfer,
-                            });
-                            
-                            service_leg_record.save({
-                                enableSourcing: true,
-                            });
-                        }
-                    }
-
                 }
+
+                var resultSet_ncl = searched_ncl.run();
+                original_service_leg_id
+                old_stop_id
+                resultSet_ncl.each(function(searchResult_ncl) {
+
+                    var internal_id = searchResult_ncl.getValue('internalid');
+                    var name = searchResult_ncl.getValue('name');
+                    var post_code = searchResult_ncl.getValue('custrecord_ap_lodgement_postcode');
+                    var addr1 = searchResult_ncl.getValue('custrecord_ap_lodgement_addr1');
+                    var addr2 = searchResult_ncl.getValue('custrecord_ap_lodgement_addr2');
+                    var state = searchResult_ncl.getValue('custrecord_ap_lodgement_site_state');
+                    var city = searchResult_ncl.getValue('custrecord_ap_lodgement_suburb');
+                    var lat = searchResult_ncl.getValue('custrecord_ap_lodgement_lat');
+                    var lon = searchResult_ncl.getValue('custrecord_ap_lodgement_long');
+                    
+                    if ((poBox.contains(addr1) || stop_location.contains(addr1)) && stop_location.contains(addr2) && stop_location.contains(city) && stop_location.contains(state) && stop_location.contains(post_code)) {
+                        service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1,});
+
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: post_code,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
+                        service_leg_record.setValue({ fieldId: 'custrecord_service_leg_non_cust_location', value: name });
+                        
+                        service_leg_record.setValue({ fieldId: 'name', value: name });
+
+                        break;
+                    }
+        
+                    return true;
+                });
             }
+            
+
+            service_leg_record.setValue({fieldId: 'custrecord_service_leg_duration',value: stop_duration });
+            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_notes', value: stop_notes });
+
+            var stop_id = service_leg_record.getValue({fieldId: 'id'});
+            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_franchisee', value: zee});
+            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_number', value: service_leg_number})
+
+            service_leg_record.save({
+                enableSourcing: true,
+            });
+            
+            return stop_id;
+            
+           
         }
         /*
         *  2. Schedule Service
@@ -851,6 +594,17 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
 
                         freq_record2.save({
+                            enableSourcing: true,
+                            ignoreMandatoryFields: true
+                        });
+
+                        //Update the Run Scheduled box for the service
+                        var service_record = record.load({ type: 'customrecord_service', id: service_id});
+                        service_record.setValue({ type: 'custrecord_service_run_scheduled', id: 1});
+                    
+                        ///CHECK
+                        ///service_record.setValue({type: 'custrecord_multiple_operators', id: multiple_operators});
+                        service_record.save({
                             enableSourcing: true,
                             ignoreMandatoryFields: true
                         });

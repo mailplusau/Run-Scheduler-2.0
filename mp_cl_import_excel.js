@@ -63,7 +63,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
          * Create the CSV and store it in the hidden field 'custpage_table_csv' as a string.
          */
         function createCSV(zeeVal) {
-            var headers = ["Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Notes", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Notes", "Driver Name", "Run (AM or PM)"]
+            var headers = ["Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "PO Box# or DX#", "Stop 1: Customer or Non-Customer Location", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
             headers = headers.slice(0, headers.length); // .join(', ')
 
             var csv = headers + "\n";
