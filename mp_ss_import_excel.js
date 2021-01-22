@@ -146,8 +146,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var usageLimit = ctx.getRemainingUsage();
             if (usageLimit < 100) {
                 params = {
-                    custscript_data_set: JSON.stringify(custIdSet),
-                    custscript_stage: stage
+                    custscript_import_excel_data_set: JSON.stringify(custIdSet),
+                    custscript_import_excel_stage: stage
                 };
                 
                 var reschedule = task.create({
