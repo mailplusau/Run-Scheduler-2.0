@@ -92,7 +92,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             log.audit({
                 title: 'SS Initialised'
             });
-            
 
             // ADD ENTITYID i.e. 751172738 id of customer in excel
             // FIX UP NAMES AND "\""- match with cl
@@ -130,14 +129,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
 
             var custIdSet = ctx.getParameter({
-                name: 'custscript_data_set'
+                name: 'custscript_import_excel_data_set'
             });
             if (isNullorEmpty(custIdSet)){
                 custIdSet = []; // custid
             }
 
             var stage = ctx.getParameter({
-                name: 'custscript_stage'
+                name: 'custscript_import_excel_stage'
             });
             if (isNullorEmpty(stage)){
                 stage = 0;
