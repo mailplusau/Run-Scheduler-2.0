@@ -94,7 +94,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }); 
 
             
-            form.clientScriptFileId = 4620348; //PROD = 4620348, SB = ??
+            form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
 

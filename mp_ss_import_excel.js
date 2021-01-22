@@ -1,12 +1,16 @@
-/*
-* @NApiVersion 2.x
-* @NScriptType ScheduledScript
-* 
-* Module Description: Import an excel file of stops to add into an existing run 
-* 
-* @Last Modified by:   Sruti Desai
-* 
-*/
+/**
+ * @NApiVersion 2.x
+ * @NScriptType ScheduledScript
+ * 
+ * Module Description: Import an excel file of stops to add into an existing run 
+ * 
+ * NSVersion                                 
+ * 2.00                  
+ * 
+ * @Last Modified by:   Sruti Desai
+ * 
+ */
+
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
     function(runtime, search, record, log, task, currentRecord, format) {
