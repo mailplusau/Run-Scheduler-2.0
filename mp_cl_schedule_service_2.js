@@ -1043,9 +1043,9 @@ define(['N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/er
                                     }
         
                                     // freq_record.setFieldValue('custrecord_service_freq_franchisee', zee);
-                                    freq_record.setValue({ fieldId: 'custrecord_service_freq_customer', value: currRec({ fieldId: 'customer_id'})});
+                                    freq_record.setValue({ fieldId: 'custrecord_service_freq_customer', value: currRec.getValue({ fieldId: 'customer_id'})});
                                     freq_record.setValue({ fieldId: 'custrecord_service_freq_run_plan', value: run});
-                                    freq_record.setValue({ fieldId: 'custrecord_service_freq_service', value: currRec({ fieldId: 'service_id'})});
+                                    freq_record.setValue({ fieldId: 'custrecord_service_freq_service', value:  currRec.getValue({ fieldId: 'service_id'})});
                                     freq_record.setValue({ fieldId: 'custrecord_service_freq_stop', value: new_stop_id[0]});
                                     freq_record.setValue({ fieldId: 'custrecord_service_freq_time_start', value: earliest_time});
                                     freq_record.setValue({ fieldId: 'custrecord_service_freq_time_end', value: latest_time});
