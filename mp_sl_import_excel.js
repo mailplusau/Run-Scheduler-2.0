@@ -127,50 +127,15 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }
 
             // CALL SCHEDULED SCRIPT
-            // var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
-            // scriptTask.scriptId = 'customscript_ss_import_excel';
-            // scriptTask.deploymentId = 'customdeploy_ss_import_excel';
-            // scriptTask.params = {
-            //     fileid: f_id
-            // };
-            // var scriptTaskId = scriptTask.submit();
-
-            //var file = nlapiLoadFile(id);
-            var file1 = file.load({
-                id: f_id
-            });
-
-            var iterator = file1.lines.iterator();
-
-            // skip first line (header)
-            iterator.each(function () {return false;});
-
-            iterator.each(function (line) {
-                var rs_values = line.value.split(',');
-                var custId = rs_values[0];
-                var companyName = rs_values[1];
-                var service = rs_values[2];
-                var price = rs_values[3];
-                var frequency = rs_values[4];
-                var poBox = rs_values[5];
-                var stop1_location = rs_values[6];
-                var stop1_time = rs_values[7];
-                var stop2_location = rs_values[8];
-                var stop2_time = rs_values[9];
-                var notes = rs_values[10];
-                var driver = rs_values[11];
-
-
-                log.debug({
-                    title: 'comp',
-                    details: companyName
-                })
-                log.debug({
-                    title: 'lineVals',
-                    details: rs_values
-                });
-                return true;
-            });
+            var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
+            scriptTask.scriptId = 'customscript_ss_import_excel';
+            scriptTask.deploymentId = 'customdeploy_ss_import_excel';
+            scriptTask.params = {
+                fileid: f_id,
+                zee: zee
+            };
+            scriptTask.submit();
+            
 
         }
     }

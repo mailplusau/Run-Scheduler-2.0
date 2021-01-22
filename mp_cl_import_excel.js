@@ -63,7 +63,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
          * Create the CSV and store it in the hidden field 'custpage_table_csv' as a string.
          */
         function createCSV(zeeVal) {
-            var headers = ["Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "PO Box# or DX#", "Stop 1: Customer or Non-Customer Location", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
+            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "PO Box# or DX#", "Stop 1: Customer or Non-Customer Location", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
             headers = headers.slice(0, headers.length); // .join(', ')
 
             var csv = headers + "\n";
@@ -85,14 +85,18 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var resultSetCustomer = serviceSearch.run();
             
             resultSetCustomer.each(function(searchResult) {
-                var custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
+                var internal_custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
+
+                var custRecord = record.load({type: record.Type.CUSTOMER, id: internal_custid })
+                var custid = custRecord.getValue({ fieldId: 'entityid'});
+
                 var companyname = searchResult.getValue({ name: "companyname", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
                 var service_id = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
                 var service_name = searchResult.getText({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
                 var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
                 
                 var row = new Array();
-                row[0] = custid; row[1]= companyname; row[2] = service_id; row[3] = service_name; row[4] = service_price;
+                row[0] = internal_custid; row[1]= custid; row[2] = companyname; row[3] = service_id; row[4] = service_name; row[5] = service_price;
                 csv += row.join(',');
                 csv += "\n";
                 return true;

@@ -1,18 +1,12 @@
-/**
- * @NApiVersion 2.x
- * @NScriptType ScheduledScript
- * 
- * Module Description
- * 
- * NSVersion    Date                        Author         
- * 2.00         2020-10-18 18:08:08         Anesu
- *
- * Description: Import an excel file of stops to add into an existing run   
- * 
- * @Last Modified by:   Anesu Chakaingesu
- * @Last Modified time: 2020-10-22 16:49:26
- * 
- */
+/*
+* @NApiVersion 2.x
+* @NScriptType ScheduledScript
+* 
+* Module Description: Import an excel file of stops to add into an existing run 
+* 
+* @Last Modified by:   Sruti Desai
+* 
+*/
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
     function(runtime, search, record, log, task, currentRecord, format) {
@@ -83,41 +77,47 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             iterator.each(function (line, index) {
 
-                run(line, index);
+                run(line, index, zee_id);
                 // return true;
             });
         }
 
-        function run(line, index){
+        function run(line, index, zee){
             log.audit({
                 title: 'SS Initialised'
             });
 
             // ADD ENTITYID i.e. 751172738 id of customer in excel
             // FIX UP NAMES AND "\""- match with cl
+            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "PO Box# or DX#", "Stop 1: Customer or Non-Customer Location", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
+
             var rs_values = line.value.split(',');
-            var custId = rs_values[0];
-            var companyName = "\"" + rs_values[1]+ "\"";
-            var service_id = rs_values[2];
-            var service_name = rs_values[3];
-            var price = rs_values[4];
-            var frequency = rs_values[5];
-            var poBox = "\"" + rs_values[6]+ "\"";
-            var stop1_location = "\"" + rs_values[7]+ "\"";
-            var stop1_time = rs_values[8];
-            var stop1_time = rs_values[8];
-            var stop1_duration = rs_values[8];
-            var stop1_notes = rs_values[8];
+            var internalID = rs_values[0];
+            var custId = rs_values[1];
+            var companyName = "\"" + rs_values[2]+ "\"";
+            var service_id = rs_values[3];
+            var service_name = rs_values[4];
+            var price = rs_values[5];
+            var frequency = rs_values[6];
 
-            var stop2_location = "\"" + rs_values[9]+ "\"";
-            var stop2_time = rs_values[10];
-            var stop2_duration = rs_values[8];
-            var stop2_notes = rs_values[8];
+            var stop1_location_type = rs_values[7];
+            var poBox1 = "\"" + rs_values[8]+ "\"";
+            var stop1_location = "\"" + rs_values[9]+ "\"";
+            var stop1_duration = rs_values[10];
+            var stop1_time = rs_values[11];
+            var stop1_transfer = rs_values[12];
+            var stop1_notes = rs_values[13];
 
-            var notes = "\"" + rs_values[11]+ "\"";
-            var driver = rs_values[12];
-            var run_name = rs_values[13];
+            var stop2_location_type = rs_values[14];
+            var poBox2 = "\"" + rs_values[15]+ "\"";
+            var stop2_location = "\"" + rs_values[16]+ "\"";
+            var stop2_duration = rs_values[17];
+            var stop2_time = rs_values[18];
+            var stop2_transfer = rs_values[19];
+            var stop2_notes = rs_values[20];
 
+            var driver = rs_values[21];
+            var run_name = rs_values[22];
 
             log.debug({
                 title: 'comp',
@@ -177,13 +177,13 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                             var service_leg_1 = 1;
                             var service_leg_2 = 2;
-                            var stop1_id = createStop(service_leg_1);
-                            var stop2_id = createStop(service_leg_2);
+                            stop1_id = createStop(service_leg_1, internalID, zee, companyName, service_id, stop1_location_type, stop1_location, poBox1, stop1_duration, stop1_notes );
+                            stop2_id = createStop(service_leg_2, internalID, zee, companyName, service_id, stop2_location_type, stop2_location, poBox2, stop2_duration, stop2_notes );
                         }
 
                         if (stage == 1){ // Schedule Service 
                             stage++;
-                            scheduleService(stop1_id, stop2_id);
+                            scheduleService(stop1_id, stop2_id, frequency, internalID, zee, driver, run_name, service_id, stop1_time, stop2_time);
 
                         }
 
@@ -259,7 +259,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 resultSet_addresses.each(function(searchResult_address) {
                     var addr_id = searchResult_address.getValue({name: 'addressinternalid', join: 'Address'});
                     //potentially might be getText
-                    var addr_label = searchResult_address.getValue({ name: "addresslabel",join: "Address" }),
+                    var addr_label = searchResult_address.getValue({ name: "addresslabel",join: "Address" });
                     //sometimes is postal i.e. PO and else it is "ground floor etc"
                     var addr1 = searchResult_address.getValue({name: 'address1',join: 'Address'});
                     //street num name
@@ -286,7 +286,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
                             
-                            break;
+                            return false;
                         }
                     } else {
                         //case when po box is in addr2 col
@@ -376,7 +376,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         
                         service_leg_record.setValue({ fieldId: 'name', value: name });
 
-                        break;
+                        return false;
                     }
         
                     return true;
@@ -418,6 +418,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             if(!isNullorEmpty(stop_1_id) && !isNullorEmpty(stop_2_id)) {
                 //check line 970 in cl schedule service; check if new stop was created?
                 // what is rows??
+                var rows = [];
                 if (rows.length == 1 || rows.length == 0 ) {
                     // this if statement will change for edit stop
                     if(!isNullorEmpty(frequency)) {
@@ -444,8 +445,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         runPlan_results.each(function(searchResult) {
                             run_id = searchResult.getValue('internalid');
                             run_name = searchResult_zee.getValue('name');
-                            if(run_name.isEqualTo(run_input_name)) {
-                                break;
+                            if(run_name.includes(run_input_name)) {
+                                return false;
                             }
                 
                         });
@@ -516,8 +517,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         freq_record2.setValue({ fieldId: 'custrecord_service_freq_time_current', value: stop2_time });
 
                         var freq = frequency.split('/');
-                        freq.map(name => name.toLowerCase());
-
+                        //freq = freq.map(name => name.toLowerCase());
+                        freq = freq.map(function(v) {
+                            return v.toLowerCase();
+                        });
                         if (freq.includes("mon") || freq.includes("monday")) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: 'T'});
