@@ -60,8 +60,10 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             
             $(document).on('change', '.zee_dropdown', function(event) {
                 var zee = $(this).val();
+
+                //PROD = 1149, SB = 1143
             
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1149&deploy=1";
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1143&deploy=1";
             
                 url += "&zee=" + zee + "";
             
@@ -72,7 +74,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 var run = $(this).val();
                 var zee = $('option:selected', '.zee_dropdown').val();
             
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1149&deploy=1";
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1143&deploy=1";
             
                 url += "&zee=" + zee + "&run=" + run;
             
@@ -83,7 +85,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 $(this).parent().hide();
             });            
             if (zee != 0) {
-<<<<<<< Updated upstream
                 var zeeRecord = record.load({
                     type: record.Type.PARTNER,
                     id: zee,
@@ -91,21 +92,6 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 });
                 
                 var multi = zeeRecord.getValue({ fieldId: 'custentity_zee_multiple_territory' });
-=======
-                console.log("hello");
-                // var zeeRecord = record.load({
-                //     type: record.Type.PARTNER,
-                //     id: zee,
-                //     isDynamic: true,
-                // });
-                var zeeRecord = search.load({
-                    id: 'customsearch_zee_digital_run',
-                    type: record.Type.PARTNER
-                });
-                
-                var multi = zeeRecord.getValue({ name: 'custentity_zee_multiple_territory' });
-                console.log("multi" + multi.toString());
->>>>>>> Stashed changes
                 if (!isNullorEmpty(multi)) {
                     currentScript.setValue({
                         fieldId: 'multi_zee',
@@ -115,15 +101,8 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 console.log("test", zeeRecord.getText({ name: 'custentity_zee_run_0' })[1]);
                 var stop_freq_json_array = [];
                 var i = 0;
-<<<<<<< Updated upstream
                 while (!isNullorEmpty(zeeRecord.getValue({ fieldId: 'custentity_zee_run_' + i }))){
                     stop_freq_json_array[stop_freq_json_array.length] = zeeRecord.getValue({ fieldId: 'custentity_zee_run_' + i });
-=======
-                while (!isNullorEmpty(zeeRecord.getValue({ name: 'custentity_zee_run_' + i }))){
-                    console.log("HHHH");
-                    console.log(zeeRecord.getValue({ name: 'custentity_zee_run_' + i }));
-                    stop_freq_json_array[stop_freq_json_array.length] = zeeRecord.getValue({ name: 'custentity_zee_run_' + i });
->>>>>>> Stashed changes
                     i++;
                 }
                 var stop_freq_json_all = stop_freq_json_array.join('},');
