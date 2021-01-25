@@ -30,7 +30,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                     value: zee
                 });              
 
-                createCSV(zee);
+                //createCSV(zee);
                 // var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
                 // url += "&zee=" + zee + "";
                 // window.location.href = url;
@@ -53,9 +53,11 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             if (zee == 0 && role != 1000) {
                 alert('Please Select a Zee before downloading a template');
             } else {
+                alert('Please wait while your template for ' + zee + ' is being downloaded');
+                createCSV(zee)
                 downloadCsv(zee);
 
-                alert('worked');
+                
             }  
         }
 
@@ -63,10 +65,12 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
          * Create the CSV and store it in the hidden field 'custpage_table_csv' as a string.
          */
         function createCSV(zeeVal) {
-            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "PO Box# or DX#", "Stop 1: Customer or Non-Customer Location", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
-            headers = headers.slice(0, headers.length); // .join(', ')
+            var sep = "sep=;";
+            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "Stop 1: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
+            headers = headers.join(';');
+            //slice(0, headers.length); // .join(', ')
 
-            var csv = headers + "\n";
+            var csv = sep + "\n" + headers + "\n";
             
             var serviceSearch = search.load({
                 id: 'customsearch_rp_services',
@@ -97,7 +101,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 
                 var row = new Array();
                 row[0] = internal_custid; row[1]= custid; row[2] = companyname; row[3] = service_id; row[4] = service_name; row[5] = service_price;
-                csv += row.join(',');
+                csv += row.join(';');
                 csv += "\n";
                 return true;
             });

@@ -796,7 +796,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, moment
              */      
             //form.clientScriptModulePath = 'SuiteScripts/jQuery Plugins/Moment JS/moment-with-locales.min.js';
       
-            form.clientScriptFileId = 4609635; //PROD = 4609635 SB = ?
+            form.clientScriptFileId = 4602614; //PROD = 4609635 SB = 4602614
             context.response.writePage(form);
             
         } else {
