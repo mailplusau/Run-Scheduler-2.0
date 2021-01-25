@@ -48,9 +48,10 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
     
                 console.log(zee);
                 console.log("hello");
+                //PROD = 1150, SB = 1124
                 var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1150&deploy=1&compid=1048144";
                 if (runtime.EnvType == "SANDBOX") {
-                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1150&deploy=1";
+                    var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1124&deploy=1";
     
                 }
                 console.log('baseURL', baseURL);

@@ -9,8 +9,8 @@
  */
 
 
-define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format', 'N/file', 'N/error'], 
-function(ui, email, runtime, search, record, http, log, redirect, format, file, error) {
+define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/http', 'N/log', 'N/redirect', 'N/format', 'N/file', 'N/error', 'N/task'], 
+function(ui, email, runtime, search, record, http, log, redirect, format, file, error, task) {
     var baseURL = 'https://1048144.app.netsuite.com';
     if (runtime.EnvType == "SANDBOX") {
         baseURL = 'https://1048144-sb3.app.netsuite.com';
@@ -93,7 +93,57 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 type: ui.FieldType.FILE
             }); 
 
+            var searched_address = search.load({
+                id: 'customsearch_smc_address',
+                type: search.Type.CUSTOMER
+            });
             
+            searched_address.filters.push(search.createFilter({
+                name: 'internalid',
+                operator: search.Operator.IS,
+                values: 7595
+            }));
+
+            var resultSet_addresses = searched_address.run();
+            
+
+            
+
+            resultSet_addresses.each(function(searchResult_address) {
+
+                log.debug({
+                    title: 'entire thing',
+                    details: searchResult_address
+                });
+                var addr_id = searchResult_address.getValue({name: 'addressinternalid', join: 'Address'});
+                //potentially might be getText
+                var addr_label = searchResult_address.getValue({ name: "addresslabel",join: "Address" });
+                
+                //sometimes is postal i.e. PO and else it is "ground floor etc"
+                var addr1 = searchResult_address.getValue({name: 'address1',join: 'Address'});
+                //street num name
+                var addr2 = searchResult_address.getValue({name: 'address2',join: 'Address'});
+
+                var city = searchResult_address.getValue({name: 'city',join: 'Address'});
+
+                var state = searchResult_address.getValue({name: 'state',join: 'Address'});
+
+                var zip = searchResult_address.getValue({name: 'zipcode',join: 'Address'});
+                var lat = searchResult_address.getValue({name: 'custrecord_address_lat',join: 'Address'});
+                var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'}).toLowerCase();
+                
+                log.debug({ title: 'addr_id', details: addr_id });
+                log.debug({ title: 'addr_label', details: addr_label });
+                log.debug({ title: 'addr1', details: addr1 });
+                log.debug({ title: 'addr2', details: addr2 });
+                log.debug({ title: 'addr2', details: addr2 });
+                log.debug({ title: 'city', details: city });
+                log.debug({ title: 'state', details: state });
+                log.debug({ title: 'zip', details: zip });
+
+                return true;
+            });
+
             form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
@@ -104,7 +154,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             var zee = context.request.parameters.zee;
               
             if (!isNullorEmpty(fileObj)) {
-                fileObj.folder = 2661964;
+                fileObj.folder = 2644902; //2644902, 2661964
                 var file_type = fileObj.fileType;
                 if (file_type == 'CSV') {
                     file_type == 'csv';
@@ -126,13 +176,22 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 }
             }
 
+            log.debug({
+                title: 'fileid',
+                details: f_id
+            });
+
+            log.debug({
+                title: 'zee',
+                details: zee
+            });
             // CALL SCHEDULED SCRIPT
             var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
             scriptTask.scriptId = 'customscript_ss_import_excel';
             scriptTask.deploymentId = 'customdeploy_ss_import_excel';
             scriptTask.params = {
-                fileid: f_id,
-                zee: zee
+                custscript_import_excel_file_id: f_id,
+                custscript_import_excel_zee_id: zee
             };
             scriptTask.submit();
             

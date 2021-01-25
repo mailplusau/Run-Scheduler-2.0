@@ -165,7 +165,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 label : 'Save changes'
             });
 
-            form.clientScriptFileId = 4597166; // SB = 2188375; PROD = 4597166
+            form.clientScriptFileId = 4597166; // SB = 4597166; PROD = 4597166
             context.response.writePage(form);
     
 
