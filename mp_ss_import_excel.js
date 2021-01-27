@@ -237,7 +237,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 details: stop2_id
                             });
                             stage++;
-                            scheduleService(stop1_id, stop2_id);
+                            scheduleService(stop1_id, stop2_id, frequency, internalID, zee, driver, run_name, service_id, stop1_time, stop2_time )
 
                         }
 
