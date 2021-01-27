@@ -919,75 +919,75 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 name: name
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_custid',
+                fieldId: 'custrecord_import_excel_custid',
                 value: custId
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_company_name',
+                fieldId: 'custrecord_import_excel_company_name',
                 value: companyName
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_service_id',
+                fieldId: 'custrecord_import_excel_service_id',
                 value: service_id
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_service_name',
+                fieldId: 'custrecord_import_excel_service_name',
                 value: service_name
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_price',
+                fieldId: 'custrecord_import_excel_price',
                 value: price
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_freq',
+                fieldId: 'custrecord_import_excel_freq',
                 value: frequency
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_po_box',
+                fieldId: 'custrecord_import_excel_po_box',
                 value: poBox
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop1_location',
+                fieldId: 'custrecord_import_excel_stop1_location',
                 value: stop1_location
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop1_time',
+                fieldId: 'custrecord_import_excel_stop1_time',
                 value: stop1_time
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop1_duration',
+                fieldId: 'custrecord_import_excel_stop1_duration',
                 value: stop1_duration
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop1_notes',
+                fieldId: 'custrecord_import_excel_stop1_notes',
                 value: stop1_notes
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop2_location',
+                fieldId: 'custrecord_import_excel_stop2_location',
                 value: stop2_location
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop2_time',
+                fieldId: 'custrecord_import_excel_stop2_time',
                 value: stop2_time
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop2_duration',
+                fieldId: 'custrecord_import_excel_stop2_duration',
                 value: stop2_duration
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_stop2_notes',
+                fieldId: 'custrecord_import_excel_stop2_notes',
                 value: stop2_notes
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_notes',
+                fieldId: 'custrecord_import_excel_notes',
                 value: notes
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_driver',
+                fieldId: 'custrecord_import_excel_driver',
                 value: driver
             });
             saveRecord.setValue({
-                fieldId: 'custentity_import_excel_run_name',
+                fieldId: 'custrecord_import_excel_run_name',
                 value: run_name
             });
             if (isNullorEmpty(service_id)){

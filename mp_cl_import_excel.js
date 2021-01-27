@@ -16,6 +16,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
         }
         var role = runtime.getCurrentUser().role;
 
+        var load_record_interval;
+
+
         /**
          * On page initialisation
          */
@@ -34,6 +37,15 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 // var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
                 // url += "&zee=" + zee + "";
                 // window.location.href = url;
+
+                var dataTable = $('#import_excel').DataTable({
+                    data: importSet,
+                    columns: [
+                        {title: }
+                    ]
+                });
+
+                load_record_interval = setInterval(loadImportRecord, 15000)
             });
 
         }
@@ -41,6 +53,14 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
         function saveRecord(context) {
 
             return true;
+        }
+
+        function loadImportRecord(){
+            var importSearch = search.load({
+                id: 'customsearch_import_excel_table',
+                type: 'customrecord_import_excel'
+            });
+            
         }
 
         function onclick_downloadButton() {
