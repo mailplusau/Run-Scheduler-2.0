@@ -41,7 +41,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var dataTable = $('#import_excel').DataTable({
                     data: importSet,
                     columns: [
-                        {title: }
+                        //{title: }
                     ]
                 });
 

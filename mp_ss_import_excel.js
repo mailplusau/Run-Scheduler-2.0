@@ -244,7 +244,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         if (stage == 2){
                             stage++;
 
-                            saveData(internalid, custId, companyName, service_id, service_name, price, frequency, poBox, stop1_location, stop1_time, stop1_duration, stop1_notes, stop2_location, stop2_time, stop2_duration, stop2_notes, notes, driver, run_name);
+                            saveData(internalID, custId, companyName, service_id, service_name, price, frequency, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop2_location, stop2_time, stop2_duration, stop2_notes, notes, driver, run_name);
+
+                        
                         }
                     }
                 }
@@ -395,7 +397,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
                             
-                            break;
+                            return false;
                         }
                     } else {
                         //case when po box is in addr2 col
@@ -911,7 +913,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             }
         }
 
-        function saveData(internalid, custId, companyName, service_id, service_name, price, frequency, poBox, stop1_location, stop1_time, stop1_duration, stop1_notes, stop2_location, stop2_time, stop2_duration, stop2_notes, notes, driver, run_name){
+        function saveData(internalid, custId, companyName, service_id, service_name, price, frequency, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop2_location, stop2_time, stop2_duration, stop2_notes, driver, run_name){
 
             var saveRecord = record.create('customrecord_import_excel');
             var name = 'id:' + internalid +'_service_id' + service_name + '_date_' + getDate();
@@ -920,7 +922,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
             saveRecord.setValue({
                 fieldId: 'custrecord_import_excel_custid',
-                value: custId
+                value: internalid
             });
             saveRecord.setValue({
                 fieldId: 'custrecord_import_excel_company_name',
