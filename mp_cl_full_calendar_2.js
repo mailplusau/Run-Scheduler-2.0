@@ -60,10 +60,9 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
             
             $(document).on('change', '.zee_dropdown', function(event) {
                 var zee = $(this).val();
-
-                //PROD = 1149, SB = 1143
             
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1143&deploy=1";
+                //PROD = 1149, SB = 1143
+                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1143&deploy=1";
             
                 url += "&zee=" + zee + "";
             
@@ -74,7 +73,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                 var run = $(this).val();
                 var zee = $('option:selected', '.zee_dropdown').val();
             
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1143&deploy=1";
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1149&deploy=1";
             
                 url += "&zee=" + zee + "&run=" + run;
             
@@ -98,7 +97,7 @@ define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/
                         value: multi.toString()
                     });
                 }
-                console.log("test", zeeRecord.getText({ name: 'custentity_zee_run_0' })[1]);
+        
                 var stop_freq_json_array = [];
                 var i = 0;
                 while (!isNullorEmpty(zeeRecord.getValue({ fieldId: 'custentity_zee_run_' + i }))){

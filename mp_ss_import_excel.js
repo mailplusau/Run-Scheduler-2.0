@@ -642,16 +642,25 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var latest_2 = latest_arr[1];
                         
                         var today = new Date();
-                        var today_day_in_month = today.getDate();
-                        var today_month = today.getMonth();
-                        var today_year = today.getFullYear();
+                        // var today_day_in_month = today.getDate();
+                        // var today_month = today.getMonth();
+                        // var today_year = today.getFullYear();
                         
-                        var currTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, currTime_1, currTime_2, 0, 0));
+                        // var currTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, currTime_1, currTime_2, 0, 0));
 
-                        var earlyTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, earliest_1, earliest_2, 0, 0));
+                        // var earlyTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, earliest_1, earliest_2, 0, 0));
 
-                        var lateTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, latest_1, latest_2, 0, 0));
+                        // var lateTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, latest_1, latest_2, 0, 0));
                       
+                        var currTimeVar = new Date();
+                        currTimeVar.setHours(currTime_1, currTime_2, 0, 0);
+
+                        var earlyTimeVar = new Date();
+                        earlyTimeVar.setHours(earliest_1, earliest_2, 0, 0);
+
+                        var lateTimeVar = new Date();
+                        lateTimeVar.setHours(latest_1, latest_2, 0, 0);
+
                         log.debug({
                             title: 'currTimeVar',
                             details: currTimeVar
@@ -723,16 +732,25 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var latest_2 = latest_arr[1];
                         
                         var today = new Date();
-                        var today_day_in_month = today.getDate();
-                        var today_month = today.getMonth();
-                        var today_year = today.getFullYear();
+                        // var today_day_in_month = today.getDate();
+                        // var today_month = today.getMonth();
+                        // var today_year = today.getFullYear();
                         
-                        var currTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, currTime_1, currTime_2, 0, 0));
+                        // var currTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, currTime_1, currTime_2, 0, 0));
 
-                        var earlyTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, earliest_1, earliest_2, 0, 0));
+                        // var earlyTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, earliest_1, earliest_2, 0, 0));
 
-                        var lateTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, latest_1, latest_2, 0, 0));
+                        // var lateTimeVar = new Date(Date.UTC(today_year, today_month, today_day_in_month, latest_1, latest_2, 0, 0));
                       
+                        var currTimeVar = new Date();
+                        currTimeVar.setHours(currTime_1, currTime_2, 0, 0);
+
+                        var earlyTimeVar = new Date();
+                        earlyTimeVar.setHours(earliest_1, earliest_2, 0, 0);
+
+                        var lateTimeVar = new Date();
+                        lateTimeVar.setHours(latest_1, latest_2, 0, 0);
+
                         
 
                         log.debug({
@@ -789,57 +807,57 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         });
                         if (freq.indexOf("mon") !== -1 || freq.indexOf("monday") !== -1 ) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: true});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: true});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: true});
 
                         } else {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: false});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: false});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_mon', value: false});
 
                         }
                         if (freq.indexOf("tue") !== -1 || freq.indexOf("tuesday") !== -1 ) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: true});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: true});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: true});
 
                         } else {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: false});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: false});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_tue', value: false});
 
                         }
                         if (freq.indexOf("wed") !== -1 || freq.indexOf("wednesday") !== -1) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: true});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: true});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: true});
 
                         } else {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: false});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: false});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_wed', value: false});
 
                         }
                         if (freq.indexOf("thurs") !== -1 || freq.indexOf("thursday") !== -1) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: true});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: true});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: true});
 
                         } else {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: false});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: false});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_thu', value: false});
 
                         }
                         if (freq.indexOf("fri") !== -1 || freq.indexOf("friday") !== -1) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: true});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: true});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: true});
 
                         } else {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: false});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: false});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_fri', value: false});
 
                         }
 
                         if (freq.indexOf("adhoc") !== -1) {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: true});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: true});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: true});
 
                         } else {
                             freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: false});
-                            freq_record1.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: false});
+                            freq_record2.setValue({ fieldId: 'custrecord_service_freq_day_adhoc', value: false});
 
                         }
 
