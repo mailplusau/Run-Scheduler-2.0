@@ -203,6 +203,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 if (custIdSet.indexOf(service_id) == -1) {
                     custIdSet.push(service_id);
                     if (!isNullorEmpty(stop1_location)){
+                        deleteRecords();
                         // Start Functions here.
                         var stop1_id = 0;
                         var stop2_id = 0;
@@ -247,7 +248,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                         if (stage == 2){
                             stage++;
-                            deleteRecords();
+                            
                             saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id);
 
                             
@@ -941,7 +942,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_import_excel'
             });
 
-            var name = 'cust_id:' + internalID +'_service_id:' + service_id + '_date_' + getDate();
+            log.debug({
+                title: 'stop1 notes',
+                details: stop1_notes
+            });
+
+            var name = 'cust_id: ' + internalID +' _service_id: ' + service_id + ' _date_ ' + getDate();
             saveRecord.setValue({
                 fieldId: 'name',
                 value: name
@@ -951,7 +957,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 value: internalID
             });
             saveRecord.setValue({
-                fieldId: 'custrecord_import_excel_company_name',
+                fieldId: 'custrecord_import_excel_company',
                 value: companyName
             });
             saveRecord.setValue({
@@ -1038,70 +1044,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 log.audit({
                     title: 'Save SS Record'
                 })
-                var id = saveRecord.save();
-                log.debug({
-                    title: 'save record id',
-                    details: id
-                });
+                saveRecord.save();
             }
 
-            var importSearch = search.create({
-                type: 'customrecord_import_excel',
-                id: 'customsearch_import_excel_table_2'
-            });
-            var id = 0;
-            var importSearch_results = importSearch.run();
             
-            importSearch_results.each(function (recID){
-                log.debug({
-                    title: 'recID',
-                    details: recID
-                })
-                
-
-                // log.debug({
-                //     title: 'internalid',
-                //     details: internalid
-                // })
-                // var res = record.load({
-                //     type: 'customrecord_import_excel',
-                //     id: parseInt(internalid),
-                // });
-                
-
-                
-                var custId = res.getValue('custrecord_import_excel_custid');
-                var companyName = res.getValue('custrecord_import_excel_company');
-                var service_id = res.getValue({
-                    name: 'custrecord_import_excel_service_id'
-                });
-                var service_name = res.getValue({
-                    name: 'custrecord_import_excel_service_name'
-                });
-                var price = res.getValue({
-                    name: 'custrecord_import_excel_price'
-                });
-
-                log.debug({
-                    title: 'custid',
-                    details: custId
-                });
-                log.debug({
-                    title: 'companyName',
-                    details: companyName
-                });log.debug({
-                    title: 'service_id',
-                    details: service_id
-                });log.debug({
-                    title: 'service_name',
-                    details: service_name
-                });log.debug({
-                    title: 'price',
-                    details: price
-                });
-               
-                return true;
-            });
         }
 
         function deleteRecords() {

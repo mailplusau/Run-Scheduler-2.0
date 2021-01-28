@@ -23,7 +23,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
          * On page initialisation
          */
         function pageInit() {
-        
+            
             var dataTable = $('#import_excel').DataTable({
                 data: tableSet,
                 columns: [
@@ -62,7 +62,16 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 ]
             });
 
-            load_record_interval = setInterval(loadImportRecord, 5000);
+            var currentScript = currentRecord.get();            
+
+            if (!isNullorEmpty(currentScript.getValue({fieldId: 'test'}))) {
+                sleep();
+            }
+            
+            
+
+            //loadImportRecord();
+            //load_record_interval = setInterval(loadImportRecord, 2000);
 
             $(document).on('change', '.zee_dropdown', function(event) {
                 var zee = $(this).val();
@@ -106,6 +115,27 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         }
 
+        function sleep() {
+            
+            var currentScript = currentRecord.get();
+            var excel_lines = currentScript.getValue({fieldId: 'excel_lines'});
+            var importSearch = search.load({
+                type: 'customrecord_import_excel',
+                id: 'customsearch_import_excel_table_2'
+            });
+            var res = importSearch.run();
+            //var searchResultCount = importSearch.runPaged().count;
+            var search_count = res._getResultset.list.length;
+            console.log("excel_lines", Math.floor(excel_lines));
+            console.log("search_count", search_count);
+            if (Math.floor(excel_lines) == search_count) {
+                loadImportRecord();
+            } else {
+                setTimeout(sleep, 12000);
+            }
+                
+            
+        }
         function saveRecord(context) {
 
             return true;
@@ -113,14 +143,22 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         function loadImportRecord(){
             console.log("test");
-            var importSearch = search.create({
+            var importSearch = search.load({
                 type: 'customrecord_import_excel',
                 id: 'customsearch_import_excel_table_2'
             });
             var id = 0;
-            importSearch.run().each(function (res){
+            var res2 = importSearch.run();
+            // console.log("tt", res2.length);
+            // console.log("ttt", res2.getRange.length);
+            //console.log("tttt", res2.__proto__.getRange.length);
+            console.log("abc", res2);
+            console.log("sdsd", res2._getResultset.list.length);
 
-                
+
+            res2.each(function (res){
+                var id = res.getValue({name: 'internalid' });
+                console.log(id);
                 var custId = res.getValue('custrecord_import_excel_custid');
                 id = custId;
                 var companyName = res.getValue('custrecord_import_excel_company');
@@ -187,7 +225,6 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 tableSet.push([custId, companyName, service_id, service_name, price, frequency,  poBox1, stop1_location_type,stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, poBox2, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name])
 
                 console.log(companyName);
-                //tableSet.push(["a", "a", "a", "a", "a", "a",  "a", "a","a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a"])
                 return true;
             });
 
@@ -197,26 +234,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             datatable.clear();
             datatable.rows.add(tableSet);
             datatable.draw();
-            // if (tableSet.length > 1) {
-            //     console.log("interval");
-            //     clearInterval(load_record_interval);
-
-            // } else {
-            //     console.log("timeout");
-            // if (!isNullorEmpty(id) && id != 0) {
-            //     console.log("interval");
-            //     clearInterval(load_record_interval);
-            // } else {
-            //     console.log("timeout");
-            //     setTimeout(loadImportRecord, 1000);
-
-            // }
-            clearInterval(load_record_interval);
-
-
-            //}
-
-            //return true;
+            
         }
 
         function onclick_downloadButton() {
@@ -316,11 +334,46 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
         function onclick_deleteRun() {
             var currentScript = currentRecord.get();
             var zee_id = currentScript.getValue({ fieldId: 'zee'});   
-            var run_id = currentScript.getValue({ fieldId: 'run'});   
+            var run_id = currentScript.getValue({ fieldId: 'run'});
+            var freqSearch = search.load({
+                id: 'customsearch_rp_servicefreq',
+                type: 'customrecord_service_freq'
+            });
+
+            freqSearch.filters.push(search.createFilter({
+                name: 'custrecord_service_freq_run_plan',
+                operator: search.Operator.IS,
+                values: run_id
+            }));
+
+            var freqResults = freqSearch.run();
+            
+            freqResults.each(function(search_result) {
+                var freqLegId = search_result.getValue({name: 'internalid'});
+                var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
+                record.delete({
+                    type: 'customrecord_service_freq',
+                    id: freqLegId
+                });
+                record.delete({
+                    type: 'customrecord_service_leg',
+                    id: serviceLegId
+                });
+
+
+
+            });
+             
             record.delete({
                 type: 'customrecord_run_plan',
                 id: run_id
             }); 
+
+            alert('Run ' + run_id + ' has successfully been deleted')
+        }
+
+        function onclick_exportRun() {
+
         }
         function isNullorEmpty(strVal) {
             return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
@@ -330,7 +383,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             pageInit: pageInit,
             saveRecord: saveRecord,
             onclick_downloadButton: onclick_downloadButton,
-            onclick_deleteRun: onclick_deleteRun
+            onclick_deleteRun: onclick_deleteRun,
+            onclick_exportRun: onclick_exportRun
             
         };  
     }

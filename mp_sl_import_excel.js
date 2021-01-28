@@ -48,6 +48,12 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 functionName : 'onclick_deleteRun()'
             });
 
+            form.addButton({
+                id : 'export_run',
+                label : 'Export Run',
+                functionName : 'onclick_exportRun()'
+            });
+
             form.addSubmitButton({
                 label: 'Submit'
             });
@@ -105,8 +111,16 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 inlineHtml += runDropdownSection(context.request.parameters.zee, context.request.parameters.run);
             }
 
-            inlineHtml += dataTable();
+            //inlineHtml += dataTable();
             
+
+            form.addField({
+                id: 'test',
+                type: ui.FieldType.TEXT,
+                label: 'test'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
 
             form.addField({
                 id: 'preview_table',
@@ -124,6 +138,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 type: ui.FieldType.FILE
             }); 
 
+            
             
 
             form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
@@ -211,7 +226,35 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 breakType: ui.FieldBreakType.STARTROW
             }).defaultValue = inlineHtml;
 
-            
+            var file1 = file.load({
+                id: f_id
+            });
+
+            var iterator = file1.lines.iterator();
+
+            // skip first line (header)
+            iterator.each(function (line) { return false });
+
+            var index = 0;
+            iterator.each(function (line) {
+                index++;
+            });
+
+            form.addField({
+                id: 'excel_lines',
+                type: ui.FieldType.TEXT,
+                label: 'excel_lines'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            }).defaultValue = index;
+
+            form.addField({
+                id: 'test',
+                type: ui.FieldType.TEXT,
+                label: 'preview_table'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            }).defaultValue = 2;
 
             form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
