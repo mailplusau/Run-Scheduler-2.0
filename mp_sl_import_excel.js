@@ -213,6 +213,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 displayType: ui.FieldDisplayType.HIDDEN
             });
 
+            inlineHtml += progressBar();
             inlineHtml += dataTable();
             
 
@@ -384,6 +385,19 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
         inlineQty += '<tbody id="result_import" class="result-import"></tbody>';
 
         inlineQty += '</table>';
+        return inlineQty;
+    }
+
+    /**
+     * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
+     * Uses Bootstrap : https://www.w3schools.com/bootstrap/bootstrap_progressbars.asp
+     * @param   {String}    nb_records_total    The number of records that will be moved
+     * @return  {String}    inlineQty : The inline HTML string of the progress bar.
+     */
+    function progressBar(nb_records_total) {
+        var inlineQty = '<div class="progress">';
+        inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">Runs Imported : 0 / ' + nb_records_total + '</div>';
+        inlineQty += '</div>';
         return inlineQty;
     }
 
