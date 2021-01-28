@@ -182,10 +182,10 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var currentScript = currentRecord.get();
             currentScript.getValue({ fieldId: 'zee'});   
             currentScript.getValue({ fieldId: 'run'});   
-            record.delete({
-                type: string*,
-                id: number | string*
-            }) 
+            // record.delete({
+            //     type: string*,
+            //     id: number | string*
+            // }) 
         }
         function isNullorEmpty(strVal) {
             return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
