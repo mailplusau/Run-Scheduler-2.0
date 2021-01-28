@@ -27,16 +27,17 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             $(document).on('change', '.zee_dropdown', function(event) {
                 var zee = $(this).val();
                 var zee_text = $(this).text();
-                var currentScript = currentRecord.get();
-                currentScript.setValue({
-                    fieldId: 'zee',
-                    value: zee
-                });              
+                var currentScript = currentRecord.get();            
 
                 //createCSV(zee);
                 var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
                 url += "&zee=" + zee + "";
                 window.location.href = url;
+
+                currentScript.setValue({
+                    fieldId: 'zee',
+                    value: zee
+                });  
 
                 var dataTable = $('#import_excel').DataTable({
                     data: importSet,
@@ -53,6 +54,12 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 console.log(run);
                 var zee = $('option:selected', '.zee_dropdown').val();
                 var currentScript = currentRecord.get();
+                  
+                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+            
+                url += "&zee=" + zee + "&run=" + run;
+            
+                window.location.href = url;
                 currentScript.setValue({
                     fieldId: 'zee',
                     value: zee
@@ -60,12 +67,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 currentScript.setValue({
                     fieldId: 'run',
                     value: run
-                });   
-                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
-            
-                url += "&zee=" + zee + "&run=" + run;
-            
-                window.location.href = url;
+                }); 
             });
 
 
@@ -180,12 +182,12 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         function onclick_deleteRun() {
             var currentScript = currentRecord.get();
-            currentScript.getValue({ fieldId: 'zee'});   
-            currentScript.getValue({ fieldId: 'run'});   
-            // record.delete({
-            //     type: string*,
-            //     id: number | string*
-            // }) 
+            var zee_id = currentScript.getValue({ fieldId: 'zee'});   
+            var run_id = currentScript.getValue({ fieldId: 'run'});   
+            record.delete({
+                type: 'customrecord_run_plan',
+                id: run_id
+            }); 
         }
         function isNullorEmpty(strVal) {
             return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
