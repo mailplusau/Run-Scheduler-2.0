@@ -243,9 +243,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                         if (stage == 2){
                             stage++;
+                            deleteRecords();
                             saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id);
 
-                        
+                            
                         }
                     }
                 }
@@ -914,6 +915,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
         function saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id){
 
+            log.audit({
+                title: 'Save Record Initialised'
+            });
+
             var stopRecord1 = record.load({
                 type: 'customrecord_service_leg',
                 id: stop1_id
@@ -1022,9 +1027,63 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 fieldId: 'custrecord_import_excel_stop2_transfer',
                 value: stop2_transfer
             });
-            if (isNullorEmpty(service_id)){
+            if (!isNullorEmpty(service_id)){
+                log.audit({
+                    title: 'Save SS Record'
+                })
                 saveRecord.save();
             }
+        }
+
+        function deleteRecords() {
+            log.debug({
+                title: 'DELETE STRING ACTIVATED'
+            });
+            var importExcelSearch = search.load({
+                type: 'customrecord_import_excel',
+                id: 'customsearch_import_excel_table'
+            });
+            importExcelSearch.run().each(function(result) {
+                var index = result.getValue({
+                    name: 'internalid'
+                });
+                // if (name != 'END'){
+                    deleteResultRecord(index);
+                // } else {
+                //     record.delete({
+                //         type: 'customrecord_debt_coll_inv',
+                //         id: index
+                //     });
+                    // return true;
+                // }
+                // return true;
+            });
+        }
+
+        function deleteResultRecord(index) {
+            // var usage_loopstart_cust = ctx.getRemainingUsage();
+            // if (usage_loopstart_cust < 4 || index == 3999) {
+            //     // Rescheduling a scheduled script doesn't consumes any governance units.
+            //     var delReschedule = task.create({
+            //         taskType: task.TaskType.SCHEDULED_SCRIPT,
+            //         scriptId: 'customscript_ss_debt_coll_delete',
+            //         deploymentId: 'customdeploy_ss_debt_coll_delete'
+            //     });
+            //     var delResult = delReschedule.submit();
+            // }
+            log.debug({
+                title: 'Delete index',
+                details: index
+            });
+            // Deleting a record consumes 4 governance units.
+            record.delete({
+                type: 'customrecord_import_excel',
+                id: index
+            });
+            log.debug({
+                title: 'Removed',
+                details: 'Removed'
+            });
         }
 
         /**
