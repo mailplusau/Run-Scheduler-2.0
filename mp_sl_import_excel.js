@@ -95,7 +95,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 inlineHtml += runDropdownSection(context.request.parameters.zee, context.request.parameters.run);
             }
 
-            inlineHtml += loadDatatable();
+            inlineHtml += dataTable();
             
 
             form.addField({
@@ -281,14 +281,14 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      * @return  {String}    inlineQty
      */
     function dataTable() {
-        var inlineQty = '<style>table#import_excel {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#debt_preview th{text-align: center;} .bolded{font-weight: bold;}</style>';
+        var inlineQty = '<style>table#import_excel {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#import_excel th{text-align: center;} .bolded{font-weight: bold;}</style>';
         inlineQty += '<table id="import_excel" class="table table-responsive table-striped customer tablesorter hide" style="width: 100%;">';
         inlineQty += '<thead style="color: white;background-color: #607799;">';
         inlineQty += '<tr class="text-center">';
         inlineQty += '</tr>';
         inlineQty += '</thead>';
 
-        inlineQty += '<tbody id="result_debt" class="result-debt"></tbody>';
+        inlineQty += '<tbody id="result_import" class="result-import"></tbody>';
 
         inlineQty += '</table>';
         return inlineQty;
