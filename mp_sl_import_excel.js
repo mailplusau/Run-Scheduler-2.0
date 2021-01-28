@@ -53,31 +53,41 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             });
 
             
-            
-            form.addField({
-                id: 'zee',
-                type: ui.FieldType.TEXT,
-                label: 'zee'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            }).defaultValue = zee;
-
-            form.addField({
-                id: 'zee_text',
-                type: ui.FieldType.TEXT,
-                label: 'zee_text'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            });
-
-            
-            form.addField({
-                id: 'run',
-                type: ui.FieldType.TEXT,
-                label: 'run'
-            }).updateDisplayType({
-                displayType: ui.FieldDisplayType.HIDDEN
-            });
+            if (!isNullorEmpty(context.request.parameters.zee) && context.request.parameters.zee != 0) {
+                form.addField({
+                    id: 'zee',
+                    type: ui.FieldType.TEXT,
+                    label: 'zee'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = context.request.parameters.zee;
+            } else {
+                form.addField({
+                    id: 'zee',
+                    type: ui.FieldType.TEXT,
+                    label: 'zee'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = zee;
+            }
+                        
+            if (!isNullorEmpty(context.request.parameters.run) && context.request.parameters.run != 0) {
+                form.addField({
+                    id: 'run',
+                    type: ui.FieldType.TEXT,
+                    label: 'run'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = context.request.parameters.run;
+            } else {
+                form.addField({
+                    id: 'run',
+                    type: ui.FieldType.TEXT,
+                    label: 'run'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                });
+            }
 
             form.addField({
                 id: 'custpage_table_csv',
