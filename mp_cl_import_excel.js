@@ -335,8 +335,65 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var currentScript = currentRecord.get();
             var zee_id = currentScript.getValue({ fieldId: 'zee'});   
             var run_id = currentScript.getValue({ fieldId: 'run'});
+            if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
+                alert('Please select a run first');
+            } 
+            else {
+                var freqSearch = search.load({
+                    id: 'customsearch_rp_servicefreq',
+                    type: 'customrecord_service_freq'
+                });
+    
+                freqSearch.filters.push(search.createFilter({
+                    name: 'custrecord_service_freq_run_plan',
+                    operator: search.Operator.IS,
+                    values: run_id
+                }));
+    
+                var freqResults = freqSearch.run();
+                
+                freqResults.each(function(search_result) {
+                    var freqLegId = search_result.getValue({name: 'internalid'});
+                    var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
+                    record.delete({
+                        type: 'customrecord_service_freq',
+                        id: freqLegId
+                    });
+                    record.delete({
+                        type: 'customrecord_service_leg',
+                        id: serviceLegId
+                    });
+    
+    
+    
+                });
+                 
+                record.delete({
+                    type: 'customrecord_run_plan',
+                    id: run_id
+                }); 
+    
+                alert('Run ' + run_id + ' has successfully been deleted');
+            }
+            
+        }
+
+        function onclick_exportRun() {
+            var currentScript = currentRecord.get();
+            if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
+                alert('Please select a run first');
+            } else {
+                var run_id = currentScript.getValue({fieldId: 'run'});
+                alert('Please wait for the run ' + run_id + ' to download');
+                var sep = "sep=;";
+                var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "Stop 1: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
+                headers = headers.join(';');
+                var csv = sep + "\n" + headers + "\n";
+
+            }
+            
             var freqSearch = search.load({
-                id: 'customsearch_rp_servicefreq',
+                id: 'customsearch_rp_servicefreq_excel_export',
                 type: 'customrecord_service_freq'
             });
 
@@ -346,34 +403,36 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 values: run_id
             }));
 
-            var freqResults = freqSearch.run();
+
+
+            var freqSearchResults = freqSearch.run();
             
-            freqResults.each(function(search_result) {
-                var freqLegId = search_result.getValue({name: 'internalid'});
-                var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
-                record.delete({
-                    type: 'customrecord_service_freq',
-                    id: freqLegId
-                });
-                record.delete({
-                    type: 'customrecord_service_leg',
-                    id: serviceLegId
-                });
+            resultSetCustomer.each(function(searchResult) {
+                var internal_custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
 
+                var custRecord = record.load({type: record.Type.CUSTOMER, id: internal_custid })
+                var custid = custRecord.getValue({ fieldId: 'entityid'});
 
-
+                var companyname = searchResult.getValue({ name: "companyname", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
+                var service_id = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
+                var service_name = searchResult.getText({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
+                var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
+                
+                var row = new Array();
+                row[0] = internal_custid; row[1]= custid; row[2] = companyname; row[3] = service_id; row[4] = service_name; row[5] = service_price;
+                csv += row.join(';');
+                csv += "\n";
+                return true;
             });
-             
-            record.delete({
-                type: 'customrecord_run_plan',
-                id: run_id
-            }); 
 
-            alert('Run ' + run_id + ' has successfully been deleted')
-        }
+            var val1 = currentRecord.get();
+            val1.setValue({
+                fieldId: 'custpage_table_csv',
+                value: csv
+            });
 
-        function onclick_exportRun() {
 
+            return true;
         }
         function isNullorEmpty(strVal) {
             return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
