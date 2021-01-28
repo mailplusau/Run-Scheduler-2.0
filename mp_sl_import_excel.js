@@ -38,18 +38,21 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             });
             form.addButton({
                 id : 'import',
-                label : 'DOWNLOAD TEMPLATE',
+                label : 'Download Template',
                 functionName : 'onclick_downloadButton()'
             });
             
+            form.addButton({
+                id : 'del_run',
+                label : 'Delete Run',
+                functionName : 'onclick_deleteRun()'
+            });
+
             form.addSubmitButton({
                 label: 'Submit'
             });
 
-            if (role != 1000) {
-                inlineHtml += franchiseeDropdownSection();
-            }
-
+            
             
             form.addField({
                 id: 'zee',
@@ -65,9 +68,16 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 label: 'zee_text'
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
-            }).defaultValue = zee;
+            });
 
             
+            form.addField({
+                id: 'run',
+                type: ui.FieldType.TEXT,
+                label: 'run'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
 
             form.addField({
                 id: 'custpage_table_csv',
@@ -76,6 +86,15 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
             });
+
+            if (role != 1000) {
+                inlineHtml += franchiseeDropdownSection(context.request.parameters.zee);
+            }
+            
+            if (!isNullorEmpty(context.request.parameters.zee)) {
+                inlineHtml += runDropdownSection(context.request.parameters.zee, context.request.parameters.run);
+            }
+            
 
             form.addField({
                 id: 'preview_table',
@@ -93,56 +112,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 type: ui.FieldType.FILE
             }); 
 
-            var searched_address = search.load({
-                id: 'customsearch_smc_address',
-                type: search.Type.CUSTOMER
-            });
             
-            searched_address.filters.push(search.createFilter({
-                name: 'internalid',
-                operator: search.Operator.IS,
-                values: 7595
-            }));
-
-            var resultSet_addresses = searched_address.run();
-            
-
-            
-
-            resultSet_addresses.each(function(searchResult_address) {
-
-                log.debug({
-                    title: 'entire thing',
-                    details: searchResult_address
-                });
-                var addr_id = searchResult_address.getValue({name: 'addressinternalid', join: 'Address'});
-                //potentially might be getText
-                var addr_label = searchResult_address.getValue({ name: "addresslabel",join: "Address" });
-                
-                //sometimes is postal i.e. PO and else it is "ground floor etc"
-                var addr1 = searchResult_address.getValue({name: 'address1',join: 'Address'});
-                //street num name
-                var addr2 = searchResult_address.getValue({name: 'address2',join: 'Address'});
-
-                var city = searchResult_address.getValue({name: 'city',join: 'Address'});
-
-                var state = searchResult_address.getValue({name: 'state',join: 'Address'});
-
-                var zip = searchResult_address.getValue({name: 'zipcode',join: 'Address'});
-                var lat = searchResult_address.getValue({name: 'custrecord_address_lat',join: 'Address'});
-                var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'}).toLowerCase();
-                
-                log.debug({ title: 'addr_id', details: addr_id });
-                log.debug({ title: 'addr_label', details: addr_label });
-                log.debug({ title: 'addr1', details: addr1 });
-                log.debug({ title: 'addr2', details: addr2 });
-                log.debug({ title: 'addr2', details: addr2 });
-                log.debug({ title: 'city', details: city });
-                log.debug({ title: 'state', details: state });
-                log.debug({ title: 'zip', details: zip });
-
-                return true;
-            });
 
             form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
@@ -209,13 +179,13 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      * @param   {Number}    zee_id
      * @return  {String}    `inlineQty`
      */
-    function franchiseeDropdownSection() {
+    function franchiseeDropdownSection(params_zee) {
         var inlineQty = '<div class="form-group container zee_dropdown_section >';
 
         inlineQty += '<div class="row">';
         // Franchisee dropdown field
         inlineQty += '<div class="col-xs-12 zee_dropdown_div">';
-        inlineQty += '<div class="input-group col-xs-12">';
+        inlineQty += '<div class="input-group">';
         inlineQty += '<span class="input-group-addon" id="zee_dropdown_text">FRANCHISEE</span>';
         inlineQty += '<select id="zee_dropdown" class="form-control zee_dropdown" required>';
         inlineQty += '<option></option>';
@@ -236,6 +206,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 zee_id = runtime.getCurrentUser().id; //Get Franchisee ID-- REMOVE TO TEST
                 selected_option = (opt_zee_id == zee_id) ? 'selected' : '';
             }
+            if (!isNullorEmpty(params_zee)) {
+                selected_option = (params_zee == opt_zee_id) ? 'selected' : '';
+            }
+            
             inlineQty += '<option value="' + opt_zee_id + '" ' + selected_option + '>' + opt_zee_name + '</option>';
             return true;
         });
@@ -246,6 +220,59 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
         return inlineQty;
     }
 
+    function runDropdownSection(zee, params_run) {
+        var inlineQty = '<div class="container select_run">';
+        inlineQty += '<div class="form-group container"><div class="row">';
+        inlineQty += '<div class="input-group">';
+        inlineQty += '<span class="input-group-addon">SELECT RUN</span>';
+        inlineQty += '<select class="form-control run_dropdown" >';
+
+        var runPlanSearch = search.load({
+            id: 'customsearch_app_run_plan_active',
+            type: 'customrecord_run_plan'
+        })
+        var zee_record = record.load({
+            type: record.Type.PARTNER,
+            id: parseInt(zee),
+            isDynamic: true,
+        });
+        var multi = zee_record.getValue({ fieldId: 'custentity_zee_multiple_territory' })
+
+        if (!isNullorEmpty(multi)) {
+            runPlanSearch.filters.push(search.createFilter({
+                name: 'custrecord_run_franchisee',
+                operator: search.Operator.ANYOF,
+                values: zee
+            }));
+
+        } else {
+            runPlanSearch.filters.push(search.createFilter({
+                name: 'custrecord_run_franchisee',
+                operator: search.Operator.IS,
+                values: zee
+            }));
+        }
+
+        var resultSet_runPlan = runPlanSearch.run();
+        var count_zee = 0;
+        inlineQty += '<option value="' + 0 + '"></option>'
+        resultSet_runPlan.each(function(searchResult_runPlan) {
+            runinternalid = searchResult_runPlan.getValue('internalid');
+            runname = searchResult_runPlan.getValue('name');
+
+            if (params_run == runinternalid) {
+                inlineQty += '<option value="' + runinternalid + '" selected="selected">' + runname + '</option>';
+            } else {
+                inlineQty += '<option value="' + runinternalid + '">' + runname + '</option>';
+            }
+
+            return true;
+        });
+        
+        inlineQty += '</select></div></div></div></div>';
+
+        return inlineQty;
+    }
     function getDate() {
         var date = (new Date());
         // if (date.getHours() > 6) {

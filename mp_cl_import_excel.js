@@ -34,9 +34,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 });              
 
                 //createCSV(zee);
-                // var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
-                // url += "&zee=" + zee + "";
-                // window.location.href = url;
+                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+                url += "&zee=" + zee + "";
+                window.location.href = url;
 
                 var dataTable = $('#import_excel').DataTable({
                     data: importSet,
@@ -47,6 +47,27 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
                 load_record_interval = setInterval(loadImportRecord, 15000)
             });
+
+            $(document).on('change', '.run_dropdown', function(event) {
+                var run = $(this).val();
+                console.log(run);
+                var zee = $('option:selected', '.zee_dropdown').val();
+                var currentScript = currentRecord.get();
+                currentScript.setValue({
+                    fieldId: 'zee',
+                    value: zee
+                });   
+                currentScript.setValue({
+                    fieldId: 'run',
+                    value: run
+                });   
+                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+            
+                url += "&zee=" + zee + "&run=" + run;
+            
+                window.location.href = url;
+            });
+
 
         }
 
@@ -157,6 +178,15 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         }
 
+        function onclick_deleteRun() {
+            var currentScript = currentRecord.get();
+            currentScript.getValue({ fieldId: 'zee'});   
+            currentScript.getValue({ fieldId: 'run'});   
+            record.delete({
+                type: string*,
+                id: number | string*
+            }) 
+        }
         function isNullorEmpty(strVal) {
             return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
         }
@@ -165,6 +195,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             pageInit: pageInit,
             saveRecord: saveRecord,
             onclick_downloadButton: onclick_downloadButton,
+            onclick_deleteRun: onclick_deleteRun
             
         };  
     }
