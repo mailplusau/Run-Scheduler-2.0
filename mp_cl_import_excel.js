@@ -126,6 +126,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var res = importSearch.run();
             //var searchResultCount = importSearch.runPaged().count;
             var search_count = res._getResultset.list.length;
+            
             console.log("excel_lines", Math.floor(excel_lines));
             console.log("search_count", search_count);
             if (Math.floor(excel_lines) == search_count) {
