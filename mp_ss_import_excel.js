@@ -110,7 +110,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
         }
 
-        function run(line, index){
+        function run(line, index, zee){
             log.audit({
                 title: 'SS Initialised'
             });
@@ -216,6 +216,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             log.debug({
                                 title: 'stop1 id',
                                 details: stop1_id
+                            });
+                            log.debug({
+                                title: 'zee',
+                                details: zee
                             });
                             stop2_id = createStop(service_leg_2, internalID, zee, companyName, service_id, stop2_location_type, stop2_location, poBox2, stop2_duration, stop2_notes );
 
@@ -540,7 +544,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             service_leg_record.setValue({ fieldId: 'custrecord_service_leg_notes', value: stop_notes });
 
-            
+            log.debug({
+                title: 'zee',
+                details: zee
+            });
             service_leg_record.setValue({ fieldId: 'custrecord_service_leg_franchisee', value: zee});
             service_leg_record.setValue({ fieldId: 'custrecord_service_leg_number', value: service_leg_number})
 
@@ -934,7 +941,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_import_excel'
             });
 
-            var name = 'id:' + internalID +'_service_id' + service_name + '_date_' + getDate();
+            var name = 'cust_id:' + internalID +'_service_id:' + service_id + '_date_' + getDate();
             saveRecord.setValue({
                 fieldId: 'name',
                 value: name
@@ -1031,8 +1038,70 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 log.audit({
                     title: 'Save SS Record'
                 })
-                saveRecord.save();
+                var id = saveRecord.save();
+                log.debug({
+                    title: 'save record id',
+                    details: id
+                });
             }
+
+            var importSearch = search.create({
+                type: 'customrecord_import_excel',
+                id: 'customsearch_import_excel_table_2'
+            });
+            var id = 0;
+            var importSearch_results = importSearch.run();
+            
+            importSearch_results.each(function (recID){
+                log.debug({
+                    title: 'recID',
+                    details: recID
+                })
+                
+
+                // log.debug({
+                //     title: 'internalid',
+                //     details: internalid
+                // })
+                // var res = record.load({
+                //     type: 'customrecord_import_excel',
+                //     id: parseInt(internalid),
+                // });
+                
+
+                
+                var custId = res.getValue('custrecord_import_excel_custid');
+                var companyName = res.getValue('custrecord_import_excel_company');
+                var service_id = res.getValue({
+                    name: 'custrecord_import_excel_service_id'
+                });
+                var service_name = res.getValue({
+                    name: 'custrecord_import_excel_service_name'
+                });
+                var price = res.getValue({
+                    name: 'custrecord_import_excel_price'
+                });
+
+                log.debug({
+                    title: 'custid',
+                    details: custId
+                });
+                log.debug({
+                    title: 'companyName',
+                    details: companyName
+                });log.debug({
+                    title: 'service_id',
+                    details: service_id
+                });log.debug({
+                    title: 'service_name',
+                    details: service_name
+                });log.debug({
+                    title: 'price',
+                    details: price
+                });
+               
+                return true;
+            });
         }
 
         function deleteRecords() {
@@ -1041,14 +1110,15 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
             var importExcelSearch = search.load({
                 type: 'customrecord_import_excel',
-                id: 'customsearch_import_excel_table'
+                id: 'customsearch_import_excel_table_2'
             });
             importExcelSearch.run().each(function(result) {
-                var index = result.getValue({
-                    name: 'internalid'
-                });
+                
+                var index = result.getValue('internalid');
+                
+                
                 // if (name != 'END'){
-                    deleteResultRecord(index);
+                deleteResultRecord(index);
                 // } else {
                 //     record.delete({
                 //         type: 'customrecord_debt_coll_inv',
@@ -1056,8 +1126,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 //     });
                     // return true;
                 // }
-                // return true;
+                return true;
             });
+
+            
         }
 
         function deleteResultRecord(index) {

@@ -177,6 +177,46 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             };
             scriptTask.submit();
             
+            var inlineHtml = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
+            // Load DataTables
+            inlineHtml += '<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">';
+            inlineHtml += '<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>';
+            inlineHtml += '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">';
+            inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
+            inlineHtml += '<div></div>';    
+
+            var form = ui.createForm({
+                title: 'Import Excel DB'
+            });
+            
+            
+            form.addField({
+                id: 'custpage_table_csv',
+                type: ui.FieldType.TEXT,
+                label: 'Table CSV'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
+
+            inlineHtml += dataTable();
+            
+
+            form.addField({
+                id: 'preview_table',
+                type: ui.FieldType.INLINEHTML,
+                label: 'preview_table'
+            }).updateLayoutType({
+                layoutType: ui.FieldLayoutType.OUTSIDEBELOW
+            }).updateBreakType({
+                breakType: ui.FieldBreakType.STARTROW
+            }).defaultValue = inlineHtml;
+
+            
+
+            form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
+
+            context.response.writePage(form);
+
 
         }
     }
@@ -292,7 +332,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      */
     function dataTable() {
         var inlineQty = '<style>table#import_excel {font-size: 12px;text-align: center;border: none;}.dataTables_wrapper {font-size: 14px;}table#import_excel th{text-align: center;} .bolded{font-weight: bold;}</style>';
-        inlineQty += '<table id="import_excel" class="table table-responsive table-striped customer tablesorter hide" style="width: 100%;">';
+        inlineQty += '<table id="import_excel" class="table table-responsive table-striped customer tablesorter" style="width: 100%;">';
         inlineQty += '<thead style="color: white;background-color: #607799;">';
         inlineQty += '<tr class="text-center">';
         inlineQty += '</tr>';
