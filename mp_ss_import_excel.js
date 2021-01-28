@@ -243,8 +243,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                         if (stage == 2){
                             stage++;
-
-                            saveData(internalID, custId, companyName, service_id, service_name, price, frequency, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop2_location, stop2_time, stop2_duration, stop2_notes, driver, run_name, stop1_id, stop2_id);
+                            saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id);
 
                         
                         }
@@ -926,10 +925,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             stop1_location = stopRecord1.getValue({ fieldId: 'name'})
             stop2_location = stopRecord2.getValue({ fieldId: 'name'})
 
-            var saveRecord = record.create('customrecord_import_excel');
-            var name = 'id:' + internalid +'_service_id' + service_name + '_date_' + getDate();
+            var saveRecord = record.create({
+                type: 'customrecord_import_excel'
+            });
+
+            var name = 'id:' + internalID +'_service_id' + service_name + '_date_' + getDate();
             saveRecord.setValue({
-                name: name 
+                fieldId: 'name',
+                value: name
             });
             saveRecord.setValue({
                 fieldId: 'custrecord_import_excel_custid',
