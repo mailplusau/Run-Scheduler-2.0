@@ -103,16 +103,44 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 displayType: ui.FieldDisplayType.HIDDEN
             });
 
+            form.addField({
+                id: 'custpage_export_run_csv',
+                type: ui.FieldType.TEXT,
+                label: 'Table CSV'
+            }).updateDisplayType({
+                displayType: ui.FieldDisplayType.HIDDEN
+            });
+
+            //Important Instructions box
+            inlineHtml += '<br></br>'
+            inlineHtml += '<div></div>';
+            inlineHtml += '<div class="form-group container test_section">';
+            inlineHtml += '<div style=\"background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 20px 30px 30px 30px\"><b><u>Important Instructions:</u></b>';
+            inlineHtml += '<ul><li><b><u>Please do not alter the columns titled Customer Internal ID, Customer Id, Customer Name, Service Id, Service Name and Price</u></b></li>';
+            inlineHtml += '<li><b><u>Frequency</u></b>: If the frequency of the service is multiple days then separate with a / i.e. Mon/Tue/Wed/Thurs/Fri. </li>';
+            inlineHtml += '<li><b><u>Frequency</u></b>: Frequency field can take input of Daily and Adhoc as well</li>';
+            inlineHtml += '<li><b><u>Customer or Non-Customer</u></b>: Please only enter in "Customer" or "Non-Customer" in this field </li>';
+            inlineHtml += '<li><b><u>Location (Customer)</u></b>: For a Customer Location please enter all address details in this single field i.e. "379-381 Victoria Street, Wetherill Park, NSW, 2164" </li>';
+            inlineHtml += '<li><b><u>Location (Non-Customer)</u></b>: For a Non-Customer Location please enter the exact name of the stop i.e. "ARNCLIFFE LPO" </li>';
+            inlineHtml += '<li><b><u>Duration</u></b>: Enter length of time in seconds only i.e. "120", where 120 is equal to 2 minutes </li>';
+            inlineHtml += '<li><b><u>Time</u></b>: Enter the time leg will occur in 12 hour time with a ":" separating the minutes and hours, and AM/PM following the time. i.e. "12:30PM" or "8:46AM" </li>';
+            inlineHtml += '<li><b><u>Notes</u></b>: Enter the necessary notes (in any format) required for each stop in the relevant fields </li>';
+            inlineHtml += '<li><b><u>Run Name</u></b>: Enter the exact Run-Name as it appears on Netsuite i.e. "Danilo\'s" or "Mascot" or "Multi Run" </li>';
+            inlineHtml += '<li><b><u>Non-Mandatory Fields</u></b>: Po Box, Notes, Transfer </li>';
+            inlineHtml += '<li><b><u>Download Template</u></b>: If you are a franchisee click on the "Download Template" button to download a template for your franchise. If you are not a franchisee, select a zee from the dropdown and then click on the download template button to download a template for that specific zee </li>';
+            inlineHtml += '<li><b><u>Delete Run</u></b>: Select a zee and then select a run from the relevant dropdowns. After clicking the Delete Run button, this entire run will be deleted. </li>';
+            inlineHtml += '<li><b><u>Export Run</u></b>: Select a zee and then select a run from the relevant dropdowns. After clicking the Export Run button, the entire run will be exported into a csv </li>';
+            inlineHtml += '<li><b><u>Non-Mandatory Fields</u></b>: Po Box, Notes, Transfer </li>';
+            inlineHtml += '<li>If you have any issues, please contact Head Office</li>';
+            inlineHtml += '</ul></div></div><br/>';
+
             if (role != 1000) {
                 inlineHtml += franchiseeDropdownSection(context.request.parameters.zee);
             }
             
             if (!isNullorEmpty(context.request.parameters.zee)) {
                 inlineHtml += runDropdownSection(context.request.parameters.zee, context.request.parameters.run);
-            }
-
-            //inlineHtml += dataTable();
-            
+            }          
 
             form.addField({
                 id: 'test',
@@ -241,6 +269,10 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 index++;
             });
 
+            log.debug({
+                title: 'index',
+                details: index
+            });
             form.addField({
                 id: 'excel_lines',
                 type: ui.FieldType.TEXT,
