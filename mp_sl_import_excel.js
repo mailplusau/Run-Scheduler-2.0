@@ -33,13 +33,14 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
             inlineHtml += '<div></div>';    
 
+            
             var form = ui.createForm({
                 title: 'Import Excel'
             });
             form.addButton({
                 id : 'import',
                 label : 'Download Template',
-                functionName : 'onclick_downloadButton()'
+                functionName : onclick_downloadButton()
             });
             
             form.addButton({
@@ -143,9 +144,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }          
 
             form.addField({
-                id: 'test',
+                id: 'scheduled_script',
                 type: ui.FieldType.TEXT,
-                label: 'test'
+                label: 'scheduled_script'
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
             });
@@ -218,7 +219,11 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 custscript_import_excel_file_id: f_id,
                 custscript_import_excel_zee_id: zee
             };
-            scriptTask.submit();
+            var ss_id = scriptTask.submit();
+            
+            var myTaskStatus = task.checkStatus({
+                taskId: ss_id
+            });
             
             var inlineHtml = '<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"><link href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet"><script src="//netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script><link rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2060796&c=1048144&h=9ee6accfd476c9cae718&_xt=.css"/><script src="https://1048144.app.netsuite.com/core/media/media.nl?id=2060797&c=1048144&h=ef2cda20731d146b5e98&_xt=.js"></script><link type="text/css" rel="stylesheet" href="https://1048144.app.netsuite.com/core/media/media.nl?id=2090583&c=1048144&h=a0ef6ac4e28f91203dfe&_xt=.css">';
             // Load DataTables
@@ -228,10 +233,35 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             inlineHtml += '<script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>';
             inlineHtml += '<div></div>';    
 
+            
+            var file1 = file.load({
+                id: f_id
+            });
+
+            var iterator = file1.lines.iterator();
+
+            // skip first line (header)
+            iterator.each(function (line) { 
+                log.debug({ title: 'line', details: line });
+                return false;
+            });
+
+            var numLines = 0;
+            iterator.each(function (line) {
+                numLines++;
+                log.debug({ title: 'num lines', details: line });
+                return true;
+            });
+
+            log.debug({ title: 'numLines', details: numLines });
+
+            inlineHtml += progressBar();
+            inlineHtml += dataTable();
+
+
             var form = ui.createForm({
                 title: 'Import Excel DB'
             });
-            
             
             form.addField({
                 id: 'custpage_table_csv',
@@ -240,10 +270,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
             });
-
-            inlineHtml += progressBar();
-            inlineHtml += dataTable();
-            
 
             form.addField({
                 id: 'preview_table',
@@ -255,40 +281,24 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 breakType: ui.FieldBreakType.STARTROW
             }).defaultValue = inlineHtml;
 
-            var file1 = file.load({
-                id: f_id
-            });
-
-            var iterator = file1.lines.iterator();
-
-            // skip first line (header)
-            iterator.each(function (line) { return false });
-
-            var index = 0;
-            iterator.each(function (line) {
-                index++;
-            });
-
-            log.debug({
-                title: 'index',
-                details: index
-            });
+            
             form.addField({
                 id: 'excel_lines',
                 type: ui.FieldType.TEXT,
                 label: 'excel_lines'
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
-            }).defaultValue = index;
+            }).defaultValue = numLines;
 
             form.addField({
-                id: 'test',
+                id: 'scheduled_script',
                 type: ui.FieldType.TEXT,
-                label: 'preview_table'
+                label: 'scheduled_script'
             }).updateDisplayType({
                 displayType: ui.FieldDisplayType.HIDDEN
-            }).defaultValue = 2;
+            }).defaultValue = ss_id;
 
+           
             form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
@@ -426,13 +436,37 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      * @param   {String}    nb_records_total    The number of records that will be moved
      * @return  {String}    inlineQty : The inline HTML string of the progress bar.
      */
-    function progressBar(nb_records_total) {
+    function progressBar() {
         var inlineQty = '<div class="progress">';
-        inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="' + nb_records_total + '" style="width:0%">Runs Imported : 0 / ' + nb_records_total + '</div>';
+        inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" style="width:0%">0%</div>';
         inlineQty += '</div>';
+        
         return inlineQty;
     }
 
+    
+    function onclick_downloadButton() {
+
+        if (zee == 0 || role == 1000 || isNullorEmpty(context.request.parameters.zee)) {
+            alert('Please Select a Zee before downloading a template');
+        } else {
+            alert('Please wait while your template for ' + zee + ' is being downloaded');
+            // CALL SCHEDULED SCRIPT
+            var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
+            scriptTask.scriptId = 'customscript_ss_download_template';
+            scriptTask.deploymentId = 'customdeploy_ss_download_template';
+            scriptTask.params = {
+                custscript_download_template_zee_id: context.request.parameters.zee
+            };
+            var ss_id = scriptTask.submit();
+            
+            var myTaskStatus = task.checkStatus({
+                taskId: ss_id
+            });
+            
+        }
+    }
+    
     function getDate() {
         var date = (new Date());
         // if (date.getHours() > 6) {
