@@ -24,17 +24,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var zee = runtime.getCurrentScript().getParameter({ name: 'custscript_download_template_zee_id' });
             var csv = createCSV(zee);
 
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-            var content_type = 'text/csv';
-            var csvFile = new Blob([csv], { type: content_type });
-            var url = window.URL.createObjectURL(csvFile);
-            var filename = zeeVal + '_zee_template.csv';
-            a.href = url;
-            a.download = filename;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            
 
         }
         
