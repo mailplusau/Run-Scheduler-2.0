@@ -63,9 +63,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             });
 
             var currentScript = currentRecord.get();            
-
-            if (!isNullorEmpty(currentScript.getValue({fieldId: 'test'}))) {
-                sleep();
+            var ss_id = currentScript.getValue({fieldId: 'scheduled_script'});
+            if (!isNullorEmpty(ss_id)) {
+                sleep(ss_id);
             }
             
             
@@ -115,7 +115,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         }
 
-        function sleep() {
+
+        function sleep(ss_id) {
             
             var currentScript = currentRecord.get();
             var excel_lines = currentScript.getValue({fieldId: 'excel_lines'});
@@ -123,26 +124,51 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 type: 'customrecord_import_excel',
                 id: 'customsearch_import_excel_table_2'
             });
-            var res = importSearch.run();
-            //var searchResultCount = importSearch.runPaged().count;
-            var search_count = res._getResultset.list.length;
+            // var res = importSearch.run();
+            //var search_count = importSearch.runPaged().count;
+            //var search_count = res._getResultset.list.length;
             
-            console.log("excel_lines", Math.floor(excel_lines));
+            console.log("excel_lines", Math.floor(excel_lines)); 
+            //loadImportRecord();
+            var search_count = importSearch.runPaged().count;
             console.log("search_count", search_count);
+            
+            // var ssStatus = task.checkStatus({
+            //     taskId: ss_id
+            // });
+
+            //console.log(ssStatus); //Failed, Pending
+
+            progressBar(search_count, excel_lines);
             if (Math.floor(excel_lines) == search_count) {
                 loadImportRecord();
             } else {
-                setTimeout(sleep, 12000);
+                currentScript.getValue({fieldId: 'scheduled_script'})
+                setTimeout(sleep, 15000);
             }
                 
             
         }
+
+        function progressBar(search_count, excel_lines) {
+            var percentage = (search_count/excel_lines)*100;
+            var roundedPercent = Math.round(percentage * 10) / 10;
+            var elem = document.getElementById("progress-records");   
+            elem.style.width = roundedPercent + '%'; 
+            elem.innerHTML = roundedPercent * 1  + '%';
+
+            
+
+          }
+
         function saveRecord(context) {
 
             return true;
         }
 
         function loadImportRecord(){
+            var tableSet = [];
+
             console.log("test");
             var importSearch = search.load({
                 type: 'customrecord_import_excel',
@@ -599,12 +625,11 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
         }
 
+
         return {
             pageInit: pageInit,
             saveRecord: saveRecord,
-            onclick_downloadButton: onclick_downloadButton,
-            onclick_deleteRun: onclick_deleteRun,
-            onclick_exportRun: onclick_exportRun
+            
             
         };  
     }

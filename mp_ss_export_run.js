@@ -1,0 +1,406 @@
+/**
+ * @NApiVersion 2.x
+ * @NScriptType ScheduledScript
+ * 
+ * Module Description Scheduled script to export a run into the import template
+ * 
+ * @Last Modified by:   Sruti Desai
+ * 
+ */
+
+define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'],
+    function(runtime, search, record, log, task, currentRecord, format) {
+        var zee = 0;
+        var role = 0;
+        role = runtime.getCurrentUser().role;
+
+        var baseURL = 'https://1048144.app.netsuite.com';
+        if (runtime.EnvType == "SANDBOX") {
+            baseURL = 'https://system.sandbox.netsuite.com';
+        }
+        function main() {
+            log.debug({
+                title: 'start',
+                details: 'start'
+            });
+
+            deleteRecords();
+            var run_id = runtime.getCurrentScript().getParameter({ name: 'custscript_export_run_run_id' });
+            log.debug({
+                title: 'run',
+                details: run_id
+            });          
+            onclick_exportRun(run_id);
+            
+            
+        }
+
+        function onclick_exportRun(run_id) {       
+            log.debug({
+                title: 'in fn',
+                details: 'in fn'
+            });    
+            var freqSearch = search.load({
+                id: 'customsearch_rp_servicefreq_excel_export',
+                type: 'customrecord_service_freq'
+            });
+
+            freqSearch.filters.push(search.createFilter({
+                name: 'custrecord_service_freq_run_plan',
+                operator: search.Operator.IS,
+                values: run_id
+            }));
+
+            var freqSearchResults = freqSearch.run();
+
+            
+
+            //need to check for legs
+
+            var freqIDs = [];
+            var serviceIDs = [];
+            freqSearchResults.each(function(searchResult) {
+                var internalId = searchResult.getValue({name: 'internalid'});
+                
+                //if freq id has already been visited, then continue
+                if (freqIDs.indexOf(internalId) !== -1 ) {
+                    return true;
+                }
+                freqIDs.push(internalId);
+                log.debug({ title: 'freqIDs', details: freqIDs });
+
+                var service_id = searchResult.getValue({name: 'internalid', join: "CUSTRECORD_SERVICE_FREQ_SERVICE"}); 
+
+                //if service has been covered already
+                if (serviceIDs.indexOf(service_id) !== -1 ) {
+                    var id = freqRecordId(service_id);
+                    var excelRecord = record.load({
+                        type: 'customrecord_export_run',
+                        id: id
+                    });
+
+                    var stop2_id = searchResult.getValue({name: 'custrecord_service_freq_stop'});
+                    var stopRecord2 = record.load({type: 'customrecord_service_leg', id: stop2_id });
+                    var location_type = stopRecord2.getValue({ fieldId: 'custrecord_service_leg_location_type'});
+                    
+                    if (location_type == 1) {
+                        var stop2_location_type = "Customer";
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_type', value: stop2_location_type });
+
+                        var poBox2 = stopRecord2.getValue({ fieldId: 'custrecord_service_leg_addr_postal'});
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_po_box2', value: poBox2 });
+
+                        var addrArr2 = [];
+                        if (!isNullorEmpty(stopRecord2.getValue({fieldId: 'custrecord_service_leg_addr_subdwelling'}))) {
+                            addrArr2.push(stopRecord2.getValue({fieldId: 'custrecord_service_leg_addr_subdwelling'}));
+                        }
+                        addrArr2.push(stopRecord2.getValue({fieldId: 'custrecord_service_leg_addr_st_num_name'}));
+                        addrArr2.push(stopRecord2.getValue({fieldId: 'custrecord_service_leg_addr_suburb'}));
+                        addrArr2.push(stopRecord2.getValue({fieldId: 'custrecord_service_leg_addr_state'}));
+                        addrArr2.push(stopRecord2.getValue({fieldId: 'custrecord_service_leg_addr_postcode'}));
+                        var stop2_location =  addrArr2.join(',');
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_location', value: stop2_location });
+
+                    } else {
+                        var stop2_location_type = "Non-Customer";
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_type', value: stop2_location_type });
+
+                        var poBox2 = stopRecord2.getValue({ fieldId: 'custrecord_service_leg_addr_postal'});
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_po_box2', value: poBox2 });
+
+                        var stop2_location = stopRecord2.getValue({ fieldId: 'name'});
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_location', value: stop2_location });
+
+                    }
+
+                    var stop2_duration = stopRecord2.getValue({ fieldId: 'custrecord_service_leg_duration'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_duration', value: stop2_duration });
+
+                    var stop2_time = searchResult.getValue({name: 'custrecord_service_freq_time_start'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_time', value: stop2_time });
+
+                    var stop2_transfer = stopRecord2.getText({ fieldId: 'custrecord_service_leg_trf_type'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_transfer', value: stop2_transfer });
+
+                    var stop2_notes = stopRecord2.getValue({ fieldId: 'custrecord_service_leg_notes'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_notes', value: stop2_notes });
+
+                    var id = excelRecord.save({
+                        enableSourcing: true,
+                    });
+                    
+                    log.debug({
+                        title: 'complete2',
+                        details: id
+                    });
+
+                } else {
+                    serviceIDs.push(service_id);
+                    var excelRecord = record.create({
+                        type: 'customrecord_export_run'
+                    });
+
+                    var customer = searchResult.getValue({name: 'custrecord_service_freq_customer'});
+
+                    var custRecord = record.load({type: record.Type.CUSTOMER, id: customer });
+                    var internal_custid = custRecord.getValue({ fieldId: 'id'})
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_internal_custid', value: internal_custid});
+
+                    var custid = custRecord.getValue({ fieldId: 'entityid'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_custid', value: custid});
+
+                    var companyName = custRecord.getValue({ fieldId: 'companyname'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_company', value: companyName });
+
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_service_id', value: service_id });
+                    
+                    var serviceRecord = record.load({type: 'customrecord_service', id: service_id });
+
+                    var service_name = serviceRecord.getValue({fieldId: 'name'}); 
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_service_name', value: service_name });
+
+                    var price = serviceRecord.getValue({fieldId: 'custrecord_service_price'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_price', value: price });
+
+                    var mon = searchResult.getValue({name: 'custrecord_service_freq_day_mon'});
+                    var tue = searchResult.getValue({name: 'custrecord_service_freq_day_tue'});
+                    var wed = searchResult.getValue({name: 'custrecord_service_freq_day_wed'});
+                    var thurs = searchResult.getValue({name: 'custrecord_service_freq_day_thu'});
+                    var fri = searchResult.getValue({name: 'custrecord_service_freq_day_fri'});
+                    var adhoc = searchResult.getValue({name: 'custrecord_service_freq_day_adhoc'});
+
+
+                    if (mon === true && tue === true && wed === true && thurs === true && fri === true ) {
+                        var freq = "Daily";  
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_freq', value: freq });
+
+                    } else if (adhoc === true ) {
+                        var freq = "Adhoc";
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_freq', value: freq });
+
+                    } else {
+                        var freqArr = [];
+                        if (mon === true) { freqArr.push("Mon");  }
+                        if (tue === true) { freqArr.push("Tue");  }
+                        if (wed === true) { freqArr.push("Wed");  }
+                        if (thurs === true) { freqArr.push("Thurs");  }
+                        if (fri === true) { freqArr.push("Fri");  }
+                        var freqString = freqArr.join("/");
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_freq', value: freqString });
+
+                    }
+
+                    var stop1_id = searchResult.getValue({name: 'custrecord_service_freq_stop'});
+
+                    var stopRecord = record.load({type: 'customrecord_service_leg', id: stop1_id });
+                    var location_type = stopRecord.getValue({ fieldId: 'custrecord_service_leg_location_type'});
+
+                    if (location_type == 1) {
+                        var stop1_location_type = "Customer";
+                        log.debug({
+                            title: 'stop1_location_type',
+                            details: stop1_location_type
+                        });
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_type', value: stop1_location_type });
+
+                        var poBox1 = stopRecord.getValue({ fieldId: 'custrecord_service_leg_addr_postal'});
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_po_box1', value: poBox1 });
+
+                        var addrArr = [];
+                        if (!isNullorEmpty(stopRecord.getValue({fieldId: 'custrecord_service_leg_addr_subdwelling'}))) {
+                            addrArr.push(stopRecord.getValue({fieldId: 'custrecord_service_leg_addr_subdwelling'}));
+                        }
+                        addrArr.push(stopRecord.getValue({fieldId: 'custrecord_service_leg_addr_st_num_name'}));
+                        addrArr.push(stopRecord.getValue({fieldId: 'custrecord_service_leg_addr_suburb'}));
+                        addrArr.push(stopRecord.getValue({fieldId: 'custrecord_service_leg_addr_state'}));
+                        addrArr.push(stopRecord.getValue({fieldId: 'custrecord_service_leg_addr_postcode'}));
+                        var stop1_location = addrArr.join(',');
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_location', value: stop1_location });
+
+                    } else {
+                        var stop1_location_type = "Non-Customer";
+                        log.debug({
+                            title: 'stop1_location_type',
+                            details: stop1_location_type
+                        });
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_type', value: stop1_location_type });
+
+                        var poBox1 = stopRecord.getValue({ fieldId: 'custrecord_service_leg_addr_postal'});
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_po_box1', value: poBox1 });
+
+                        var stop1_location = stopRecord.getValue({ fieldId: 'name'});
+                        excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_location', value: stop1_location });
+
+                    }
+
+                    var stop1_duration = stopRecord.getValue({ fieldId: 'custrecord_service_leg_duration'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_duration', value: stop1_duration });
+
+                    var stop1_time = searchResult.getValue({name: 'custrecord_service_freq_time_current'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_time', value: stop1_time });
+
+                    var stop1_transfer = stopRecord.getText({ fieldId: 'custrecord_service_leg_trf_type'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_transfer', value: stop1_transfer });
+
+                    var stop1_notes = stopRecord.getValue({ fieldId: 'custrecord_service_leg_notes'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_stop1_notes', value: stop1_notes });
+
+                    log.debug({
+                        title: 'stop1_notes',
+                        details: stop1_notes
+                    });
+
+                    log.debug({
+                        title: 'service_id',
+                        details: service_id
+                    });                  
+                    
+                    var stop2_driver = searchResult.getText({name: 'custrecord_service_freq_operator'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_driver', value: stop2_driver });
+                    
+                    var stop2_run_plan = searchResult.getText({name: 'custrecord_service_freq_run_plan'});
+                    excelRecord.setValue({fieldId: 'custrecord_export_run_run_name', value: stop2_run_plan });
+
+                    var id = excelRecord.save({
+                        enableSourcing: true,
+                    });
+                    
+                    log.debug({
+                        title: 'complete',
+                        details: id
+                    });
+                }
+                
+                
+                
+                
+                
+                return true;
+            });
+
+            log.debug({
+                title: 'script complete',
+                details: 'script complete'
+            })
+            //return csv;
+
+
+        }
+        
+        function freqRecordId(service_id) {
+            var exportSearch = search.load({
+                id: 'customsearch_export_run_search',
+                type: 'customrecord_export_run'
+            });
+
+            exportSearch.filters.push(search.createFilter({
+                name: 'custrecord_export_run_service_id',
+                operator: search.Operator.IS,
+                values: service_id
+            }));
+            var exportSearchResults = exportSearch.run();
+            var search_count = exportSearch.runPaged().count;
+            log.debug({
+                title: 'search_count',
+                details: search_count
+            });
+            var id = 0;
+            exportSearchResults.each(function(searchResult) {
+                log.debug({
+                    title: 'sjdosdj',
+                    details: 'sdsdh'
+                });
+                var internalId = searchResult.getValue({name: 'internalid'});
+                id = internalId;
+                return false;
+            });
+            log.debug({
+                title: 'id',
+                details: id
+            })
+            return id;
+
+
+        }
+
+        // function recordPart2() {
+        //     var freqSearch2 = search.load({
+        //         id: 'customsearch_rp_servicefreq_excel_export',
+        //         type: 'customrecord_service_freq'
+        //     });
+
+        //     freqSearch2.filters.push(search.createFilter({
+        //         name: 'custrecord_service_freq_run_plan',
+        //         operator: search.Operator.IS,
+        //         values: run_id
+        //     }));
+
+        //     freqSearch2.filters.push(search.createFilter({
+        //         name: 'internalid',
+        //         join: 'CUSTRECORD_SERVICE_FREQ_SERVICE',
+        //         operator: search.Operator.IS,
+        //         values: service_id
+        //     }));
+
+        //     var freqSearchResults2 = freqSearch2.run();
+        //     freqSearchResults2.each(function(searchResult2) {
+        //         log.debug({
+        //             title: 'inside 2nd',
+        //             details: 'inside'
+        //         });
+        //         var internalId = searchResult2.getValue({name: 'internalid'});
+        //         log.debug({
+        //             title: 'internalId 2nd',
+        //             details: 'internalId'
+        //         });
+                
+
+        //         if (freqIDs.indexOf(internalId) == -1 ) {
+        //             log.debug({
+        //                 title: 'insideeee 2nd',
+        //                 details: 'insiddeeeee'
+        //             });
+        //             freqIDs.push(internalId);
+                    
+
+
+        //         }
+        //     });
+        // }
+        function deleteRecords() {
+            log.debug({
+                title: 'DELETE STRING ACTIVATED'
+            });
+            var exportRunSearch = search.load({
+                type: 'customrecord_export_run',
+                id: 'customsearch_export_run_search'
+            });
+            exportRunSearch.run().each(function(result) {
+                
+                var index = result.getValue('internalid');
+                deleteResultRecord(index);
+              
+                return true;
+            });
+
+            
+        }
+
+        function deleteResultRecord(index) {           
+            // Deleting a record consumes 4 governance units.
+            record.delete({
+                type: 'customrecord_export_run',
+                id: index
+            });
+            
+        }
+
+        function isNullorEmpty(strVal) {
+            return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
+        }
+
+        return {
+            execute: main
+        }
+    }
+);

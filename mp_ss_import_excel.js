@@ -1,19 +1,12 @@
-/**
+ /**
  * @NApiVersion 2.x
  * @NScriptType ScheduledScript
  * 
- * Module Description
+ * Module Description: Import an excel file of stops to add into an existing run  
  * 
- * NSVersion    Date                        Author         
- * 2.00         2020-10-18 18:08:08         Anesu
- *
- * Description: Import an excel file of stops to add into an existing run   
- * 
- * @Last Modified by:   Anesu Chakaingesu
- * @Last Modified time: 2020-10-22 16:49:26
+ * @Last Modified by:   Sruti Desai
  * 
  */
-
 
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format', 'N/file'],
     function(runtime, search, record, log, task, currentRecord, format, file) {
@@ -71,10 +64,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
          */
         
         function main(context){
+
+
             //var file_id = context.request.params.fileid;
             //var zee_id = context.request.params.zee_id
             var file_id = runtime.getCurrentScript().getParameter({ name: 'custscript_import_excel_file_id' });
-            var zee_id = runtime.getCurrentScript().getParameter({ name: 'custscript_import_excel_zee_id' });
+            var zee = runtime.getCurrentScript().getParameter({ name: 'custscript_import_excel_zee_id' });
             //context.getSetting('SCRIPT', 'custscriptstartdate');
             log.debug({
                 title: 'fileid',
@@ -82,8 +77,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
 
             log.debug({
-                title: 'zee_id',
-                details: zee_id
+                title: 'zee',
+                details: zee
             });
             var file1 = file.load({
                 id: file_id
@@ -94,170 +89,202 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             // skip first line (header)
             iterator.each(function (line) { 
                 log.debug({
-                title: 'line',
-                details: line
+                    title: 'line',
+                    details: line
+                });
+                return false;
             });
-            return false;
-        });
 
-        var index = 0;
+            // var custIdSet = ctx.getParameter({
+            //     name: 'custscript_import_excel_data_set'
+            // });
+            // if (isNullorEmpty(custIdSet)){
+            //     deleteRecords();
+            //     custIdSet = []; // custid
+            // }
+
+            var custIdSet = ctx.getParameter({ name: 'custscript_import_excel_data_set' });
+            if (isNullorEmpty(custIdSet)) {
+                deleteRecords();
+                custIdSet = JSON.parse(JSON.stringify([]));
+            } else {
+                custIdSet = JSON.parse(custIdSet);
+            }
+
+            
+            
+            var stage = ctx.getParameter({
+                name: 'custscript_import_excel_stage'
+            });
+
+            var index = 0;
             iterator.each(function (line) {
                 index++;
                 log.audit({
                     title: 'num lines',
                     details: index
                 });
-                run(line, index, zee_id);
-                return true;
-            });
-        }
-
-        function run(line, index, zee){
-            log.audit({
-                title: 'SS Initialised'
-            });
-
-            // ADD ENTITYID i.e. 751172738 id of customer in excel
-            // FIX UP NAMES AND "\""- match with cl
-            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "Stop 1: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
-
-            var rs_values = line.value.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            log.debug({
-                title: 'lineVals1',
-                details: rs_values
-            });
-            
-
-            var internalID = rs_values[0];
-            var custId = rs_values[1];
-            var companyName = rs_values[2];
-            var service_id = rs_values[3];
-            var service_name = rs_values[4];
-            var price = rs_values[5];
-            var frequency = rs_values[6];
-
-            var stop1_location_type = rs_values[7];
-            var poBox1 = rs_values[8];
-            var stop1_location = rs_values[9];
-            var stop1_duration = rs_values[10];
-            var stop1_time = rs_values[11];
-            var stop1_transfer = rs_values[12];
-            var stop1_notes = rs_values[13];
-
-            var stop2_location_type = rs_values[14];
-            var poBox2 = rs_values[15];
-            var stop2_location =  rs_values[16];
-            var stop2_duration = rs_values[17];
-            var stop2_time = rs_values[18];
-            var stop2_transfer = rs_values[19];
-            var stop2_notes = rs_values[20];
-
-            var driver = rs_values[21];
-            var run_name = rs_values[22];
-
-            log.debug({
-                title: 'comp',
-                details: companyName
-            })
-            log.debug({
-                title: 'lineVals',
-                details: rs_values
-            });
-
-            var custIdSet = ctx.getParameter({
-                name: 'custscript_import_excel_data_set'
-            });
-            if (isNullorEmpty(custIdSet)){
-                custIdSet = []; // custid
-            }
-
-            var stage = ctx.getParameter({
-                name: 'custscript_import_excel_stage'
-            });
-            if (isNullorEmpty(stage)){
-                stage = 0;
-            }
-
-            indexInCallback = index;
-            var usageLimit = ctx.getRemainingUsage();
-            if (usageLimit < 100) {
-                params = {
-                    custscript_import_excel_data_set: JSON.stringify(custIdSet),
-                    custscript_import_excel_stage: stage
-                };
                 
-                var reschedule = task.create({
-                    taskType: task.TaskType.SCHEDULED_SCRIPT,
-                    scriptId: 'customscript_ss_import_excel',
-                    deploymentId: 'customdeploy_ss_import_excel',
-                    params: params
-                });
-                var reschedule_id = reschedule.submit();
+                if (isNullorEmpty(stage) || stage > 2 ){
+                    stage = 0;
+                }
+                log.audit({title: 'SS Initialised'});
 
-                log.debug({
-                    title: 'Attempting: Rescheduling Script',
-                    details: reschedule
-                });
+                //regex to split excel line into values
+                var rs_values = line.value.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 
-                return false;
-            } else {
 
-                if (custIdSet.indexOf(service_id) == -1) {
-                    custIdSet.push(service_id);
-                    if (!isNullorEmpty(stop1_location)){
-                        deleteRecords();
-                        // Start Functions here.
-                        var stop1_id = 0;
-                        var stop2_id = 0;
-                        if (stage == 0){ // Create Stops
-                            stage++;
+                //values from excel file
+                var internalID = rs_values[0];var custId = rs_values[1];var companyName = rs_values[2];var service_id = rs_values[3];var service_name = rs_values[4];var price = rs_values[5];var frequency = rs_values[6];
+                var stop1_location_type = rs_values[7];var poBox1 = rs_values[8];var stop1_location = rs_values[9];var stop1_duration = rs_values[10];var stop1_time = rs_values[11];var stop1_transfer = rs_values[12];var stop1_notes = rs_values[13];
+                var stop2_location_type = rs_values[14];var poBox2 = rs_values[15];var stop2_location =  rs_values[16];var stop2_duration = rs_values[17];var stop2_time = rs_values[18];var stop2_transfer = rs_values[19];var stop2_notes = rs_values[20];
+                var driver = rs_values[21];var run_name = rs_values[22];
 
-                            var service_leg_1 = 1;
-                            var service_leg_2 = 2;
-                            stop1_id = createStop(service_leg_1, internalID, zee, companyName, service_id, stop1_location_type, stop1_location, poBox1, stop1_duration, stop1_notes );
-                            
-                            log.debug({
-                                title: 'stop1 id',
-                                details: stop1_id
-                            });
-                            log.debug({
-                                title: 'zee',
-                                details: zee
-                            });
-                            stop2_id = createStop(service_leg_2, internalID, zee, companyName, service_id, stop2_location_type, stop2_location, poBox2, stop2_duration, stop2_notes );
 
-                            
+                //deleteStopAndFreq(service_id);
 
-                            log.debug({
-                                title: 'stop2 id',
-                                details: stop2_id
-                            });
-                        }
+                log.debug({title: 'comp',details: companyName})
+                log.debug({title: 'lineVals',details: rs_values});
 
-                        if (stage == 1){ // Schedule Service 
-                            log.debug({
-                                title: 'stop1 id in ss',
-                                details: stop1_id
-                            });
-                            log.debug({
-                                title: 'stop2 id in ss',
-                                details: stop2_id
-                            });
-                            stage++;
-                            scheduleService(stop1_id, stop2_id, frequency, internalID, zee, driver, run_name, service_id, stop1_time, stop2_time )
+                indexInCallback = index;
+                var usageLimit = ctx.getRemainingUsage();
+                if (usageLimit < 100) {
+                    
+                    params = {
+                        custscript_import_excel_data_set: JSON.stringify(custIdSet),
+                        custscript_import_excel_stage: stage,
+                        custscript_import_excel_file_id: file_id,
+                        custscript_import_excel_zee_id: zee,
+                        custscript_import_excel_reschedule: true,
+                        custscript_import_excel_stop_id_1: 0,
+                        custscript_import_excel_stop_id_2: 0	
 
-                        }
+                    };
 
-                        if (stage == 2){
-                            stage++;
-                            
-                            saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id);
+                    var reschedule = task.create({
+                        taskType: task.TaskType.SCHEDULED_SCRIPT,
+                        scriptId: 'customscript_ss_import_excel',
+                        deploymentId: 'customdeploy_ss_import_excel',
+                        params: params
+                    });
 
-                            
+                    log.debug({ title: 'Attempting: Rescheduling Script', details: reschedule });
+                    var reschedule_id = reschedule.submit();
+
+                    
+                    return false;
+
+                } else {
+                    if (custIdSet.indexOf(service_id) == -1) {
+                        custIdSet.push(service_id);
+                        if (!isNullorEmpty(stop1_location)){
+
+                            var stop1_id = 0; var stop2_id = 0;
+                            if (stage == 0){ // Create Stops
+                                stage++;
+                                var service_leg_1 = 1;
+                                var service_leg_2 = 2;
+                                
+                                stop1_id = createStop(service_leg_1, internalID, zee, companyName, service_id, stop1_location_type, stop1_location, poBox1, stop1_duration, stop1_notes );  
+                                stop2_id = createStop(service_leg_2, internalID, zee, companyName, service_id, stop2_location_type, stop2_location, poBox2, stop2_duration, stop2_notes );
+
+                                log.debug({ title: 'stop1 id', details: stop1_id });
+                                log.debug({ title: 'stop2 id', details: stop2_id });
+                            }
+
+                            if (stage == 1){ // Schedule Service 
+                                log.debug({ title: 'stop1 id in ss', details: stop1_id });
+                                log.debug({ title: 'stop2 id in ss', details: stop2_id });
+                                stage++;
+                                scheduleService(stop1_id, stop2_id, frequency, internalID, zee, driver, run_name, service_id, stop1_time, stop2_time )
+
+                            }
+
+                            if (stage == 2){
+                                stage++;
+                                saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id);
+
+                                
+                            }
                         }
                     }
                 }
-            }
+                
+                
+                return true;
+            });
+
+            log.audit({
+                title: 'script compelte',
+                details: 'script compelte'
+            })
+        }
+
+        function deleteStopAndFreq(service_id) {
+
+            //delete freq records
+            var freqSearch = search.load({
+                id: 'customsearch_rp_servicefreq',
+                type: 'customrecord_service_freq'
+            });
+
+            freqSearch.filters.push(search.createFilter({
+                name: 'internalid',
+                join: 'CUSTRECORD_SERVICE_FREQ_SERVICE',
+                operator: search.Operator.IS,
+                values: service_id
+            }));
+
+
+            var freqResults = freqSearch.run();
+            var search_count = freqSearch.runPaged().count;
+
+
+
+            freqResults.each(function(search_result) {
+                var freqLegId = search_result.getValue({name: 'internalid'});
+                
+                record.delete({
+                    type: 'customrecord_service_freq',
+                    id: freqLegId
+                });
+                return true;
+            });
+
+            //delete service leg records
+            var legSearch = search.load({
+                id: 'customsearch_rp_serviceleg',
+                type: 'customrecord_service_leg'
+            });
+
+            legSearch.filters.push(search.createFilter({
+                name: 'internalid',
+                join: 'CUSTRECORD_SERVICE_LEG_SERVICE',
+                operator: search.Operator.IS,
+                values: service_id
+            }));
+
+            var legResults = legSearch.run();
+
+            var search_count = legSearch.runPaged().count;
+
+            
+
+            legResults.each(function(search_result) {
+                var serviceLegId = search_result.getValue({name: 'internalid'});
+                record.delete({
+                    type: 'customrecord_service_leg',
+                    id: serviceLegId
+                });
+                return true;
+            });
+
+            
+            
+        }
+
+        function run(line, index, zee, file_id, custIdSet, stage){
+            
             
             return true;   
         }
@@ -372,7 +399,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     var state_2 = state.toLowerCase();
                     var zip = searchResult_address.getValue({name: 'zipcode',join: 'Address'});
                     var lat = searchResult_address.getValue({name: 'custrecord_address_lat',join: 'Address'});
-                    var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'}).toLowerCase();
+                    var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'});
                     
                     log.debug({ title: 'addr_label', details: addr_label });
                     log.debug({ title: 'addr_label_2', details: addr_label_2 });
@@ -383,65 +410,65 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     log.debug({ title: 'city', details: city });
                     log.debug({ title: 'city_2', details: city_2 });
 
-                    if (isNullorEmpty(poBox)) {
-                        if (stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
-                            log.debug({
-                                title: 'in first address',
-                                
-                            });
+                    //if (isNullorEmpty(poBox)) {
+                    if (stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
+                        log.debug({
+                            title: 'in first address',
                             
-                            //type of address i.e. site address, billing addr etc
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_id});
-                            
-                            //might fail if po box is null value?
-                            // service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr_postal,});
+                        });
+                        
+                        //type of address i.e. site address, billing addr etc
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_id});
+                        
+                        //might fail if po box is null value?
+                        // service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr_postal,});
 
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: addr1});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: addr1});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
+                        
+                        return false;
+                    }
+                    // } else {
+                    //     //case when po box is in addr2 col
+                    //     if (addr2_2.indexOf("PO Box") === 0 && addr2_2.indexOf(poBox_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
                             
-                            return false;
-                        }
-                    } else {
-                        //case when po box is in addr2 col
-                        if (addr2_2.indexOf("PO Box") === 0 && addr2_2.indexOf(poBox_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
-                            
-                            log.debug({
-                                title: 'in first address',
+                    //         log.debug({
+                    //             title: 'in first address',
                                 
-                            });
-                            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr', value: addr_id });
-                            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr2,});
-                            //NULL VALUR ERRORS?
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: ''});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
-                            return false;
-                        } else if(addr1_2.indexOf(poBox_2) !== -1 && stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
-                            log.debug({
-                                title: 'in first address',
+                    //         });
+                    //         service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr', value: addr_id });
+                    //         service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr2,});
+                    //         //NULL VALUR ERRORS?
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: ''});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
+                    //         return false;
+                    //     } else if(addr1_2.indexOf(poBox_2) !== -1 && stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
+                    //         log.debug({
+                    //             title: 'in first address',
                                 
-                            });
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_id});
-                            service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
-                            //service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
-                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
-                            return false;
-                        }
-                    }                         
+                    //         });
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_id});
+                    //         service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
+                    //         //service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                    //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
+                    //         return false;
+                    //     }
+                    // }                         
                     
                     return true;
                 });
@@ -522,12 +549,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     // });
 
                     if (stop_location.indexOf(name) !== -1  || name.indexOf(stop_location) !== -1 ) {
-                        service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1});
+                        //service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1});
                         log.debug({
                             title: 'in 2nd address',
                             
                         });
-                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: internal_id});
+                        service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: addr1});
+
+                        //service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: internal_id});
                         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
                         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
                         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
@@ -934,6 +963,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 //}               
             }
         }
+
 
         function saveData(internalID, custId, companyName, service_id, service_name, price, frequency, stop1_location_type, poBox1, poBox2, stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name, stop1_id, stop2_id){
 
