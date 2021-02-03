@@ -21,10 +21,21 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         role = runtime.getCurrentUser().role;
 
         function main() {
-            var zee = runtime.getCurrentScript().getParameter({ name: 'custscript_download_template_zee_id' });
-            var csv = createCSV(zee);
-
+            var zeesSearch = search.load({
+                id: 'customsearch_job_inv_process_zee',
+                type: search.Type.PARTNER
+            });
             
+            var zeesSearchResults = zeesSearch.run();
+            zeesSearchResults.each(function(searchResult) {
+                var run_id = searchResult.getValue({name: 'internalid'});
+                var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
+                var run_name = searchResult.getValue({name: 'name'});
+                deleteRecords();
+                createCSV(zee); 
+                return true;
+            });
+                      
 
         }
         
@@ -32,30 +43,33 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
          * Create the CSV and store it in the hidden field 'custpage_table_csv' as a string.
          */
         function createCSV(zeeVal) {
-            var sep = "sep=;";
-            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "Stop 1: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
-            headers = headers.join(';');
-            //slice(0, headers.length); // .join(', ')
 
-            var csv = sep + "\n" + headers + "\n";
+            var runRecord = record.create({
+                type: 'customrecord_export_run_json',
+                isDynamic: true,
+            });
+
+            runRecord.setValue({ fieldId: 'custrecord_export_run_franchisee', value: zeeVal});
+            runRecord.setValue({ fieldId: 'custrecord_export_run_template', value: true});
             
             var serviceSearch = search.load({
                 id: 'customsearch_rp_services',
                 type: 'customrecord_service'
             });
 
-            var defaultFilters = serviceSearch.filters;
-            defaultFilters.push(search.createFilter({
+            serviceSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_franchisee',
                 operator: search.Operator.ANYOF,
                 values: zeeVal
             }));
 
 
-            serviceSearch.filters = defaultFilters;
             var resultSetCustomer = serviceSearch.run();
-            
+            var run_json = [];
+
             resultSetCustomer.each(function(searchResult) {
+                var run_info = {"custInternalId": null, "custId": null, "custName": null, "serviceId": null, "serviceName": null , "price": null};
+
                 var internal_custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
 
                 var custRecord = record.load({type: record.Type.CUSTOMER, id: internal_custid })
@@ -66,16 +80,60 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 var service_name = searchResult.getText({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
                 var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
                 
-                var row = new Array();
-                row[0] = internal_custid; row[1]= custid; row[2] = companyname; row[3] = service_id; row[4] = service_name; row[5] = service_price;
-                csv += row.join(';');
-                csv += "\n";
+                run_info.custInternalId = internal_custid;
+                run_info.custId = custid;
+                run_info.custName = companyname;
+                run_info.serviceId = service_id;
+                run_info.serviceName = service_name;
+                run_info.price = service_price;
+
+                run_json.push(run_info);
+
                 return true;
             });
 
-            return csv;
+            runRecord.setValue({ fieldId: 'custrecord_export_run_json_info', value: JSON.stringify(run_json)});
+            var id = runRecord.save({
+                enableSourcing: true,
+            });
+
+            log.debug({
+                title: 'runRecord id',
+                details: id
+            });
+
         }
         
+        function deleteRecords() {
+            log.debug({
+                title: 'DELETE STRING ACTIVATED'
+            });
+            var exportRunSearch = search.load({
+                type: 'customrecord_export_run_json',
+                id: 'customsearch_export_run_json'
+            });
+            exportRunSearch.run().each(function(result) {
+                
+                var index = result.getValue('internalid');
+                if (result.getValue('custrecord_export_run_template') === true) {
+                    deleteResultRecord(index);
+                }
+              
+                return true;
+            });
+
+            
+        }
+
+        function deleteResultRecord(index) {           
+            // Deleting a record consumes 4 governance units.
+            record.delete({
+                type: 'customrecord_export_run_json',
+                id: index
+            });
+            
+        }
+
         return {
             execute: main
         }

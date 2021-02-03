@@ -31,15 +31,18 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_run_plan'
             });
             
-            // activeRunSearch.each(function(searchResult) {
-            //     var run_id = searchResult.getValue({name: 'internalid'});
-            //     var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
-            //     var run_name = searchResult.getValue({name: 'name'});
-            //     onclick_exportRun(run_id, run_name, zee);
+            var activeRunSearchResults = activeRunSearch.run();
+            activeRunSearchResults.each(function(searchResult) {
+                var run_id = searchResult.getValue({name: 'internalid'});
+                var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
+                var run_name = searchResult.getValue({name: 'name'});
+                onclick_exportRun(run_id, run_name, zee);
+                
+                return true;
 
-            // });
+            });
 
-            onclick_exportRun(229, 'Byron Bay', 'Byron Bay');
+            //onclick_exportRun(229, 'Byron Bay', 794958);
 
 
 
@@ -58,6 +61,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             });
 
             runRecord.setValue({ fieldId: 'custrecord_export_run_franchisee', value: zee});
+            runRecord.setValue({ fieldId: 'custrecord_export_run_template', value: false});
             runRecord.setValue({ fieldId: 'custrecord_export_run_id', value: run_id});
             runRecord.setValue({ fieldId: 'custrecord_export_run_name', value: run_name});
 
@@ -262,11 +266,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     values: service_id
                 }));
     
-                // freqSearch2.filters.push(search.createFilter({
-                //     name: 'internalid',
-                //     operator: search.Operator.DOESNOTCONTAIN,
-                //     values: freqIDs
-                // }));
                 var freqSearchResults2 = freqSearch2.run();
                 freqSearchResults2.each(function(searchResult) {
                     var internalId = searchResult.getValue({name: 'internalid'});
@@ -359,91 +358,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 title: 'runRecord id',
                 details: id
             });
-            //return csv;
-
 
         }
         
-        function freqRecordId(service_id) {
-            var exportSearch = search.load({
-                id: 'customsearch_export_run_search',
-                type: 'customrecord_export_run'
-            });
 
-            exportSearch.filters.push(search.createFilter({
-                name: 'custrecord_export_run_service_id',
-                operator: search.Operator.IS,
-                values: service_id
-            }));
-            var exportSearchResults = exportSearch.run();
-            var search_count = exportSearch.runPaged().count;
-            log.debug({
-                title: 'search_count',
-                details: search_count
-            });
-            var id = 0;
-            exportSearchResults.each(function(searchResult) {
-                log.debug({
-                    title: 'sjdosdj',
-                    details: 'sdsdh'
-                });
-                var internalId = searchResult.getValue({name: 'internalid'});
-                id = internalId;
-                return false;
-            });
-            log.debug({
-                title: 'id',
-                details: id
-            })
-            return id;
-
-
-        }
-
-        // function recordPart2() {
-        //     var freqSearch2 = search.load({
-        //         id: 'customsearch_rp_servicefreq_excel_export',
-        //         type: 'customrecord_service_freq'
-        //     });
-
-        //     freqSearch2.filters.push(search.createFilter({
-        //         name: 'custrecord_service_freq_run_plan',
-        //         operator: search.Operator.IS,
-        //         values: run_id
-        //     }));
-
-        //     freqSearch2.filters.push(search.createFilter({
-        //         name: 'internalid',
-        //         join: 'CUSTRECORD_SERVICE_FREQ_SERVICE',
-        //         operator: search.Operator.IS,
-        //         values: service_id
-        //     }));
-
-        //     var freqSearchResults2 = freqSearch2.run();
-        //     freqSearchResults2.each(function(searchResult2) {
-        //         log.debug({
-        //             title: 'inside 2nd',
-        //             details: 'inside'
-        //         });
-        //         var internalId = searchResult2.getValue({name: 'internalid'});
-        //         log.debug({
-        //             title: 'internalId 2nd',
-        //             details: 'internalId'
-        //         });
-                
-
-        //         if (freqIDs.indexOf(internalId) == -1 ) {
-        //             log.debug({
-        //                 title: 'insideeee 2nd',
-        //                 details: 'insiddeeeee'
-        //             });
-        //             freqIDs.push(internalId);
-                    
-
-
-        //         }
-        //     });
-        // }
         function deleteRecords() {
             log.debug({
                 title: 'DELETE STRING ACTIVATED'
@@ -455,7 +373,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             exportRunSearch.run().each(function(result) {
                 
                 var index = result.getValue('internalid');
-                deleteResultRecord(index);
+                if (result.getValue('custrecord_export_run_template') !== 'T') {
+                    deleteResultRecord(index);
+                }
+                
               
                 return true;
             });
