@@ -56,7 +56,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             });
 
             form.addSubmitButton({
-                label: 'Submit'
+                label: 'Import Run'
             });
 
             
@@ -451,98 +451,6 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
         
         return inlineQty;
     }
-
-    
-    function onclick_downloadButton() {
-        log.debug({
-            title: 'testing',
-            details: 'testing'
-        });
-        // if (zee == 0 || role == 1000 || isNullorEmpty(zee)) {
-        //     alert('Please Select a Zee before downloading a template');
-        // } else {
-        //     alert('Please wait while your template for ' + zee + ' is being downloaded');
-        //     // CALL SCHEDULED SCRIPT
-        //     var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
-        //     scriptTask.scriptId = 'customscript_ss_download_template';
-        //     scriptTask.deploymentId = 'customdeploy_ss_download_template';
-        //     scriptTask.params = {
-        //         custscript_download_template_zee_id: zee
-        //     };
-        //     var ss_id = scriptTask.submit();
-            
-        //     var myTaskStatus = task.checkStatus({
-        //         taskId: ss_id
-        //     });
-            
-        // }
-    }
-    
-    function onclick_deleteRun(zee, run) {
-       
-        // if (isNullorEmpty(zee)) {
-        //     alert('Please select a run first');
-        // } 
-        // else {
-        //     alert('Please wait while the run ' + run + ' is deleted');
-
-        //     // CALL SCHEDULED SCRIPT
-        //     var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
-        //     scriptTask.scriptId = 'customscript_ss_delete_run';
-        //     scriptTask.deploymentId = 'customdeploy_ss_delete_run';
-        //     scriptTask.params = {
-        //         custscript_delete_run_run_id: run
-        //     };
-        //     var ss_id = scriptTask.submit();
-            
-        //     var myTaskStatus = task.checkStatus({
-        //         taskId: ss_id
-        //     });
-
-        //     if (myTaskStatus === 'Completed') {
-        //         alert('Run ' + run + ' has successfully been deleted');
-        //     }
-
-            
-        // }
-    }
-
-    // function onclick_exportRun(zee, run) {
-
-    //     log.debug({
-    //         title: 'testing2',
-    //         details: 'testing2'
-    //     });
-
-    //     log.debug({
-    //         title: 'zee',
-    //         details: zee
-    //     });
-
-    //     log.debug({
-    //         title: 'run',
-    //         details: run
-    //     });
-    //     if(isNullorEmpty(zee)) {
-    //         //alert('Please select a zee first');
-    //     } else if (isNullorEmpty(run)) {
-    //         //alert('Please select a run first');
-    //     } else {
-    //         //alert('Please wait for the run ' + run + ' to download');
-    //         // CALL SCHEDULED SCRIPT
-    //         var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
-    //         scriptTask.scriptId = 'customscript_ss_export_run';
-    //         scriptTask.deploymentId = 'customdeploy_ss_export_run';
-    //         scriptTask.params = {
-    //             custscript_export_run_run_id: run
-    //         };
-    //         var ss_id = scriptTask.submit();
-
-    //         var myTaskStatus = task.checkStatus({
-    //             taskId: ss_id
-    //         });
-    //     }
-    // }
 
     function getDate() {
         var date = (new Date());

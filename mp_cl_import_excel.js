@@ -275,74 +275,74 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 alert('Please Select a Zee before downloading a template');
             } else {
                 alert('Please wait while your template for ' + zee + ' is being downloaded');
-                createCSV(zee);
-                downloadCsv(zee);
+
+                var sep = "sep=;";
+                var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "Stop 1: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
+                headers = headers.join(';');
+                var csv = sep + "\n" + headers + "\n";
+
+                var jsonSearch = search.load({
+                    id: 'customsearch_export_run_json',
+                    type: 'customrecord_export_run_json'
+                });
+    
+                jsonSearch.filters.push(search.createFilter({
+                    name: 'custrecord_export_run_franchisee',
+                    operator: search.Operator.EQUALTO,
+                    values: zee
+                }));
+
+                // jsonSearch.filters.push(search.createFilter({
+                //     name: 'custrecord_export_run_template',
+                //     operator: search.Operator.EQUALTO,
+                //     values: true
+                // }));
+
+                console.log("test");
+                var jsonSearchResults = jsonSearch.run();
+
+                jsonSearchResults.each(function(searchResult) {
+                    console.log("in");
+                    console.log(searchResult.getValue({name: 'custrecord_export_run_template'}));
+                    if (searchResult.getValue({name: 'custrecord_export_run_template'}) !== 'T') {
+                        return true;
+                    }
+                    var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}));
+                    for (i in run_json_info) {
+                        var row = new Array();
+                        row[0] = run_json_info[i].custInternalId;
+                        row[1] = run_json_info[i].custId;
+                        row[2] = run_json_info[i].custName;
+                        row[3] = run_json_info[i].serviceId;
+                        row[4] = run_json_info[i].serviceName;
+                        row[5] = run_json_info[i].price;
+                        row = row.join(';');
+                        csv += row + "\n";
+                    }
+                    
+                });
+                
+    
+                console.log("finished");
+                var val1 = currentRecord.get();
+                val1.setValue({
+                    fieldId: 'custpage_table_csv',
+                    value: csv
+                });
+
+                downloadTemplate(zee);
 
                 
             }  
         }
 
-        /**
-         * Create the CSV and store it in the hidden field 'custpage_table_csv' as a string.
-         */
-        function createCSV(zeeVal) {
-            var sep = "sep=;";
-            var headers = ["Customer Internal ID", "Customer ID", "Customer Name", "Service ID", "Service Name", "Price", "Frequency", "Stop 1: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 1 Location", "Stop 1 Duration", "Stop 1 Time", "Stop 1 Transfer", "Notes", "Stop 2: Customer or Non-Customer Location", "PO Box# or DX#", "Stop 2 Location", "Stop 2 Duration", "Stop 2 Time", "Stop 2 Transfer", "Notes", "Driver Name", "Run Name"]
-            headers = headers.join(';');
-            //slice(0, headers.length); // .join(', ')
-
-            var csv = sep + "\n" + headers + "\n";
-            
-            var serviceSearch = search.load({
-                id: 'customsearch_rp_services',
-                type: 'customrecord_service'
-            });
-
-            var defaultFilters = serviceSearch.filters;
-            defaultFilters.push(search.createFilter({
-                name: 'custrecord_service_franchisee',
-                operator: search.Operator.ANYOF,
-                values: zeeVal
-            }));
-
-
-            serviceSearch.filters = defaultFilters;
-            var resultSetCustomer = serviceSearch.run();
-            
-            resultSetCustomer.each(function(searchResult) {
-                var internal_custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
-
-                var custRecord = record.load({type: record.Type.CUSTOMER, id: internal_custid })
-                var custid = custRecord.getValue({ fieldId: 'entityid'});
-
-                var companyname = searchResult.getValue({ name: "companyname", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                var service_id = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
-                var service_name = searchResult.getText({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
-                var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
-                
-                var row = new Array();
-                row[0] = internal_custid; row[1]= custid; row[2] = companyname; row[3] = service_id; row[4] = service_name; row[5] = service_price;
-                csv += row.join(';');
-                csv += "\n";
-                return true;
-            });
-
-            var val1 = currentRecord.get();
-            val1.setValue({
-                fieldId: 'custpage_table_csv',
-                value: csv
-            });
-
-
-            return true;
-        }
-
-
-        function downloadCsv(zeeVal) {
+        function downloadTemplate(zeeVal) {
             var val1 = currentRecord.get();
             var csv = val1.getValue({
                 fieldId: 'custpage_table_csv',
             });
+
+            console.log(csv);
             var a = document.createElement("a");
             document.body.appendChild(a);
             a.style = "display: none";
@@ -355,14 +355,15 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             a.click();
             window.URL.revokeObjectURL(url);
 
-
         }
 
         function onclick_deleteRun() {
             var currentScript = currentRecord.get();
             var zee_id = currentScript.getValue({ fieldId: 'zee'});   
             var run_id = currentScript.getValue({ fieldId: 'run'});
-            if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
+            if (zee_id == 0 && role != 1000) {
+                alert('Please Select a Zee before downloading a template');
+            } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
                 alert('Please select a run first');
             } 
             else {
@@ -382,6 +383,12 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 freqResults.each(function(search_result) {
                     var freqLegId = search_result.getValue({name: 'internalid'});
                     var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
+                    var delRecord = record.load({
+                        type: string*,
+                        id: number*,
+                        isDynamic: boolean,
+                        defaultValues: Object
+                    })
                     record.delete({
                         type: 'customrecord_service_freq',
                         id: freqLegId
@@ -432,7 +439,6 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var jsonSearchResults = jsonSearch.run();
 
                 jsonSearchResults.each(function(searchResult) {
-                    if (search)
                     var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}))
                     for (i in run_json_info) {
                         var row = new Array();
@@ -517,7 +523,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             pageInit: pageInit,
             saveRecord: saveRecord,
             onclick_exportRun: onclick_exportRun,
-            onclick_downloadButton: onclick_downloadButton
+            onclick_downloadButton: onclick_downloadButton,
+            onclick_deleteRun: onclick_deleteRun
             
             
         };  
