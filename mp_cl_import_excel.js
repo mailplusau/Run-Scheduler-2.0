@@ -629,9 +629,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
         return {
             pageInit: pageInit,
             saveRecord: saveRecord,
-            onclick_downloadButton: onclick_downloadButton,
-            onclick_deleteRun: onclick_deleteRun,
-            onclick_exportRun: onclick_exportRun
+            
             
         };  
     }
