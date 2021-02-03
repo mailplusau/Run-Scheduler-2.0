@@ -40,19 +40,19 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             form.addButton({
                 id : 'import',
                 label : 'Download Template',
-                functionName : onclick_downloadButton()
+                functionName : 'onclick_downloadButton()'
             });
             
             form.addButton({
                 id : 'del_run',
                 label : 'Delete Run',
-                functionName : onclick_deleteRun(context.request.parameters.zee, context.request.parameters.run)
+                functionName : 'onclick_deleteRun()'
             });
 
             form.addButton({
                 id : 'export_run',
                 label : 'Export Run',
-                functionName : onclick_exportRun(context.request.parameters.zee, context.request.parameters.run)
+                functionName : 'onclick_exportRun()'
             });
 
             form.addSubmitButton({
@@ -60,7 +60,15 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             });
 
             
-            if (!isNullorEmpty(context.request.parameters.zee) && context.request.parameters.zee != 0) {
+            if (role == 1000) {
+                form.addField({
+                    id: 'zee',
+                    type: ui.FieldType.TEXT,
+                    label: 'zee'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = runtime.getCurrentUser().id;
+            } if (!isNullorEmpty(context.request.parameters.zee) && context.request.parameters.zee != 0) {
                 form.addField({
                     id: 'zee',
                     type: ui.FieldType.TEXT,
@@ -499,42 +507,42 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
         // }
     }
 
-    function onclick_exportRun(zee, run) {
+    // function onclick_exportRun(zee, run) {
 
-        log.debug({
-            title: 'testing2',
-            details: 'testing2'
-        });
+    //     log.debug({
+    //         title: 'testing2',
+    //         details: 'testing2'
+    //     });
 
-        log.debug({
-            title: 'zee',
-            details: zee
-        });
+    //     log.debug({
+    //         title: 'zee',
+    //         details: zee
+    //     });
 
-        log.debug({
-            title: 'run',
-            details: run
-        });
-        if(isNullorEmpty(zee)) {
-            //alert('Please select a zee first');
-        } else if (isNullorEmpty(run)) {
-            //alert('Please select a run first');
-        } else {
-            //alert('Please wait for the run ' + run + ' to download');
-            // CALL SCHEDULED SCRIPT
-            var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
-            scriptTask.scriptId = 'customscript_ss_export_run';
-            scriptTask.deploymentId = 'customdeploy_ss_export_run';
-            scriptTask.params = {
-                custscript_export_run_run_id: run
-            };
-            var ss_id = scriptTask.submit();
+    //     log.debug({
+    //         title: 'run',
+    //         details: run
+    //     });
+    //     if(isNullorEmpty(zee)) {
+    //         //alert('Please select a zee first');
+    //     } else if (isNullorEmpty(run)) {
+    //         //alert('Please select a run first');
+    //     } else {
+    //         //alert('Please wait for the run ' + run + ' to download');
+    //         // CALL SCHEDULED SCRIPT
+    //         var scriptTask = task.create({ taskType: task.TaskType.SCHEDULED_SCRIPT });
+    //         scriptTask.scriptId = 'customscript_ss_export_run';
+    //         scriptTask.deploymentId = 'customdeploy_ss_export_run';
+    //         scriptTask.params = {
+    //             custscript_export_run_run_id: run
+    //         };
+    //         var ss_id = scriptTask.submit();
 
-            var myTaskStatus = task.checkStatus({
-                taskId: ss_id
-            });
-        }
-    }
+    //         var myTaskStatus = task.checkStatus({
+    //             taskId: ss_id
+    //         });
+    //     }
+    // }
 
     function getDate() {
         var date = (new Date());
