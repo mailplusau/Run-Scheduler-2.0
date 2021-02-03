@@ -181,7 +181,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     // runPlanSearch.setFilterExpression(filterExpression);
                     runPlanSearch.filterExpression = filterExpression;
                 }
-                var runPlanSearch = search.load({ type: 'customrecord_service_leg', name: 'customsearch_rp_leg_freq_create_app_jobs'});
+                var runPlanSearch = search.load({ type: 'customrecord_service_leg', name: 'customsearch_rp_leg_freq_create_app_jobs', });
+                runPlanSearch.filterExpression = filterExpression;
                 var resultRunPlan = runPlanSearch.run();
                 // var runPlanResult = resultRunPlan.getResults()
 
