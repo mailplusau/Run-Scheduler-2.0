@@ -48,39 +48,38 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 });
                 index++;
 
-                indexCallBack = index;
+                // indexCallBack = index;
 
                 var data_set = JSON.parse(ctx.getParameter({ name: 'custscript_export_run_run_id' }));
                 if (isNullorEmpty(data_set)){
                     data_set = JSON.parse(JSON.stringify([]));
                 }
 
-                var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 200) {
-                    params = {
-                        custscript_export_run_run_id: JSON.stringify(run_id)
-                    };
-                    var reschedule = task.create({
-                        taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: ctx.scriptId,
-                        deploymentId: ctx.deploymentId,
-                        params: params
-                    });
-                    var reschedule_id = reschedule.submit();
-                    log.debug({
-                        title: 'Attempting: Rescheduling Script',
-                        details: reschedule
-                    });
-                    return false;
-                    // }
-                } else { 
-                    if (data_set.indexOf(run_id) == -1){
-                        data_set.push(run_id);
+                // var usageLimit = ctx.getRemainingUsage();
+                // if (usageLimit < 200) {
+                //     params = {
+                //         custscript_export_run_run_id: JSON.stringify(run_id)
+                //     };
+                //     var reschedule = task.create({
+                //         taskType: task.TaskType.SCHEDULED_SCRIPT,
+                //         scriptId: ctx.scriptId,
+                //         deploymentId: ctx.deploymentId,
+                //         params: params
+                //     });
+                //     var reschedule_id = reschedule.submit();
+                //     log.debug({
+                //         title: 'Attempting: Rescheduling Script',
+                //         details: reschedule
+                //     });
+                //     return false;
+                //     // }
+                // } else { 
+                //     if (data_set.indexOf(run_id) == -1){
+                //         data_set.push(run_id);
                         onclick_exportRun(run_id, run_name, zee);
-                    }    
-                    
+    
                     return true;
-                }
+                // }
             });
 
             //onclick_exportRun(229, 'Byron Bay', 794958);
@@ -148,7 +147,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         details: reschedule
                     });
                     return false;
-                    // }
                 } else { 
                         
                     var run_info = {"custInternalId": null, "custId": null, "custName": null, "serviceId": null, "serviceName": null, "price": null, "freq": null, "stop1LocationType": null, "poBox1": null, "stop1Location": null, "stop1Duration": null, "stop1Time": null, "stop1Transfer": null, "stop1Notes": null, "stop2LocationType": null, "poBox2": null, "stop2Location": null, "stop2Duration": null, "stop2Time": null, "stop2Transfer": null, "stop2Notes": null, "driverName": null, "runName": null,};
