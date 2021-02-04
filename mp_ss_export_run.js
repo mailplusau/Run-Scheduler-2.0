@@ -25,7 +25,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 details: 'start'
             });
 
-            deleteRecords();
 
             var activeRunSearch = search.load({
                 id: 'customsearch_app_run_plan_active',
@@ -50,9 +49,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                 // indexCallBack = index;
 
-                var data_set = JSON.parse(ctx.getParameter({ name: 'custscript_export_run_run_id' }));
-                if (isNullorEmpty(data_set)){
+                var data_set;
+                if (isNullorEmpty(ctx.getParameter({ name: 'custscript_export_run_run_id' }))){
+                    deleteRecords();
                     data_set = JSON.parse(JSON.stringify([]));
+                } else {
+                    data_set = JSON.parse(ctx.getParameter({ name: 'custscript_export_run_run_id' }));
                 }
 
                 // var usageLimit = ctx.getRemainingUsage();
@@ -76,7 +78,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 // } else { 
                 //     if (data_set.indexOf(run_id) == -1){
                 //         data_set.push(run_id);
-                        onclick_exportRun(run_id, run_name, zee);
+                        if (data_set.indexOf(run_id) == -1) {
+                            data_set.push(run_id);
+                            onclick_exportRun(run_id, run_name, zee, data_set);
+                        }
     
                     return true;
                 // }
@@ -86,7 +91,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
         }
 
-        function onclick_exportRun(run_id, run_name, zee) {   
+        function onclick_exportRun(run_id, run_name, zee, data_set) {   
             
             var runRecord = record.create({
                 type: 'customrecord_export_run_json',
@@ -133,19 +138,22 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 var usageLimit = ctx.getRemainingUsage();
                 if (usageLimit < 200) {
                     params = {
-                        custscript_export_run_run_id: JSON.stringify(freqIDs)
+                        custscript_export_run_run_id: JSON.stringify(data_set)
                     };
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: ctx.scriptId,
-                        deploymentId: ctx.deploymentId,
+                        scriptId: 'customscript_ss_export_run',
+                        deploymentId: 'customdeploy_ss_export_run',
                         params: params
                     });
-                    var reschedule_id = reschedule.submit();
+                    
                     log.debug({
                         title: 'Attempting: Rescheduling Script',
                         details: reschedule
                     });
+
+                    var reschedule_id = reschedule.submit();
+                    
                     return false;
                 } else { 
                     
