@@ -25,13 +25,13 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 id: 'customsearch_job_inv_process_zee',
                 type: search.Type.PARTNER
             });
-            
+            deleteRecords();
+
             var zeesSearchResults = zeesSearch.run();
             zeesSearchResults.each(function(searchResult) {
                 var run_id = searchResult.getValue({name: 'internalid'});
                 var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
                 var run_name = searchResult.getValue({name: 'name'});
-                deleteRecords();
                 createCSV(zee); 
                 return true;
             });
@@ -115,7 +115,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             exportRunSearch.run().each(function(result) {
                 
                 var index = result.getValue('internalid');
-                if (result.getValue('custrecord_export_run_template') === true) {
+                if (result.getValue('custrecord_export_run_template') === 'T') {
                     deleteResultRecord(index);
                 }
               

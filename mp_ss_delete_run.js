@@ -19,9 +19,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         }
         role = runtime.getCurrentUser().role;
 
-        
-        function main() {
 
+        function main() {
             var run_id = runtime.getCurrentScript().getParameter({ name: 'custscript_delete_run_run_id' });          
             
             var freqSearch = search.load({
@@ -31,7 +30,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             freqSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_freq_run_plan',
-                operator: search.Operator.IS,
+                operator: search.Operator.EQUALTO,
                 values: run_id
             }));
 
@@ -39,16 +38,37 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             
             freqResults.each(function(search_result) {
                 var freqLegId = search_result.getValue({name: 'internalid'});
-                var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
-                record.delete({
+                var freqRec = record.load({
                     type: 'customrecord_service_freq',
-                    id: freqLegId
-                });
-                record.delete({
-                    type: 'customrecord_service_leg',
-                    id: serviceLegId
+                    id: freqLegId,
                 });
 
+                freqRec.setValue({fieldId: 'isinactive', value: true});
+                return true;
+
+            });
+
+            var serviceSearch = search.load({
+                id: 'customsearch_rp_serviceleg',
+                type: 'customrecord_service_leg'
+            });
+
+            serviceSearch.filters.push(search.createFilter({
+                name: 'custrecord_service_freq_run_plan',
+                operator: search.Operator.EQUALTO,
+                values: run_id
+            }));
+
+            var serviceResults = serviceSearch.run();
+            
+            serviceResults.each(function(search_result) {
+                var serviceLegId = search_result.getValue({name: 'internalid'});
+                var serviceRec = record.load({
+                    type: 'customrecord_service_freq',
+                    id: serviceLegId,
+                });
+
+                serviceRec.setValue({fieldId: 'isinactive', value: true});
                 return true;
 
             });
@@ -57,7 +77,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_run_plan',
                 id: run_id
             }); 
-
             
         }
 
