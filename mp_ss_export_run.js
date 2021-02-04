@@ -56,18 +56,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 }
 
                 var usageLimit = ctx.getRemainingUsage();
-                if (usageLimit < 200) {
+                if (usageLimit < 100) {
                     params = {
                         custscript_export_run_run_id: JSON.stringify(run_id)
                     };
-                    // log.debug({
-                    //     title: 'Invoice ID Set - Length',
-                    //     details: invoice_id_set.length
-                    // });
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: 'customscript_ss_debt_collection',
-                        deploymentId: 'customdeploy_ss_debt_collection',
+                        scriptId: ctx.scriptId,
+                        deploymentId: ctx.deploymentId,
                         params: params
                     });
                     var reschedule_id = reschedule.submit();
