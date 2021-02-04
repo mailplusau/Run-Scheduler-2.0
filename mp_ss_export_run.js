@@ -13,6 +13,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         var zee = 0;
         var role = 0;
         role = runtime.getCurrentUser().role;
+        var ctx = runtime.getCurrentScript();
 
         var baseURL = 'https://1048144.app.netsuite.com';
         if (runtime.EnvType == "SANDBOX") {
@@ -33,17 +34,31 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             
             var index = 0;
             var activeRunSearchResults = activeRunSearch.run();
-            activeRunSearchResults.each(function(searchResult, index) {
-                indexInCallback = index;
+            activeRunSearchResults.each(function(searchResult) {
+                var run_id = searchResult.getValue({name: 'internalid'});
+                var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
+                var run_name = searchResult.getValue({name: 'name'});
+                log.debug({
+                    title: 'zee',
+                    details: zee
+                });
+                log.debug({
+                    title: 'index',
+                    details: index
+                });
+                index++;
+
+                indexCallBack = index;
+
+                var data_set = JSON.parse(ctx.getParameter({ name: 'custscript_export_run_run_id' }));
+                if (isNullorEmpty(data_set)){
+                    data_set = JSON.parse(JSON.stringify([]));
+                }
 
                 var usageLimit = ctx.getRemainingUsage();
                 if (usageLimit < 200) {
                     params = {
-                        custscript_debt_inv_main_index: main_index + index - 10,
-                        custscript_debt_inv_range: range_id,
-                        custscript_debt_inv_date_from: date_from,
-                        custscript_debt_inv_date_to: date_to,
-                        custscript_debt_inv_invoice_id_set: JSON.stringify(invoice_id_set)
+                        custscript_export_run_run_id: JSON.stringify(run_id)
                     };
                     // log.debug({
                     //     title: 'Invoice ID Set - Length',
@@ -63,19 +78,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     return false;
                     // }
                 } else { 
-                    var run_id = searchResult.getValue({name: 'internalid'});
-                    var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
-                    var run_name = searchResult.getValue({name: 'name'});
-                    log.debug({
-                        title: 'zee',
-                        details: zee
-                    });
-                    log.debug({
-                        title: 'index',
-                        details: index
-                    });
-                    index++;
-                    onclick_exportRun(run_id, run_name, zee);
+                    if (data_set.indexOf(run_id) == -1){
+                        data_set.push(run_id);
+                        onclick_exportRun(run_id, run_name, zee);
+                    }    
                     
                     return true;
                 }
