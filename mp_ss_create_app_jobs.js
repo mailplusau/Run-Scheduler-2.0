@@ -29,9 +29,9 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
         var usage_threshold = 200; //20
         var usage_threshold_invoice = 1000; //1000
-        var adhoc_inv_deploy = 'customdeploy2';
-        var prev_inv_deploy = null;
         var ctx = runtime.getCurrentScript();
+        var adhoc_inv_deploy = 'customdeploy2';
+        var prev_inv_deploy = ctx.scriptId;
 
         var date_of_week;
 
@@ -105,17 +105,24 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 details: year
             })
             log.audit({
-                title: 'CTX Deployment',
-                details: ctx.deploymentId
+                title: 'date_of_week',
+                details: date_of_week
             })
+            log.audit({
+                title: 'days_of_week',
+                details: days_of_week[day + 1]
+            });
 
+            // log.audit({
+            //     title: 'CTX Deployment',
+            //     details: ctx.deploymentId
+            // })
             log.audit({
                 title: 'prev_deployment',
                 details: ctx.getParameter({
                     name: 'custscript_rp_prev_deployment'
                 })
             })
-
             if (!isNullorEmpty(ctx.getParameter({ name: 'custscript_rp_prev_deployment' }))) {
                 prev_inv_deploy = ctx.getParameter({
                     name: 'custscript_rp_prev_deployment'
@@ -138,50 +145,67 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 log.debug({
                     title: 'Zee Name',
                     details: zee_name
-                })
-                // nlapiLogExecution('DEBUG', 'date_of_week', date_of_week);
+                });
                 log.debug({
                     title: 'date_of_week',
                     details: date_of_week
-                })
+                });
+
                 //SEARCH: RP - Service Leg Frequency - All - Create App Jobs
                 // var runPlanSearch = nlapiLoadSearch('customrecord_service_leg', 'customsearch_rp_leg_freq_create_app_jobs');
-                
-                // nlapiLogExecution('DEBUG', days_of_week[day]);
-                log.debug({
-                    title: 'days_of_week[day]',
-                    details: days_of_week[day]
-                })
-                // nlapiLogExecution('DEBUG', service_leg_customer);
+                var runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_jobs'});
+
+                // log.debug({
+                //     title: 'days_of_week[day]',
+                //     details: days_of_week[day]
+                // });
+                // log.debug({
+                //     title: 'service_leg_customer',
+                //     details: service_leg_customer
+                // });
 
                 if (day != 0 && day != 6) {
-                    var filterExpression = [
-                        [
-                            [days_of_week[day], 'is' , 'T'], // customer id
-                            "OR", ["custrecord_service_freq_stop.custrecord_service_freq_day_adhoc", 'is' , 'T']
-                        ],
-                        "AND", ["isinactive", 'is' , "F"],
-                        //"AND", ["custrecord_service_leg_franchisee", 'is' , zee_id],
-                        //"AND", ["custrecord_service_leg_franchisee", 'is' , 228330],
-                        "AND", ["custrecord_service_leg_customer.partner", 'is' , zee_id],
-                        "AND", ["custrecord_service_leg_customer.status", 'anyof', "32", "13"],
-                        "AND", ["custrecord_service_leg_service.isinactive", 'is' , "F"],
-                        "AND", ["custrecord_service_freq_stop.internalid", 'noneof', "@NONE@"],
-                        "AND", [
-                            ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_closing_date}, 'DD/MM/YYYY') <= TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", 'is' , "F"], "AND", ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_opening_date}, 'DD/MM/YYYY') > TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", 'is', "F"]
-                        ],
-                        "AND", ["custrecord_app_ser_leg_daily_job_create", 'anyof', "2", "@NONE@"],
-                        //"AND", ["custrecord_service_leg_franchisee.custentity_zee_app_job_created", "anyof", "@NONE@", "2"]
-                    ];
-                    // var newFiltersRunPlan = new Array();
-                    // newFiltersRunPlan[newFiltersRunPlan.length] = new nlobjSearchFilter(days_of_week[day], 'custrecord_service_freq_stop', 'is', 'T');
-                    //  newFiltersRunPlan[newFiltersRunPlan.length] = new nlobjSearchFilter('custrecord_service_freq_day_adhoc', 'custrecord_service_freq_stop', 'is', 'T');
-                    // runPlanSearch.addFilters(newFiltersRunPlan);
-                    // nlapiLogExecution('DEBUG', 'Filter Expression', filterExpression)
-                    // runPlanSearch.setFilterExpression(filterExpression);
+                    // var filterExpression = [
+                    //     [
+                    //         [days_of_week[day], 'is' , 'T'], // customer id
+                    //         "OR", ["custrecord_service_freq_stop.custrecord_service_freq_day_adhoc", 'is' , 'T']
+                    //     ],
+                    //     "AND", ["isinactive", 'is' , "F"],
+                    //     //"AND", ["custrecord_service_leg_franchisee", 'is' , zee_id],
+                    //     //"AND", ["custrecord_service_leg_franchisee", 'is' , 228330],
+                    //     "AND", ["custrecord_service_leg_customer.partner", 'is' , zee_id],
+                    //     "AND", ["custrecord_service_leg_customer.status", 'anyof', "32", "13"],
+                    //     "AND", ["custrecord_service_leg_service.isinactive", 'is' , "F"],
+                    //     "AND", ["custrecord_service_freq_stop.internalid", 'noneof', "@NONE@"],
+                    //     "AND", [
+                    //         ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_closing_date}, 'DD/MM/YYYY') <= TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", 'is' , "F"], "AND", ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_opening_date}, 'DD/MM/YYYY') > TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", 'is', "F"]
+                    //     ],
+                    //     "AND", ["custrecord_app_ser_leg_daily_job_create", 'anyof', "2", "@NONE@"],
+                    //     //"AND", ["custrecord_service_leg_franchisee.custentity_zee_app_job_created", "anyof", "@NONE@", "2"]
+                    // ];
+
+                    var filterExpression = runPlanSearch.filterExpression;
+                    filterExpression.push('AND');
+                    filterExpression.push([
+                        [days_of_week[day], search.Operator.IS , 'T'], // customer id
+                        "OR", ["custrecord_service_freq_stop.custrecord_service_freq_day_adhoc", search.Operator.IS , 'T']
+                    ]);
+                    filterExpression.push("AND", ["isinactive", search.Operator.IS , "F"]);
+                    filterExpression.push("AND", ["custrecord_service_leg_customer.partner", search.Operator.IS , zee_id]);
+                    filterExpression.push("AND", ["custrecord_service_leg_customer.status", search.Operator.ANYOF, "32", "13"]);
+                    filterExpression.push("AND", ["custrecord_service_leg_service.isinactive", search.Operator.IS , "F"]);
+                    filterExpression.push("AND", ["custrecord_service_freq_stop.internalid", search.Operator.NONEOF, "@NONE@"]);
+                    filterExpression.push("AND", [
+                        ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_closing_date}, 'DD/MM/YYYY') <= TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", search.Operator.IS , "F"], "AND", ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_opening_date}, 'DD/MM/YYYY') > TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", search.Operator.IS, "F"]
+                    ]);
+                    filterExpression.push("AND", ["custrecord_app_ser_leg_daily_job_create", search.Operator.ANYOF, "2", "@NONE@"]);
                     runPlanSearch.filterExpression = filterExpression;
+
+                    log.debug({
+                        title: 'Filter Expression',
+                        details: filterExpression
+                    });
                 }
-                var runPlanSearch = search.load({ type: 'customrecord_service_leg', name: 'customsearch_rp_leg_freq_create_app_jobs', });
                 runPlanSearch.filterExpression = filterExpression;
                 var resultRunPlan = runPlanSearch.run();
                 // var runPlanResult = resultRunPlan.getResults()
@@ -409,17 +433,19 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 })
                 if (exit == false) {
                     var zee_record = record.load({type: 'partner', id: zee_id});
-                    zee_record.setValue({ fieldID: 'custentity_zee_app_job_created', value: 1});
+                    zee_record.setValue({ fieldId: 'custentity_zee_app_job_created', value: 1});
                     zee_record.save();
                     reschedule = task.create({
-                        taskType: task.TaskType.SCHEDULED_SCRIPT,
+                        taskType:  task.TaskType.SCHEDULED_SCRIPT,
                         deploymentId: adhoc_inv_deploy,
-                        params: params,
                         scriptId: prev_inv_deploy
                     })
                     var rescheduled = reschedule.submit();
-                    if (task.checkStatus({​​​​​ taskId: reschedule}​​​​​) == false) {​​​​​
-                        exit = true;
+                    if (task.checkStatus({​​​​​ taskId: rescheduled}​​​​​) == false) {​​​​​
+                        // exit = true;
+                        log.debug({
+                            title: 'Reschedule Status False'
+                        });
                         return false;
                     }​​​​​
                 }
@@ -429,8 +455,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         
         }
 
-        function createAppJobGroup(service_leg_service_text,
-            service_leg_customer, service_leg_zee, service_id) {
+        function createAppJobGroup(service_leg_service_text, service_leg_customer, service_leg_zee, service_id) {
             var app_job_group_rec = record.create({
                 type: 'customrecord_jobgroup'
             })

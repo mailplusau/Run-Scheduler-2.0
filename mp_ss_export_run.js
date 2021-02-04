@@ -33,34 +33,56 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             
             var index = 0;
             var activeRunSearchResults = activeRunSearch.run();
-            activeRunSearchResults.each(function(searchResult) {
-                var run_id = searchResult.getValue({name: 'internalid'});
-                var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
-                var run_name = searchResult.getValue({name: 'name'});
-                log.debug({
-                    title: 'zee',
-                    details: zee
-                });
-                log.debug({
-                    title: 'index',
-                    details: index
-                });
-                index++;
-                onclick_exportRun(run_id, run_name, zee);
-                
-                return true;
+            activeRunSearchResults.each(function(searchResult, index) {
+                indexInCallback = index;
 
+                var usageLimit = ctx.getRemainingUsage();
+                if (usageLimit < 200) {
+                    params = {
+                        custscript_debt_inv_main_index: main_index + index - 10,
+                        custscript_debt_inv_range: range_id,
+                        custscript_debt_inv_date_from: date_from,
+                        custscript_debt_inv_date_to: date_to,
+                        custscript_debt_inv_invoice_id_set: JSON.stringify(invoice_id_set)
+                    };
+                    // log.debug({
+                    //     title: 'Invoice ID Set - Length',
+                    //     details: invoice_id_set.length
+                    // });
+                    var reschedule = task.create({
+                        taskType: task.TaskType.SCHEDULED_SCRIPT,
+                        scriptId: 'customscript_ss_debt_collection',
+                        deploymentId: 'customdeploy_ss_debt_collection',
+                        params: params
+                    });
+                    var reschedule_id = reschedule.submit();
+                    log.debug({
+                        title: 'Attempting: Rescheduling Script',
+                        details: reschedule
+                    });
+                    return false;
+                    // }
+                } else { 
+                    var run_id = searchResult.getValue({name: 'internalid'});
+                    var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
+                    var run_name = searchResult.getValue({name: 'name'});
+                    log.debug({
+                        title: 'zee',
+                        details: zee
+                    });
+                    log.debug({
+                        title: 'index',
+                        details: index
+                    });
+                    index++;
+                    onclick_exportRun(run_id, run_name, zee);
+                    
+                    return true;
+                }
             });
 
             //onclick_exportRun(229, 'Byron Bay', 794958);
 
-
-
-            
-                      
-            
-            
-            
         }
 
         function onclick_exportRun(run_id, run_name, zee) {   
