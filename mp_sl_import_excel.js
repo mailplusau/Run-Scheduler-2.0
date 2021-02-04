@@ -143,6 +143,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             inlineHtml += '<li>If you have any issues, please contact Head Office</li>';
             inlineHtml += '</ul></div></div><br/>';
 
+            inlineHtml += progressBar();
+            
             if (role != 1000) {
                 inlineHtml += franchiseeDropdownSection(context.request.parameters.zee);
             }

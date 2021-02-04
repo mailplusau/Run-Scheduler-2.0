@@ -383,12 +383,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 freqResults.each(function(search_result) {
                     var freqLegId = search_result.getValue({name: 'internalid'});
                     var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
-                    var delRecord = record.load({
-                        type: string*,
-                        id: number*,
-                        isDynamic: boolean,
-                        defaultValues: Object
-                    })
+                    var record = 
                     record.delete({
                         type: 'customrecord_service_freq',
                         id: freqLegId
