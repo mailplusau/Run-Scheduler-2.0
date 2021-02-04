@@ -148,10 +148,16 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     });
                     return false;
                 } else { 
+                    
                         
                     var run_info = {"custInternalId": null, "custId": null, "custName": null, "serviceId": null, "serviceName": null, "price": null, "freq": null, "stop1LocationType": null, "poBox1": null, "stop1Location": null, "stop1Duration": null, "stop1Time": null, "stop1Transfer": null, "stop1Notes": null, "stop2LocationType": null, "poBox2": null, "stop2Location": null, "stop2Duration": null, "stop2Time": null, "stop2Transfer": null, "stop2Notes": null, "driverName": null, "runName": null,};
                     var internalId = searchResult.getValue({name: 'internalid'});
                     var service_id = searchResult.getValue({name: 'internalid', join: "CUSTRECORD_SERVICE_FREQ_SERVICE"}); 
+
+                    // If script has been rescheduled, skip freq id's that have been visited
+                    if (data_set.indexOf(internalId) !== -1 ) {
+                        return true;
+                    }
 
                     //if freq id has already been visited, then continue
                     if (freqIDs.indexOf(internalId) !== -1 ) {
