@@ -31,11 +31,21 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_run_plan'
             });
             
+            var index = 0;
             var activeRunSearchResults = activeRunSearch.run();
             activeRunSearchResults.each(function(searchResult) {
                 var run_id = searchResult.getValue({name: 'internalid'});
                 var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
                 var run_name = searchResult.getValue({name: 'name'});
+                log.debug({
+                    title: 'zee',
+                    details: zee
+                });
+                log.debug({
+                    title: 'index',
+                    details: index
+                });
+                index++;
                 onclick_exportRun(run_id, run_name, zee);
                 
                 return true;
@@ -59,6 +69,11 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 type: 'customrecord_export_run_json',
                 isDynamic: true,
             });
+           
+            if (zee.toString().indexOf(',') > -1) { 
+                zee = zee.toString().split(',').map(Number);
+
+            }
 
             runRecord.setValue({ fieldId: 'custrecord_export_run_franchisee', value: zee});
             runRecord.setValue({ fieldId: 'custrecord_export_run_template', value: false});
