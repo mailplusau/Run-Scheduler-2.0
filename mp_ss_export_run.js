@@ -459,7 +459,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             });
 
-            if (isNullorEmpty(reschedule)) {
+            if (isNullorEmpty(reschedule) && !isNullorEmpty(zee)) {
                 log.debug({
                     title: 'reschedule',
                     details: reschedule
