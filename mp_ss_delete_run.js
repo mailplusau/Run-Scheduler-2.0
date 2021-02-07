@@ -64,7 +64,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             serviceResults.each(function(search_result) {
                 var serviceLegId = search_result.getValue({name: 'internalid'});
                 var serviceRec = record.load({
-                    type: 'customrecord_service_freq',
+                    type: 'customrecord_service_leg',
                     id: serviceLegId,
                 });
 

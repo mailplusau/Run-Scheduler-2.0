@@ -12,6 +12,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
     function(runtime, search, record, log, task, currentRecord, format) {
         var zee = 0;
         var role = 0;
+        var ctx = runtime.getCurrentScript();
 
         var baseURL = 'https://1048144.app.netsuite.com';
         if (runtime.EnvType == "SANDBOX") {
@@ -25,53 +26,48 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 id: 'customsearch_job_inv_process_zee',
                 type: search.Type.PARTNER
             });
-            deleteRecords();
 
             var zeesSearchResults = zeesSearch.run();
-            zeesSearchResults.each(function(searchResult) {
-                var run_id = searchResult.getValue({name: 'internalid'});
-                var zee = searchResult.getValue({name: 'custrecord_run_franchisee'});
-                var run_name = searchResult.getValue({name: 'name'});
-                
-                var data_set = JSON.parse(ctx.getParameter({ name: 'custscript_download_temp_del_set' }));
-                if (isNullorEmpty(data_set)){
-                    data_set = JSON.parse(JSON.stringify([]));
-                }
 
-                var usage_loopstart_cust = ctx.getRemainingUsage();
-                if (usage_loopstart_cust < 100) {
-                    var params = {
-                        custscript_download_temp_del_set: zee
-                    }
-                    // Rescheduling a scheduled script doesn't consumes any governance units.
-                    var reschedule = task.create({
-                        taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        scriptId: ctx.scriptId,
-                        deploymentId: ctx.deploymentId,
-                        params: params
-                    });
+            var data_set = ctx.getParameter({ name: 'custscript_template_data_set' })
+            if (isNullorEmpty(data_set)) {
+                log.audit({
+                    title: 'deleting',
+                    details: 'deleting'
+                });
+                deleteRecords();
+                data_set = [];
+
+            } else {
+                data_set = JSON.parse(data_set);
+            }
+
+            zeesSearchResults.each(function(searchResult) {
+                var zee = searchResult.getValue({name: 'internalid'});
+                                
+                if (data_set.indexOf(zee) == -1){
                     log.debug({
-                        title: 'Attempting: Rescheduling Script',
-                        details: reschedule
+                        title: 'zee',
+                        details: zee
                     });
-                    var rescheduled = reschedule.submit();
-                    return false;
-                } else {
-                    if (data_set.indexOf(zee) == -1){
-                        data_set.push(zee);
-                        createCSV(zee);
-                    }
-                } 
+                    data_set.push(zee);
+                    createCSV(zee, data_set);
+                }
+            
                 return true;
             });
                       
 
+            log.debug({
+                title: 'script complete',
+                details: 'script complete'
+            })
         }
 
         /**
          * Create the CSV and store it in the hidden field 'custpage_table_csv' as a string.
          */
-        function createCSV(zeeVal) {
+        function createCSV(zeeVal, data_set) {
             var runRecord = record.create({
                 type: 'customrecord_export_run_json',
                 isDynamic: true,
@@ -81,13 +77,13 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             runRecord.setValue({ fieldId: 'custrecord_export_run_template', value: true});
             
             var serviceSearch = search.load({
-                id: 'customsearch_rp_services',
+                id: 'customsearch_customer_services',
                 type: 'customrecord_service'
             });
 
             serviceSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_franchisee',
-                operator: search.Operator.ANYOF,
+                operator: search.Operator.IS,
                 values: zeeVal
             }));
 
@@ -95,40 +91,79 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var resultSetCustomer = serviceSearch.run();
             var run_json = [];
 
+            var reschedule;
             resultSetCustomer.each(function(searchResult) {
-                var run_info = {"custInternalId": null, "custId": null, "custName": null, "serviceId": null, "serviceName": null , "price": null};
+                var usageLimit = ctx.getRemainingUsage();
+                  
+                if (usageLimit < 100) {
+                    log.audit({
+                        title: 'usageLimit',
+                        details: usageLimit
+                    })
+                    data_set.pop();
+                    log.audit({
+                        title: 'data_set',
+                        details: data_set
+                    });
+                    params = {
+                        custscript_template_data_set: JSON.stringify(data_set)
+                    };
+                    reschedule = task.create({
+                        taskType: task.TaskType.SCHEDULED_SCRIPT,
+                        scriptId: 'customscript_ss_download_template',
+                        deploymentId: 'customdeploy_ss_download_template',
+                        params: params
+                    });
+                    
+                    log.audit({
+                        title: 'Attempting: Rescheduling Script',
+                        details: reschedule
+                    });
 
-                var internal_custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
+                    reschedule.submit();
+                    
+                    return false;
+                } else {
+                    var run_info = {"custInternalId": null, "custId": null, "custName": null, "serviceId": null, "serviceName": null , "price": null};
 
-                var custRecord = record.load({type: record.Type.CUSTOMER, id: internal_custid })
-                var custid = custRecord.getValue({ fieldId: 'entityid'});
 
-                var companyname = searchResult.getValue({ name: "companyname", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                var service_id = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
-                var service_name = searchResult.getText({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
-                var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
+                    var internal_custid = searchResult.getValue({name: 'internalid', join: "CUSTRECORD_SERVICE_CUSTOMER"});
+                        var custid = searchResult.getValue({name: 'entityid', join: "CUSTRECORD_SERVICE_CUSTOMER"});
+                        var companyname = searchResult.getValue({name: 'companyname', join: "CUSTRECORD_SERVICE_CUSTOMER"});
+                        var service_id = searchResult.getValue({name: 'internalid'});
+
+                        var service_name = searchResult.getValue({name: 'name', join: "CUSTRECORD_SERVICE"});
+                        var service_price = searchResult.getValue({name: 'custrecord_service_price'});
+
+                        
+
+                    run_info.custInternalId = internal_custid;
+                    run_info.custId = custid;
+                    run_info.custName = companyname;
+                    run_info.serviceId = service_id;
+                    run_info.serviceName = service_name;
+                    run_info.price = service_price;
+    
+                    run_json.push(run_info);
+                    return true;
+
+                }
                 
-                run_info.custInternalId = internal_custid;
-                run_info.custId = custid;
-                run_info.custName = companyname;
-                run_info.serviceId = service_id;
-                run_info.serviceName = service_name;
-                run_info.price = service_price;
 
-                run_json.push(run_info);
-
-                return true;
             });
 
-            runRecord.setValue({ fieldId: 'custrecord_export_run_json_info', value: JSON.stringify(run_json)});
-            var id = runRecord.save({
-                enableSourcing: true,
-            });
-
-            log.debug({
-                title: 'runRecord id',
-                details: id
-            });
+            if (isNullorEmpty(reschedule)) {
+                runRecord.setValue({ fieldId: 'custrecord_export_run_json_info', value: JSON.stringify(run_json)});
+                var id = runRecord.save({
+                    enableSourcing: true,
+                });
+    
+                log.debug({
+                    title: 'runRecord id',
+                    details: id
+                });
+            }
+            
         }
         
         function deleteRecords() {
@@ -140,14 +175,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 id: 'customsearch_export_run_json'
             });
             exportRunSearch.run().each(function(result) {
+                
                 var index = result.getValue('internalid');
-                var rescheduledIndex = ctx.getParameter({ name: 'custscript_download_temp_del_index' });
-                if (index <= rescheduledIndex){
-                    index = rescheduledIndex;
-                }
+                
                 if (result.getValue('custrecord_export_run_template') === 'T') {
+                    
                     deleteResultRecord(index);
                 }
+                
               
                 return true;
             });
@@ -155,38 +190,17 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             
         }
 
-        function deleteResultRecord(index) { 
-            
-            var usage_loopstart_cust = ctx.getRemainingUsage();
-            if (usage_loopstart_cust < 100) {
-                var params = {
-                    custscript_download_temp_del_index: index
-                }
-                // Rescheduling a scheduled script doesn't consumes any governance units.
-                var delReschedule = task.create({
-                    taskType: task.TaskType.SCHEDULED_SCRIPT,
-                    scriptId: ctx.scriptId,
-                    deploymentId: ctx.deploymentId,
-                    params: params
-                });
-                var delResult = delReschedule.submit();
-            }
-            log.debug({
-                title: 'Delete index',
-                details: index
-            });
-            log.debug({
-                title: 'delResult',
-                details: task.checkStatus({
-                    taskId: delResult
-                })
-            })          
+        function deleteResultRecord(index) {           
             // Deleting a record consumes 4 governance units.
             record.delete({
                 type: 'customrecord_export_run_json',
                 id: index
             });
             
+        }
+
+        function isNullorEmpty(strVal) {
+            return (strVal == null || strVal == '' || strVal == 'null' || strVal == undefined || strVal == 'undefined' || strVal == '- None -');
         }
 
         return {
