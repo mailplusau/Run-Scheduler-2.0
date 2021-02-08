@@ -21,6 +21,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
 
         function main() {
+            log.debug({
+                title: 'ss started',
+            });
             var run_id = runtime.getCurrentScript().getParameter({ name: 'custscript_delete_run_run_id' });          
             
             var freqSearch = search.load({
@@ -30,7 +33,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             freqSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_freq_run_plan',
-                operator: search.Operator.EQUALTO,
+                operator: search.Operator.IS,
                 values: run_id
             }));
 
@@ -48,6 +51,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             });
 
+            log.debug({
+                title: 'freq started',
+            });
+
             var serviceSearch = search.load({
                 id: 'customsearch_rp_serviceleg',
                 type: 'customrecord_service_leg'
@@ -55,7 +62,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             serviceSearch.filters.push(search.createFilter({
                 name: 'custrecord_service_freq_run_plan',
-                operator: search.Operator.EQUALTO,
+                operator: search.Operator.IS,
                 values: run_id
             }));
 
@@ -72,12 +79,18 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 return true;
 
             });
-                
+            log.debug({
+                title: 'leg started',
+            });
             record.delete({
                 type: 'customrecord_run_plan',
                 id: run_id
             }); 
             
+            log.debug({
+                title: 'finished',
+                details: 'finished'
+            })
         }
 
 

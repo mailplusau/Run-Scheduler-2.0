@@ -46,7 +46,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             form.addButton({
                 id : 'del_run',
                 label : 'Delete Run',
-                functionName : 'onclick_deleteRun()'
+                functionName : onclick_deleteRun(context.request.parameters.zee, context.request.parameters.run)
             });
 
             form.addButton({
@@ -180,7 +180,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             
             
 
-            form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
+            form.clientScriptFileId = 4620348; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
 
@@ -309,7 +309,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }).defaultValue = ss_id;
 
            
-            form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
+            form.clientScriptFileId = 4620348; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
 
@@ -440,6 +440,35 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
         return inlineQty;
     }
 
+
+    function onclick_deleteRun(zee, run) {
+        log.debug({
+            title: 'infn',
+            details: 'infn'
+        })
+        // if (!isNullorEmpty(zee) && !isNullorEmpty(run)) {
+        //     log.debug({
+        //         title: 'scheduled',
+        //         details: 'scheduled'
+        //     })
+        //     params = {
+        //         custscript_delete_run_run_id: run
+        //     };
+        //     reschedule = task.create({
+        //         taskType: task.TaskType.SCHEDULED_SCRIPT,
+        //         scriptId: 'customscript_ss_delete_run',
+        //         deploymentId: 'customdeploy_ss_delete_run',
+        //         params: params
+        //     });
+            
+        //     log.audit({
+        //         title: 'Attempting: Rescheduling Script',
+        //         details: reschedule
+        //     });
+
+        //     reschedule.submit();
+        // } 
+    }
     /**
      * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
      * Uses Bootstrap : https://www.w3schools.com/bootstrap/bootstrap_progressbars.asp

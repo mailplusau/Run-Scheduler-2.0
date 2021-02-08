@@ -67,19 +67,28 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             if (!isNullorEmpty(ss_id)) {
                 sleep(ss_id);
             }
-            
+            $("#del_run").click(function(){
+                console.log("test");
+                var currentScript = currentRecord.get();            
+                if(isNullorEmpty(currentScript.getValue({fieldId: 'zee'}))) {
+                    alert('Please select a zee first');
+                } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
+                    alert('Please select a run first');
+                } else {
+                    alert('Please wait while run ' + currentScript.getValue({fieldId: 'run'}) + ' is being deleted');
+
+                }
+            });
             
 
-            //loadImportRecord();
-            //load_record_interval = setInterval(loadImportRecord, 2000);
-
+        
             $(document).on('change', '.zee_dropdown', function(event) {
                 var zee = $(this).val();
                 var zee_text = $(this).text();
                 var currentScript = currentRecord.get();            
 
-                //createCSV(zee);
-                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+                //prod = 1151, sb = 1140
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
                 url += "&zee=" + zee + "";
                 window.location.href = url;
 
@@ -96,8 +105,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 console.log(run);
                 var zee = $('option:selected', '.zee_dropdown').val();
                 var currentScript = currentRecord.get();
-                  
-                var url = "https://1048144-sb3.app.netsuite.com/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+                //prod = 1151, sb = 1140
+
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
             
                 url += "&zee=" + zee + "&run=" + run;
             
@@ -308,6 +318,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                         return true;
                     }
                     var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}));
+                    
                     for (i in run_json_info) {
                         var row = new Array();
                         row[0] = run_json_info[i].custInternalId;
@@ -336,6 +347,17 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             }  
         }
 
+        function sortByProperty(){  
+            return function(a,b){  
+               if(a.custName > b.custName)  
+                  return 1;  
+               else if(a.custName < b.custName)  
+                  return -1;  
+           
+               return 0;  
+            }  
+         }
+
         function downloadTemplate(zeeVal) {
             var val1 = currentRecord.get();
             var csv = val1.getValue({
@@ -357,55 +379,22 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         }
 
-        function onclick_deleteRun() {
-            var currentScript = currentRecord.get();
-            var zee_id = currentScript.getValue({ fieldId: 'zee'});   
-            var run_id = currentScript.getValue({ fieldId: 'run'});
-            if (zee_id == 0 && role != 1000) {
-                alert('Please Select a Zee before downloading a template');
-            } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
-                alert('Please select a run first');
-            } 
-            else {
-                var freqSearch = search.load({
-                    id: 'customsearch_rp_servicefreq',
-                    type: 'customrecord_service_freq'
-                });
-    
-                freqSearch.filters.push(search.createFilter({
-                    name: 'custrecord_service_freq_run_plan',
-                    operator: search.Operator.IS,
-                    values: run_id
-                }));
-    
-                var freqResults = freqSearch.run();
+        // function onclick_deleteRun() {
+        //     var currentScript = currentRecord.get();
+        //     var zee_id = currentScript.getValue({ fieldId: 'zee'});   
+        //     var run_id = currentScript.getValue({ fieldId: 'run'});
+        //     if (zee_id == 0 && role != 1000) {
+        //         alert('Please Select a Zee before downloading a template');
+        //     } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
+        //         alert('Please select a run first');
+        //     } 
+        //     else {
                 
-                freqResults.each(function(search_result) {
-                    var freqLegId = search_result.getValue({name: 'internalid'});
-                    var serviceLegId = search_result.getValue({name: 'custrecord_service_freq_stop'});
-                    var record = 
-                    record.delete({
-                        type: 'customrecord_service_freq',
-                        id: freqLegId
-                    });
-                    record.delete({
-                        type: 'customrecord_service_leg',
-                        id: serviceLegId
-                    });
     
-    
-    
-                });
-                 
-                record.delete({
-                    type: 'customrecord_run_plan',
-                    id: run_id
-                }); 
-    
-                alert('Run ' + run_id + ' has successfully been deleted');
-            }
+        //         alert('Run ' + run_id + ' has successfully been deleted');
+        //     }
             
-        }
+        // }
 
         function onclick_exportRun() {
             var currentScript = currentRecord.get();
@@ -435,6 +424,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
                 jsonSearchResults.each(function(searchResult) {
                     var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}))
+                    run_json_info.sort(sortByProperty());
                     for (i in run_json_info) {
                         var row = new Array();
                         row[0] = run_json_info[i].custInternalId;
@@ -519,7 +509,6 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             saveRecord: saveRecord,
             onclick_exportRun: onclick_exportRun,
             onclick_downloadButton: onclick_downloadButton,
-            onclick_deleteRun: onclick_deleteRun
             
             
         };  
