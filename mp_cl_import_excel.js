@@ -70,19 +70,25 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 $('.progress').addClass('show');
                 sleep();
             }
-            $("#del_run").click(function(){
-                console.log("test");
-                var currentScript = currentRecord.get();            
-                if(isNullorEmpty(currentScript.getValue({fieldId: 'zee'}))) {
-                    alert('Please select a zee first');
-                } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
-                    alert('Please select a run first');
-                } else {
-                    alert('Please wait while run ' + currentScript.getValue({fieldId: 'run'}) + ' is being deleted');
-                    $('.progress').addClass('show');
-                    deleteProgress();
-                }
+            $(document).ready(function(){
+
+                $("#del_run").click(function(){
+                    console.log("test");
+                    var currentScript = currentRecord.get();            
+                    if(isNullorEmpty(currentScript.getValue({fieldId: 'zee'}))) {
+                        alert('Please select a zee first');
+                    } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
+                        alert('Please select a run first');
+                    } else {
+                        $('.progress').addClass('show');
+
+                        alert('Please wait while run ' + currentScript.getValue({fieldId: 'run'}) + ' is being deleted');
+                        setTimeout(function(){ deleteProgress(); }, 1000);
+                    }
+                });
             });
+
+            
             
 
         
@@ -129,6 +135,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         }
         function deleteProgress() {
+            
             var currentScript = currentRecord.get();
             var initial_count = currentScript.getValue({fieldId: 'initial_count'});
             var run_id = currentScript.getValue({fieldId: 'run'});
@@ -159,9 +166,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
             //console.log(ssStatus); //Failed, Pending
 
-            progressBar(search_count, initial_count);
+            progressBar2(search_count, initial_count);
             if (search_count != 0) {
-                deleteProgress(deleteProgress, 200);
+                setTimeout(deleteProgress, 10000);
             }
                 
             
@@ -201,7 +208,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             
         }
 
-        function progressBar(search_count, excel_lines) {
+        function progressBar2(search_count, initial_count) {
             console.log("in progress");
             if (search_count == 0) {
                 console.log("finished");
@@ -211,16 +218,27 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 elem.style.width = roundedPercent + '%'; 
                 elem.innerHTML = roundedPercent * 1  + '%';
             } else {
-                search_count = excel_lines - search_count;
-                var percentage = (search_count/excel_lines)*100;
+                console.log("in else");
+                search_count = initial_count - search_count;
+                var percentage = (search_count/initial_count)*100;
+                console.log(percentage);
                 var roundedPercent = Math.round(percentage * 10) / 10;
                 var elem = document.getElementById("progress-records");   
                 elem.style.width = roundedPercent + '%'; 
                 elem.innerHTML = roundedPercent * 1  + '%';
+                //$('.progress-records').animate({width: parseInt(Math.floor(roundedPercent)) }, 'slow');
             }
-            
 
+          }
+
+        function progressBar(search_count, excel_lines) {
+            console.log("in progress");
             
+                var percentage = (search_count/excel_lines)*100;
+                var roundedPercent = Math.round(percentage * 10) / 10;
+                var elem = document.getElementById("progress-records");   
+                elem.style.width = roundedPercent + '%'; 
+                elem.innerHTML = roundedPercent * 1  + '%';          
 
           }
 

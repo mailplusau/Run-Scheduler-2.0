@@ -98,6 +98,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         id: serviceID,
                     });
 
+                    log.debug({
+                        title: 'service id',
+                        details: serviceID
+                    });
                     var custRecord = record.load({ type: record.Type.CUSTOMER, id: freqRec.getValue({fieldId: 'custrecord_service_freq_customer'}) });
                     custRecord.setValue({fieldId: 'custentity_run_scheduled', value: 2});
                     
@@ -105,6 +109,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     stopRec.setValue({fieldId: 'isinactive', value: true});
                     freqRec.setValue({fieldId: 'isinactive', value: true});
 
+                    serviceRec.save({
+                        enableSourcing: true,
+                        ignoreMandatoryFields: true
+                    });
                     stopRec.save({
                         enableSourcing: true,
                         ignoreMandatoryFields: true
