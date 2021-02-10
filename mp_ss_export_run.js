@@ -149,11 +149,16 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var freqIDs = [];
             var serviceIDs = [];
             var run_json = [];
-            var rescheduled;
+            var reschedule;
             freqSearchResults.each(function(searchResult) {
                 var usageLimit = ctx.getRemainingUsage();
-                  
-                if (usageLimit < 100) {
+                if (run_id == 137) {
+                    log.debug({
+                        title: '33',
+                        details: '33'
+                    });
+                }    
+                if (usageLimit < 200) {
                     log.audit({
                         title: 'usageLimit',
                         details: usageLimit
@@ -178,7 +183,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         details: reschedule
                     });
 
-                    rescheduled = reschedule.submit();
+                    reschedule.submit();
                     
                     return false;
                 }
@@ -186,7 +191,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 else { 
                     
                         
-                    var run_info = {"custInternalId": null, "custId": null, "custName": null, "serviceId": null, "serviceName": null, "price": null, "freq": null, "stop1LocationType": null, "poBox1": null, "stop1Location": null, "stop1Duration": null, "stop1Time": null, "stop1Transfer": null, "stop1Notes": null, "stop2LocationType": null, "poBox2": null, "stop2Location": null, "stop2Duration": null, "stop2Time": null, "stop2Transfer": null, "stop2Notes": null, "driverName": null, "runName": null,};
+                    var run_info = {"custInternalId": null, "custId": null, "custName": null, "custFranchise": null, "serviceId": null, "serviceName": null, "price": null, "freq": null, "stop1LocationType": null, "poBox1": null, "stop1Location": null, "stop1Duration": null, "stop1Time": null, "stop1Transfer": null, "stop1Notes": null, "stop2LocationType": null, "poBox2": null, "stop2Location": null, "stop2Duration": null, "stop2Time": null, "stop2Transfer": null, "stop2Notes": null, "driverName": null, "runName": null,};
                     var internalId = searchResult.getValue({name: 'internalid'});
                     var service_id = searchResult.getValue({name: 'internalid', join: "CUSTRECORD_SERVICE_FREQ_SERVICE"}); 
 
@@ -205,7 +210,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     freqIDs.push(internalId);
                     //log.debug({ title: 'freqIDs', details: freqIDs });
                     
-                    if (run_id == 93) {
+                    if (run_id == 137) {
                         log.debug({
                             title: 'INSIDEEEE',
                             details: 'INSIDEEEE'
@@ -214,8 +219,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     var customer = searchResult.getValue({name: 'custrecord_service_freq_customer'});
 
                     var custRecord = record.load({type: record.Type.CUSTOMER, id: customer });
-                    var internal_custid = custRecord.getValue({ fieldId: 'id'})
+                    var internal_custid = custRecord.getValue({ fieldId: 'id'});
 
+                    run_info.custFranchise = 0;
                     run_info.custInternalId = internal_custid;
 
                     var custid = custRecord.getValue({ fieldId: 'entityid'});
@@ -454,48 +460,47 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             });
 
-            if (isNullorEmpty(rescheduled) && !isNullorEmpty(zee)) {
+            if (isNullorEmpty(reschedule) && !isNullorEmpty(zee)) {
                 log.debug({
                     title: 'reschedule',
-                    details: rescheduled
+                    details: reschedule
                 })
             
                 var servicesSearch = search.load({
-                    id: 'customsearch_rp_services',
+                    id: 'customsearch_customer_services',
                     type: 'customrecord_service'
                 });
 
                 
                 servicesSearch.filters.push(search.createFilter({
                     name: 'custrecord_service_franchisee',
-                    operator: search.Operator.ANYOF,
+                    operator: search.Operator.IS,
                     values: zee
                 }));
 
                 var servicesSearchResults = servicesSearch.run();
                 servicesSearchResults.each(function(searchResult) {
-                    var internalid = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
+                    var internalid = searchResult.getValue({name: 'internalid'});
                     if (serviceIDs.indexOf(internalid) == -1) {
                         // log.debug({
                         //     title: 'in serv loop',
                         // });
                         serviceIDs.push(internalid);
+                        var internalCustId = searchResult.getValue({name: 'internalid', join: "CUSTRECORD_SERVICE_CUSTOMER"});
+                        var custId = searchResult.getValue({name: 'entityid', join: "CUSTRECORD_SERVICE_CUSTOMER"});
+                        var custName = searchResult.getValue({name: 'companyname', join: "CUSTRECORD_SERVICE_CUSTOMER"});
+                        var serviceName = searchResult.getValue({name: 'name', join: "CUSTRECORD_SERVICE"});
+                        var price = searchResult.getValue({name: 'custrecord_service_price'});
+                        var custFranchise = searchResult.getValue({name: 'custrecord_service_franchisee'});
                         
-                        var custid = searchResult.getValue({ name: "custrecord_service_customer", join: null, summary: search.Summary.GROUP});
-                        var entityid = searchResult.getValue({ name: "entityid", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                        var companyname = searchResult.getValue({ name: "companyname", join: "CUSTRECORD_SERVICE_CUSTOMER", summary: search.Summary.GROUP});
-                        var service_id = searchResult.getValue({ name: "internalid", join: null, summary: search.Summary.GROUP});
-                        var service_name = searchResult.getText({ name: "custrecord_service", join: null, summary: search.Summary.GROUP});
-                        var service_price = searchResult.getValue({ name: "custrecord_service_price", join: null, summary: search.Summary.GROUP});
-                
-
-                        var run_info = {"custInternalId": '', "custId": '', "custName": '', "serviceId": '', "serviceName": '', "price": '', "freq": '', "stop1LocationType": '', "poBox1": '', "stop1Location": '', "stop1Duration": '', "stop1Time": '', "stop1Transfer": '', "stop1Notes": '', "stop2LocationType": '', "poBox2": '', "stop2Location": '', "stop2Duration": '', "stop2Time": '', "stop2Transfer": '', "stop2Notes": '', "driverName": '', "runName": '',};
-                        run_info.custInternalId = custid;
-                        run_info.custId = entityid;
-                        run_info.custName = companyname;
-                        run_info.serviceId = service_id;
-                        run_info.serviceName = service_name;
-                        run_info.price = service_price;
+                        var run_info = {"custInternalId": '', "custId": '', "custName": '', "custFranchise": '', "serviceId": '', "serviceName": '', "price": '', "freq": '', "stop1LocationType": '', "poBox1": '', "stop1Location": '', "stop1Duration": '', "stop1Time": '', "stop1Transfer": '', "stop1Notes": '', "stop2LocationType": '', "poBox2": '', "stop2Location": '', "stop2Duration": '', "stop2Time": '', "stop2Transfer": '', "stop2Notes": '', "driverName": '', "runName": '',};
+                        run_info.custInternalId = internalCustId;
+                        run_info.custId = custId;
+                        run_info.custName = custName;
+                        run_info.custFranchise = custFranchise;
+                        run_info.serviceId = internalid;
+                        run_info.serviceName = serviceName;
+                        run_info.price = price;
 
                         run_json.push(run_info);
                     } 
