@@ -892,7 +892,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         ignoreMandatoryFields: true
                     });
                             
-                    //updateGreenTick(customer_id);
+                    updateGreenTick(customer_id);
                 }
         
                 var zee_response = context.request.parameters.zee;
@@ -915,41 +915,48 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
          * Update the Run Scheduled box for the customer ie if the customer if fully scheduled or not
          * @params {Int} Customer ID
         */
-        // function updateGreenTick(customer_id) {
-        //     var customerScheduled = true;
-        //     var serviceSearch = search.load({ type: 'customrecord_service', id: 'customsearch_rp_services'});
-        //     var newFilters1 =search.createFilter({
-        //         name: 'custrecord_service_customer',
-        //         join: null,
-        //         operator: search.Operator.IS,
-        //         values: customer_id
-        //     })
-        //     // newFilters2 = new nlobjSearchFilter("internalid", "CUSTRECORD_SERVICE", 'noneof', 24); //ignore MPEX Pickup
-        //     var newFilters1 =search.createFilter({
-        //         name: 'internalid',
-        //         join: 'CUSTRECORD_SERVICE',
-        //         operator: search.Operator.NONEOF,
-        //         values: 24
-        //     })
-        //     serviceSearch.filters.push(newFilters1);
-        //     serviceSearch.filters.push(newFilters2);
-        //     var resultSetService = serviceSearch.run();
-        //     resultSetService.each(function(searchResult) {
-        //         var scheduleRun = searchResult.getValue("custrecord_service_run_scheduled", null, "GROUP");
-        //         nlapiLogExecution('DEBUG', 'scheduleRun', scheduleRun);
-        //         if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
-        //             customerScheduled = false;
-        //             return false;
-        //         }
-        //         return true;
-        //     });
-        //     nlapiLogExecution('DEBUG', 'customerScheduled', customerScheduled);
-        //     if (customerScheduled == true) {
-        //         var customer_record = nlapiLoadRecord('customer', customer_id);
-        //         customer_record.setFieldValue('custentity_run_scheduled', 1);
-        //         nlapiSubmitRecord(customer_record);
-        //     }
-        // }
+        function updateGreenTick(customer_id) {
+            var customerScheduled = true;
+            var serviceSearch = search.load({ type: 'customrecord_service', id: 'customsearch_rp_services'});
+            var newFilters1 =search.createFilter({
+                name: 'custrecord_service_customer',
+                join: null,
+                operator: search.Operator.IS,
+                values: customer_id
+            })
+            // newFilters2 = new nlobjSearchFilter("internalid", "CUSTRECORD_SERVICE", 'noneof', 24); //ignore MPEX Pickup
+            var newFilters1 =search.createFilter({
+                name: 'internalid',
+                join: 'CUSTRECORD_SERVICE',
+                operator: search.Operator.NONEOF,
+                values: 24
+            })
+            serviceSearch.filters.push(newFilters1);
+            serviceSearch.filters.push(newFilters2);
+            var resultSetService = serviceSearch.run();
+            resultSetService.each(function(searchResult) {
+                var scheduleRun = searchResult.getValue({ name: "custrecord_service_run_scheduled", join: null, summary: search.Summary.GROUP});
+                //nlapiLogExecution('DEBUG', 'scheduleRun', scheduleRun);
+                if (scheduleRun == 2 || isNullorEmpty(scheduleRun)) {
+                    customerScheduled = false;
+                    return false;
+                }
+                return true;
+            });
+            //nlapiLogExecution('DEBUG', 'customerScheduled', customerScheduled);
+            if (customerScheduled == true) {
+                var customer_record = record.load({
+                    type: record.Type.CUSTOMER,
+                    id: customer_id
+                });
+                customer_record.setValue({ fieldId: 'custentity_run_scheduled', value: 1 });
+                customer_record.save({
+                    enableSourcing: true,
+                    ignoreMandatoryFields: true
+                });
+                //nlapiSubmitRecord(customer_record);
+            }
+        }
 
         function convertTo24Hour(time) {
             var hours = parseInt(time.substr(0, 2));

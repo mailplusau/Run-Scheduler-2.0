@@ -10,7 +10,7 @@
 
 define(['N/error', 'N/runtime', 'N/search', 'N/url', 'N/record', 'N/format', 'N/email', 'N/currentRecord'],
 function(error, runtime, search, url, record, format, email, currentRecord ) {
-    var baseURL = 'https://1048144.app.netsuite.com';
+        var baseURL = 'https://1048144.app.netsuite.com';
         if (runtime.EnvType == "SANDBOX") {
             baseURL = 'https://1048144-sb3.app.netsuite.com';
         }
@@ -23,6 +23,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
          * On page initialisation
          */
         function pageInit() {
+            //$('.progress').hide();
+            
             
             var dataTable = $('#import_excel').DataTable({
                 data: tableSet,
@@ -65,7 +67,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var currentScript = currentRecord.get();            
             var ss_id = currentScript.getValue({fieldId: 'scheduled_script'});
             if (!isNullorEmpty(ss_id)) {
-                sleep(ss_id);
+                $('.progress').addClass('show');
+                sleep();
             }
             $("#del_run").click(function(){
                 console.log("test");
@@ -76,7 +79,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                     alert('Please select a run first');
                 } else {
                     alert('Please wait while run ' + currentScript.getValue({fieldId: 'run'}) + ' is being deleted');
-
+                    $('.progress').addClass('show');
+                    deleteProgress();
                 }
             });
             
@@ -88,7 +92,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var currentScript = currentRecord.get();            
 
                 //prod = 1151, sb = 1140
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
+                var url = 'https://1048144-sb3.app.netsuite.com' + "/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
                 url += "&zee=" + zee + "";
                 window.location.href = url;
 
@@ -107,7 +111,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var currentScript = currentRecord.get();
                 //prod = 1151, sb = 1140
 
-                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
+                var url = 'https://1048144-sb3.app.netsuite.com' + "/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
             
                 url += "&zee=" + zee + "&run=" + run;
             
@@ -124,9 +128,46 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
 
         }
+        function deleteProgress() {
+            var currentScript = currentRecord.get();
+            var initial_count = currentScript.getValue({fieldId: 'initial_count'});
+            var run_id = currentScript.getValue({fieldId: 'run'});
 
+            var freqSearch = search.load({
+                id: 'customsearch_rp_servicefreq',
+                type: 'customrecord_service_freq'
+            });
 
-        function sleep(ss_id) {
+            freqSearch.filters.push(search.createFilter({
+                name: 'custrecord_service_freq_run_plan',
+                operator: search.Operator.IS,
+                values: run_id
+            }));
+            
+            // var res = importSearch.run();
+            //var search_count = importSearch.runPaged().count;
+            //var search_count = res._getResultset.list.length;
+            
+            console.log("initial_count", Math.floor(initial_count)); 
+            //loadImportRecord();
+            var search_count = freqSearch.runPaged().count;
+            console.log("search_count", search_count);
+            
+            // var ssStatus = task.checkStatus({
+            //     taskId: ss_id
+            // });
+
+            //console.log(ssStatus); //Failed, Pending
+
+            progressBar(search_count, initial_count);
+            if (search_count != 0) {
+                deleteProgress(deleteProgress, 200);
+            }
+                
+            
+        }
+
+        function sleep() {
             
             var currentScript = currentRecord.get();
             var excel_lines = currentScript.getValue({fieldId: 'excel_lines'});
@@ -161,11 +202,23 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
         }
 
         function progressBar(search_count, excel_lines) {
-            var percentage = (search_count/excel_lines)*100;
-            var roundedPercent = Math.round(percentage * 10) / 10;
-            var elem = document.getElementById("progress-records");   
-            elem.style.width = roundedPercent + '%'; 
-            elem.innerHTML = roundedPercent * 1  + '%';
+            console.log("in progress");
+            if (search_count == 0) {
+                console.log("finished");
+                var percentage = (1/1)*100;
+                var roundedPercent = Math.round(percentage * 10) / 10;
+                var elem = document.getElementById("progress-records");   
+                elem.style.width = roundedPercent + '%'; 
+                elem.innerHTML = roundedPercent * 1  + '%';
+            } else {
+                search_count = excel_lines - search_count;
+                var percentage = (search_count/excel_lines)*100;
+                var roundedPercent = Math.round(percentage * 10) / 10;
+                var elem = document.getElementById("progress-records");   
+                elem.style.width = roundedPercent + '%'; 
+                elem.innerHTML = roundedPercent * 1  + '%';
+            }
+            
 
             
 
@@ -403,6 +456,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
                 alert('Please select a run first');
             } else {
+                var zee = currentScript.getValue({fieldId: 'zee'});
                 var run_id = currentScript.getValue({fieldId: 'run'});
                 alert('Please wait for the run ' + run_id + ' to download');
                 var sep = "sep=;";
@@ -426,6 +480,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                     var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}))
                     run_json_info.sort(sortByProperty());
                     for (i in run_json_info) {
+                        if (run_json_info[i].custFranchise != 0 && run_json_info[i].custFranchise != zee) {
+                            continue;
+                        }
                         var row = new Array();
                         row[0] = run_json_info[i].custInternalId;
                         row[1] = run_json_info[i].custId;

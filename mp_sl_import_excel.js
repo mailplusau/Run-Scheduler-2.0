@@ -94,6 +94,28 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 }).updateDisplayType({
                     displayType: ui.FieldDisplayType.HIDDEN
                 }).defaultValue = context.request.parameters.run;
+                
+                var freqSearch = search.load({
+                    id: 'customsearch_rp_servicefreq',
+                    type: 'customrecord_service_freq'
+                });
+    
+                freqSearch.filters.push(search.createFilter({
+                    name: 'custrecord_service_freq_run_plan',
+                    operator: search.Operator.IS,
+                    values: context.request.parameters.run
+                }));
+                
+                var initial_count = freqSearch.runPaged().count;
+                
+                form.addField({
+                    id: 'initial_count',
+                    type: ui.FieldType.TEXT,
+                    label: 'initial_count'
+                }).updateDisplayType({
+                    displayType: ui.FieldDisplayType.HIDDEN
+                }).defaultValue = initial_count;
+
             } else {
                 form.addField({
                     id: 'run',
@@ -103,6 +125,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                     displayType: ui.FieldDisplayType.HIDDEN
                 });
             }
+
+
+            
 
             form.addField({
                 id: 'custpage_table_csv',
@@ -180,7 +205,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             
             
 
-            form.clientScriptFileId = 4620348; //PROD = 4620348, SB = 4602504
+            form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
 
@@ -309,7 +334,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             }).defaultValue = ss_id;
 
            
-            form.clientScriptFileId = 4620348; //PROD = 4620348, SB = 4602504
+            form.clientScriptFileId = 4602504; //PROD = 4620348, SB = 4602504
 
             context.response.writePage(form);
 
@@ -446,28 +471,28 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             title: 'infn',
             details: 'infn'
         })
-        // if (!isNullorEmpty(zee) && !isNullorEmpty(run)) {
-        //     log.debug({
-        //         title: 'scheduled',
-        //         details: 'scheduled'
-        //     })
-        //     params = {
-        //         custscript_delete_run_run_id: run
-        //     };
-        //     reschedule = task.create({
-        //         taskType: task.TaskType.SCHEDULED_SCRIPT,
-        //         scriptId: 'customscript_ss_delete_run',
-        //         deploymentId: 'customdeploy_ss_delete_run',
-        //         params: params
-        //     });
+        if (!isNullorEmpty(zee) && !isNullorEmpty(run)) {
+            log.debug({
+                title: 'scheduled',
+                details: 'scheduled'
+            })
+            params = {
+                custscript_delete_run_run_id: run
+            };
+            reschedule = task.create({
+                taskType: task.TaskType.SCHEDULED_SCRIPT,
+                scriptId: 'customscript_ss_delete_run',
+                deploymentId: 'customdeploy_ss_delete_run',
+                params: params
+            });
             
-        //     log.audit({
-        //         title: 'Attempting: Rescheduling Script',
-        //         details: reschedule
-        //     });
+            log.audit({
+                title: 'Attempting: Rescheduling Script',
+                details: reschedule
+            });
 
-        //     reschedule.submit();
-        // } 
+            reschedule.submit();
+        } 
     }
     /**
      * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
@@ -476,7 +501,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      * @return  {String}    inlineQty : The inline HTML string of the progress bar.
      */
     function progressBar() {
-        var inlineQty = '<div class="progress">';
+        var inlineQty = '<div class="progress hide">';
         inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" style="width:0%">0%</div>';
         inlineQty += '</div>';
         
