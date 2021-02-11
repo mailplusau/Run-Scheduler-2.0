@@ -68,7 +68,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var ss_id = currentScript.getValue({fieldId: 'scheduled_script'});
             if (!isNullorEmpty(ss_id)) {
                 $('.progress').addClass('show');
-                sleep();
+                setTimeout(function(){ sleep(); }, 1000);
             }
             $(document).ready(function(){
 
@@ -201,8 +201,45 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             if (Math.floor(excel_lines) == search_count) {
                 loadImportRecord();
             } else {
-                currentScript.getValue({fieldId: 'scheduled_script'})
-                setTimeout(sleep, 15000);
+
+                var errorSearch = search.load({
+                    id: 'customsearch_excel_error',
+                    type: 'customrecord_excel_error'
+                });
+                var error_count = errorSearch.runPaged().count;
+                if (error_count > 1) {
+                    loadImportRecord();
+                    var errorSearchRes = errorSearch.run();
+                    var errorMessage = "Your Import Excel File generated errors:\n";
+                    errorSearchRes.each(function (searchResult) {
+                        errorMessage += searchResult.getValue({name: "custrecord_error_message"}) + "\n";
+                        errorMessage += searchResult.getValue({name: "custrecord_suitescript_error"}) + "\n";
+                    });
+                    var index = 0;
+                    errorSearchRes.each(function (searchResult) {
+                        if (index == 0) {
+                            index++;
+                            return true;
+                        }
+                        var internalid = searchResult.getValue({name: "id"});
+                        record.delete({
+                            type: 'customrecord_excel_error',
+                            id: internalid
+                        });
+                        return true;
+                    });
+                    email.send({
+                        author: runtime.getCurrentUser().id,
+                        body: errorMessage,
+                        recipients: runtime.getCurrentUser().email,
+                        subject: "Import Excel Error"
+                    });
+                    alert(errorMessage + "\nPlease fix error and re import file");
+                } else {
+                    currentScript.getValue({fieldId: 'scheduled_script'})
+                    setTimeout(sleep, 15000);
+                }
+                
             }
                 
             
