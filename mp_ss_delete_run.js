@@ -24,16 +24,26 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             log.debug({
                 title: 'ss started',
             });
-            var run_id = runtime.getCurrentScript().getParameter({ name: 'custscript_delete_run_run_id' });                   
+            var run_id = runtime.getCurrentScript().getParameter({ name: 'custscript_delete_run_run_id_set' });                   
             
+            log.debug({
+                title: 'runid',
+                details: run_id
+            })
             // record.delete({
             //     type: 'customrecord_run_plan',
             //     id: run_id
             // }); 
             
-
+            log.audit({
+                title: 'start time',
+                details: new Date()
+            })
             deleteRecords(run_id);
-
+            log.audit({
+                title: 'end time',
+                details: new Date()
+            })
             log.debug({
                 title: 'finished',
                 details: 'finished'
@@ -55,6 +65,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var freqResults = freqSearch.run();
             
             freqResults.each(function(search_result) {
+                log.audit({
+                    title: 'start time',
+                    details: new Date()
+                })
                 var freqLegId = search_result.getValue({name: 'internalid'});
                 var usageLimit = runtime.getCurrentScript().getRemainingUsage();
                   
@@ -68,10 +82,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         details: dataset
                     });
                     
+                    params = {
+                        custscript_delete_run_run_id_set: run_id
+                    }
                     reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
                         scriptId: 'customscript_ss_delete_run',
-                        deploymentId: 'customdeploy_ss_delete_run'
+                        deploymentId: 'customdeploy_ss_delete_run',
+                        params: params
                     });
                     
                     log.audit({
@@ -126,6 +144,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         ignoreMandatoryFields: true
                     });
                     //dataset.push(freqLegId);
+                    log.debug({
+                        title: 'finished',
+                        details: 'finished'
+                    })
                     return true;
 
                 }

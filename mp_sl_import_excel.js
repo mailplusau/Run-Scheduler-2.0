@@ -149,6 +149,8 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             inlineHtml += '<br></br>'
             inlineHtml += '<div></div>';
             inlineHtml += '<div class="form-group container test_section">';
+            //inlineHtml += '<button type="button" class="btn btn-sm btn-info instruction_button" data-toggle="collapse" data-target="#demo">Click for Instructions</button>';
+            //inlineHtml += '<div id="demo" style="background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 20px 30px 30px 30px;width:96%;position:absolute" class="collapse"><b><u>IMPORTANT INSTRUCTIONS:</u></b>';
             inlineHtml += '<div style=\"background-color: #cfeefc !important;border: 1px solid #417ed9;padding: 20px 30px 30px 30px\"><b><u>Important Instructions:</u></b>';
             inlineHtml += '<ul><li><b><u>Please do not alter the columns titled Customer Internal ID, Customer Id, Customer Name, Service Id, Service Name and Price</u></b></li>';
             inlineHtml += '<li><b><u>Frequency</u></b>: If the frequency of the service is multiple days then separate with a / i.e. Mon/Tue/Wed/Thurs/Fri. </li>';
@@ -355,9 +357,9 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
     function franchiseeDropdownSection(params_zee) {
         var inlineQty = '<div class="form-group container zee_dropdown_section >';
 
-        inlineQty += '<div class="row">';
+        //inlineQty += '<div class="row">';
         // Franchisee dropdown field
-        inlineQty += '<div class="col-xs-12 zee_dropdown_div">';
+        //inlineQty += '<div class="col-xs-12 zee_dropdown_div">';
         inlineQty += '<div class="input-group">';
         inlineQty += '<span class="input-group-addon" id="zee_dropdown_text">FRANCHISEE</span>';
         inlineQty += '<select id="zee_dropdown" class="form-control zee_dropdown" required>';
@@ -394,10 +396,19 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
     }
 
     function runDropdownSection(zee, params_run) {
-        var inlineQty = '<div class="container select_run">';
-        inlineQty += '<div class="form-group container"><div class="row">';
+        // var inlineQty = '<div class="container select_run">';
+        // inlineQty += '<div class="form-group container"><div class="row">';
+        // inlineQty += '<div class="input-group">';
+        // inlineQty += '<span class="input-group-addon">SELECT RUN</span>';
+        // inlineQty += '<select class="form-control run_dropdown" >';
+
+        var inlineQty = '<div class="form-group container select_run >';
+
+        //inlineQty += '<div class="row">';
+        // Franchisee dropdown field
+        //inlineQty += '<div class="col-xs-12 select_dropdown_div">';
         inlineQty += '<div class="input-group">';
-        inlineQty += '<span class="input-group-addon">SELECT RUN</span>';
+        inlineQty += '<span class="input-group-addon" id="zee_dropdown_text">SELECT RUN</span>';
         inlineQty += '<select class="form-control run_dropdown" >';
 
         var runPlanSearch = search.load({
@@ -477,7 +488,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
                 details: 'scheduled'
             })
             params = {
-                custscript_delete_run_run_id: run
+                custscript_delete_run_run_id_set: run
             };
             reschedule = task.create({
                 taskType: task.TaskType.SCHEDULED_SCRIPT,

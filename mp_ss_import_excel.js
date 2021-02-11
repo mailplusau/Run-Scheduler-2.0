@@ -119,6 +119,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
             var index = 0;
             iterator.each(function (line) {
+                log.audit({
+                    title: 'start time',
+                    details: new Date()
+                });
                 index++;
                 log.audit({
                     title: 'num lines',
@@ -211,7 +215,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     }
                 }
                 
-                
+                log.audit({
+                    title: 'end time',
+                    details: new Date()
+                });
                 return true;
             });
 
