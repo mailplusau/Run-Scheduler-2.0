@@ -166,7 +166,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             
             var initial_count = freqSearch.runPaged().count;
 
-            var totalTime = initial_count*360;
+            var totalTime = initial_count*320;
 
             var elem = document.getElementById("progress-records");
             var width = 0;
@@ -204,9 +204,12 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var search_count = freqSearch.runPaged().count;
             console.log("search_count", search_count);
 
-            progressBar2(search_count, initial_count);
             if (search_count != 0) {
                 setTimeout(deleteProgress, 10000);
+            } else {
+                $(".progress-bar").removeClass("progress-bar-warning");
+                $(".progress-bar").addClass("progress-bar-success");
+                progressBar2(search_count, initial_count);
             }
                 
             
@@ -289,6 +292,12 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             });
             var error_count = errorSearch.runPaged().count;
             if (error_count > 1) {
+                $(".progress-bar").removeClass("progress-bar-warning");
+                $(".progress-bar").addClass("progress-bar-danger");
+                var elem = document.getElementById("progress-records");
+                elem.style.width = "100%";
+                elem.innerHTML = "ERROR";
+
                 loadImportRecord();
                 var errorSearchRes = errorSearch.run();
                 var errorMessage = "Your Import Excel File generated errors:\n";
@@ -337,8 +346,10 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             console.log("excel_lines", Math.floor(excel_lines)); 
             console.log("search_count", search_count);
 
-            progressBar(search_count, excel_lines);
             if (Math.floor(excel_lines) == search_count) {
+                $(".progress-bar").removeClass("progress-bar-warning");
+                $(".progress-bar").addClass("progress-bar-success");
+                progressBar(search_count, excel_lines);
                 loadImportRecord();
             } else {
                 if (errorCheck() === false ) {

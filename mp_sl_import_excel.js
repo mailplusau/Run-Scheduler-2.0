@@ -513,7 +513,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      */
     function progressBar() {
         var inlineQty = '<div class="progress hide">';
-        inlineQty += '<div class="progress-bar progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" style="width:0%">0%</div>';
+        inlineQty += '<div class="progress-bar progress-bar-striped progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" style="width:0%">0%</div>';
         inlineQty += '</div>';
         
         return inlineQty;
