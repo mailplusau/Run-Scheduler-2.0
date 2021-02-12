@@ -59,37 +59,28 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     title: 'run_name',
                     details: run_name
                 });
-                // log.debug({
-                //     title: 'index',
-                //     details: index
-                // });
+
                 log.debug({
                     title: 'zee',
                     details: zee
                 });
                 index++;
-                if (run_id == 137) {
-                    log.debug({
-                        title: '11',
-                        details: '11'
-                    })
-                }
                 
-                        if (data_set.indexOf(run_id) == -1) {
-                            log.audit({
-                                title: 'data set',
-                                details: data_set
-                            });
-                            log.audit({
-                                title: 'run_id',
-                                details: run_id
-                            });
-                            data_set.push(run_id);
-                            onclick_exportRun(run_id, run_name, zee, data_set);  
-                        }
+                if (data_set.indexOf(run_id) == -1) {
+                    log.audit({
+                        title: 'data set',
+                        details: data_set
+                    });
+                    log.audit({
+                        title: 'run_id',
+                        details: run_id
+                    });
+                    data_set.push(run_id);
+                    onclick_exportRun(run_id, run_name, zee, data_set);  
+                }
                         
     
-                    return true;
+                return true;
                 
             });
 
@@ -102,13 +93,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         }
 
         function onclick_exportRun(run_id, run_name, zee, data_set) {   
-            
-            if (run_id == 137) {
-                log.debug({
-                    title: '22',
-                    details: '22'
-                })
-            }
 
             var runRecord = record.create({
                 type: 'customrecord_export_run_json',
@@ -152,12 +136,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             var reschedule;
             freqSearchResults.each(function(searchResult) {
                 var usageLimit = ctx.getRemainingUsage();
-                if (run_id == 137) {
-                    log.debug({
-                        title: '33',
-                        details: '33'
-                    });
-                }    
+                
                 if (usageLimit < 200) {
                     log.audit({
                         title: 'usageLimit',
@@ -210,12 +189,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     freqIDs.push(internalId);
                     //log.debug({ title: 'freqIDs', details: freqIDs });
                     
-                    if (run_id == 137) {
-                        log.debug({
-                            title: 'INSIDEEEE',
-                            details: 'INSIDEEEE'
-                        })
-                    }
                     var customer = searchResult.getValue({name: 'custrecord_service_freq_customer'});
 
                     var custRecord = record.load({type: record.Type.CUSTOMER, id: customer });
@@ -436,7 +409,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         //excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_duration', value: stop2_duration });
                         run_info.stop2Duration = stop2_duration;
 
-                        var stop2_time = searchResult.getValue({name: 'custrecord_service_freq_time_start'});
+                        var stop2_time = searchResult.getValue({name: 'custrecord_service_freq_time_current'});
                         //excelRecord.setValue({fieldId: 'custrecord_export_run_stop2_time', value: stop2_time });
                         run_info.stop2Time = stop2_time;
 
@@ -512,13 +485,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     title: 'script complete',
                     details: 'script complete'
                 })
-
-                if (run_id == 137) {
-                    log.debug({
-                        title: '55',
-                        details: '55'
-                    });
-                }    
+ 
                 runRecord.setValue({ fieldId: 'custrecord_export_run_json_info', value: JSON.stringify(run_json)});
                 var id = runRecord.save({
                     enableSourcing: true,

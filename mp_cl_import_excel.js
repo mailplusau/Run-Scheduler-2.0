@@ -57,7 +57,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                         className: 'bolded'
                     },
                     {
-                        targets: [-1, 2, 7, 11, 18],
+                        targets: [-1, 2, 7, 11, 14, 18, 20],
                         visible: false,
                         searchable: false
                     }
@@ -110,8 +110,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var currentScript = currentRecord.get();            
 
                 //prod = 1151, sb = 1140
-                var url = 'https://1048144-sb3.app.netsuite.com' + "/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
-                //var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
+                //var url = 'https://1048144-sb3.app.netsuite.com' + "/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
 
                 url += "&zee=" + zee + "";
                 window.location.href = url;
@@ -131,8 +131,8 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var currentScript = currentRecord.get();
                 //prod = 1151, sb = 1140
 
-                var url = 'https://1048144-sb3.app.netsuite.com' + "/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
-                //var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
+                //var url = 'https://1048144-sb3.app.netsuite.com' + "/app/site/hosting/scriptlet.nl?script=1140&deploy=1";
+                var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1151&deploy=1";
 
                 url += "&zee=" + zee + "&run=" + run;
             
@@ -165,9 +165,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             }));
             
             var initial_count = freqSearch.runPaged().count;
-
-            var totalTime = initial_count*320;
-
+            console.log("initial", initial_count);
+            var totalTime = initial_count*295;
+            console.log("total", totalTime);
             var elem = document.getElementById("progress-records");
             var width = 0;
             var id = setInterval(frame, totalTime);
@@ -199,7 +199,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 operator: search.Operator.IS,
                 values: run_id
             }));
-            
+            var initial_count = freqSearch.runPaged().count;
             console.log("initial_count", Math.floor(initial_count)); 
             var search_count = freqSearch.runPaged().count;
             console.log("search_count", search_count);
@@ -240,15 +240,19 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             var currentScript = currentRecord.get();
             var excel_lines = currentScript.getValue({fieldId: 'excel_lines'});
             var totalTime = excel_lines*360;
-
+            console.log("total time", totalTime);
             var elem = document.getElementById("progress-records");
             var width = 0;
             var id = setInterval(frame, totalTime);
             function frame() {
                 if (width == 25 ) {
-                    if (errorCheck() === true) {
+                    if (errorCheck()) {
+                        console.log("error 25");
+
                         clearInterval(id);
                     } else {
+                        console.log("error not 25");
+
                         width++;
                         elem.style.width = width + "%";
                         elem.innerHTML = width + "%";
@@ -286,12 +290,15 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
         }
 
         function errorCheck() {
+            console.log("in error");
+
             var errorSearch = search.load({
                 id: 'customsearch_excel_error',
                 type: 'customrecord_excel_error'
             });
             var error_count = errorSearch.runPaged().count;
             if (error_count > 1) {
+                console.log("in if");
                 $(".progress-bar").removeClass("progress-bar-warning");
                 $(".progress-bar").addClass("progress-bar-danger");
                 var elem = document.getElementById("progress-records");
@@ -458,7 +465,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                 var stop2_transfer = res.getValue({
                     name: 'custrecord_import_excel_stop2_transfer'
                 });
-                tableSet.push([custId, companyName, service_id, service_name, price, frequency,  poBox1, stop1_location_type,stop1_location, stop1_time, stop1_duration, stop1_notes, stop1_transfer, poBox2, stop2_location_type, stop2_location, stop2_time, stop2_duration, stop2_transfer, stop2_notes, driver, run_name])
+                tableSet.push([custId, companyName, service_id, service_name, price, frequency,  poBox1, stop1_location_type,stop1_location, stop1_duration, stop1_time, stop1_transfer, stop1_notes, poBox2, stop2_location_type, stop2_location, stop2_duration, stop2_time, stop2_transfer, stop2_notes, driver, run_name])
 
                 console.log(companyName);
                 return true;
@@ -497,7 +504,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
     
                 jsonSearch.filters.push(search.createFilter({
                     name: 'custrecord_export_run_franchisee',
-                    operator: search.Operator.EQUALTO,
+                    operator: search.Operator.IS,
                     values: zee
                 }));
 
@@ -516,8 +523,10 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                     if (searchResult.getValue({name: 'custrecord_export_run_template'}) !== 'T') {
                         return true;
                     }
-                    var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}));
                     
+                    var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}));
+                    run_json_info.sort(sortByProperty());
+
                     for (i in run_json_info) {
                         var row = new Array();
                         row[0] = run_json_info[i].custInternalId;
@@ -548,9 +557,9 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
 
         function sortByProperty(){  
             return function(a,b){  
-               if(a.custName > b.custName)  
+               if((a.custName).toLowerCase() > (b.custName).toLowerCase())  
                   return 1;  
-               else if(a.custName < b.custName)  
+               else if((a.custName).toLowerCase() < (b.custName).toLowerCase())  
                   return -1;  
            
                return 0;  
@@ -614,21 +623,26 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
                     id: 'customsearch_export_run_json',
                     type: 'customrecord_export_run_json'
                 });
-    
+
                 jsonSearch.filters.push(search.createFilter({
                     name: 'custrecord_export_run_id',
-                    operator: search.Operator.EQUALTO,
+                    operator: search.Operator.IS,
                     values: run_id
                 }));
+
                 var jsonSearchResults = jsonSearch.run();
 
                 jsonSearchResults.each(function(searchResult) {
+                    if (searchResult.getValue({name: 'custrecord_export_run_template'}) === 'T') {
+                        return true;
+                    }
                     var run_json_info = JSON.parse(searchResult.getValue({name: 'custrecord_export_run_json_info'}))
                     run_json_info.sort(sortByProperty());
                     for (i in run_json_info) {
                         if (run_json_info[i].custFranchise != 0 && run_json_info[i].custFranchise != zee) {
                             continue;
                         }
+
                         var row = new Array();
                         row[0] = run_json_info[i].custInternalId;
                         row[1] = run_json_info[i].custId;

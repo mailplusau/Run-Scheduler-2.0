@@ -158,11 +158,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         custscript_import_excel_data_set: JSON.stringify(custIdSet),
                         custscript_import_excel_stage: stage,
                         custscript_import_excel_file_id: file_id,
-                        custscript_import_excel_zee_id: zee,
-                        custscript_import_excel_reschedule: true,
-                        custscript_import_excel_stop_id_1: 0,
-                        custscript_import_excel_stop_id_2: 0	
-
+                        custscript_import_excel_zee_id: zee
                     };
 
                     var reschedule = task.create({
@@ -609,6 +605,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
     
                 return id;
             } catch(e) {
+                log.debug({
+                    title: 'error',
+                    details: 'error'
+                });
                 var errorRec = record.create({
                     type: 'customrecord_excel_error',
                 });
@@ -1000,6 +1000,10 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     updateGreenTick(custID);               
                 }
             } catch(e) {
+                log.debug({
+                    title: 'error',
+                    details: 'error'
+                });
                 var errorRec = record.create({
                     type: 'customrecord_excel_error',
                 });
