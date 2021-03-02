@@ -12,43 +12,16 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
     function(runtime, search, record, log, task, currentRecord, format) {
         var usage_threshold = 30; //20
         var usage_threshold_invoice = 1000; //1000
-        var adhoc_inv_deploy = 'customdeploy2';
+        var adhoc_inv_deploy = 'customdeploy_ss_remove_zee_job_creation';
         var prev_inv_deploy = null;
-        var zee = 0;
-        var role = 0;
+        var ctx = runtime.getCurrentScript();
 
-        var baseURL = 'https://1048144.app.netsuite.com';
-        if (runtime.EnvType == "SANDBOX") {
-            baseURL = 'https://system.sandbox.netsuite.com';
-        }
-
-        role = runtime.getCurrentUser().role;
-        function rescheduleCurrentScript() {
-            var scheduledScriptTask = task.create({
-                taskType: task.TaskType.SCHEDULED_SCRIPT,
-                deploymentId: adhoc_inv_deploy,
-                scriptId: prev_inv_deploy,
-                params: params
-            });
-            scheduledScriptTask.scriptId = runtime.getCurrentScript().id;
-            scheduledScriptTask.deploymentId = runtime.getCurrentScript().deploymentId;
-            return scheduledScriptTask.submit();
-        }
-    
         function main() {
-            var scriptObj = runtime.getCurrentScript();
-            log.audit({
-                title: 'prev_deployment',
-                details: scriptObj.getParameter({
-                    name: 'custscript_rp_prev_deployment'
-                })
-            });
             
-            
-            if (!isNullorEmpty(scriptObj.getParameter({ name: 'custscript_rp_prev_deployment' }))) {
-                prev_inv_deploy = scriptObj.getParameter({ name: 'custscript_rp_prev_deployment' });
+            if (!isNullorEmpty(ctx.getParameter({ name: '	custscript_rp_prev_deployment_zee_job' }))) {
+                prev_inv_deploy = ctx.getParameter({ name: '	custscript_rp_prev_deployment_zee_job' });
             } else {
-                prev_inv_deploy = scriptObj.deploymentId;
+                prev_inv_deploy = 'customscript_ss_remove_zee_job_creation';
             }
 
              //SEARCH: RP - Zee - App Job Created
@@ -56,17 +29,26 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 id: 'customsearch_rp_zee_app_job_created',
                 type: 'partner'
             });
-            
+            // zeeSearch.filters.push(search.createFilter({
+            //     name: 'internalid',
+            //     operator: search.Operator.IS,
+            //     values: 780481
+            // })); // Test Value of TEST - ACT zee 
+            // zeeSearch.filters.push(search.createFilter({
+            //     name: 'internalid',
+            //     operator: search.Operator.IS,
+            //     values: 6
+            // })); // Test Value of TEST zee 
             var resultZee = zeeSearch.run();
             resultZee.each(function(searchResult) {
 
-                var usage_loopstart_cust = scriptObj.getRemainingUsage();
+                var usage_loopstart_cust = ctx.getRemainingUsage();
 
 
                 if (usage_loopstart_cust < usage_threshold) {
 
                     var params = {
-                        custscript_rp_prev_deployment: scriptObj.deploymentId
+                        	custscript_rp_prev_deployment_zee_job: 'customscript_ss_remove_zee_job_creation'
                     }
                     
                     //reschedule = rescheduleScript(prev_inv_deploy, adhoc_inv_deploy, params);
@@ -76,24 +58,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         scriptId: prev_inv_deploy,
                         params: params
                     });
-                    rescheduledScriptTask.scriptId = runtime.getCurrentScript().id;
-                    rescheduledScriptTask.deploymentId = runtime.getCurrentScript().deploymentId;
                     var reschedule = rescheduledScriptTask.submit();
 
-
-                    log.audit({
-                        title: 'Reschedule Return',
-                        details: task.checkStatus({
-                            taskId: reschedule
-                        })
-                    });
-
-                    if (task.checkStatus({ taskId: reschedule}) == false) {
+                    // if (task.checkStatus({ taskId: reschedule}) == false) {
                         return false;
-                    }
+                    // }
                 }
 
-                var zee_id = searchResult.getValue({ name: "internalid"});
+                var zee_id = searchResult.getValue({ name: 'internalid'});
                 var zee_record = record.load({
                     type: record.Type.PARTNER,
                     id: zee_id,
