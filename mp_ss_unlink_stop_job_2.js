@@ -10,17 +10,25 @@
 define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord', 'N/format'], 
     function(runtime, search, record, log, task, currentRecord, format) {
         var usage_threshold = 1000; 
-        var adhoc_inv_deploy = 'customdeploy2';
+        var adhoc_inv_deploy = 'customdeploy_ss_unlink_stop_job_2';
         var prev_inv_deploy = null;
         var ctx = runtime.getCurrentScript();
 
         function execute(){
-            /*    nlapiLogExecution('AUDIT', 'prev_deployment', ctx.getSetting('SCRIPT', 'custscript_rp_prev_deployment'));
-            if (!isNullorEmpty(ctx.getSetting('SCRIPT', 'custscript_rp_prev_deployment'))) {
-                prev_inv_deploy = ctx.getSetting('SCRIPT', 'custscript_rp_prev_deployment');
+            log.audit({
+                title: 'prev_deployment',
+                details: ctx.getParameter({
+                    name: 'custscript_rp_prev_deployment_unlink'
+                })
+            })
+            if (!isNullorEmpty(ctx.getParameter({ name: 'custscript_rp_prev_deployment_unlink' }))) {
+                prev_inv_deploy = ctx.getParameter({
+                    name: 'custscript_rp_prev_deployment_unlink'
+                })
             } else {
-                prev_inv_deploy = ctx.getDeploymentId();
-            }*/
+                prev_inv_deploy = 'customscript_ss_unlink_stop_job_2';
+            }
+
 
             var count = 0;
             var old_leg_id;
@@ -47,13 +55,14 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
 
                 if (usage_loopstart_cust < usage_threshold) {
                     var params = {
-                        custscript_rp_prev_deployment: ctx.deploymentId
+                        custscript_rp_prev_deployment: 'customscript_ss_unlink_stop_job_2'
                     }
 
-                    reschedule = rescheduleScript(prev_inv_deploy, adhoc_inv_deploy, params);
+                    // reschedule = rescheduleScript(prev_inv_deploy, adhoc_inv_deploy, params);
                     var reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
-                        deploymentId: ctx.deploymentId,
+                        deploymentId: adhoc_inv_deploy,
+                        scriptid: prev_inv_deploy,
                         params: params
                     });
                     reschedule.submit();

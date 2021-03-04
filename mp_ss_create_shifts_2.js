@@ -47,7 +47,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                     join: 'custrecord_service_freq_run_plan',
                     values: 'T'
                 }));
-            
             }
                 
             var resultRunPlan = runPlanSearch.run();
@@ -182,14 +181,22 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                             value: parse_date
                         });
 
+                        // shiftsRecord.setValue({
+                        //     fieldId: 'custrecord_shift_start_time',
+                        //     value: onTimeChange(start_time),
+                        // });
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_start_time',
-                            value: onTimeChange(start_time),
+                            value: json_start_time
                         });
 
+                        // shiftsRecord.setValue({
+                        //     fieldId: 'custrecord_shift_end_time',
+                        //     value: onTimeChange(old_end_time),
+                        // });
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_end_time',
-                            value: onTimeChange(old_end_time),
+                            value: json_end_time
                         });
 
                         var shiftID = shiftsRecord.save({
@@ -231,14 +238,22 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                             value: parse_date
                         });
 
+                        // shiftsRecord.setValue({
+                        //     fieldId: 'custrecord_shift_start_time',
+                        //     value: onTimeChange(start_time),
+                        // });
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_start_time',
-                            value: onTimeChange(start_time)
+                            value: json_start_time
                         });
 
+                        // shiftsRecord.setValue({
+                        //     fieldId: 'custrecord_shift_end_time',
+                        //     value: onTimeChange(old_end_time),
+                        // });
                         shiftsRecord.setValue({
                             fieldId: 'custrecord_shift_end_time',
-                            value: onTimeChange(old_end_time)
+                            value: json_end_time
                         });
                        
                         var shiftID = shiftsRecord.save({
