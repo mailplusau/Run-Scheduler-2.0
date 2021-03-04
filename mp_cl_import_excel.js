@@ -74,20 +74,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             }
             $(document).ready(function(){
 
-                $("#del_run").click(function(){
-                    console.log("test");
-                    var currentScript = currentRecord.get();            
-                    if(isNullorEmpty(currentScript.getValue({fieldId: 'zee'}))) {
-                        alert('Please select a zee first');
-                    } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
-                        alert('Please select a run first');
-                    } else {
-                        $('.progress').addClass('show');
-
-                        alert('Please wait while run ' + currentScript.getValue({fieldId: 'run'}) + ' is being deleted');
-                        setTimeout(function(){ deleteMove(); }, 1000);
-                    }
-                });
+                
             });
 
             
@@ -480,6 +467,10 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             
         }
 
+        function onclick_deleteRun() {
+            var url = baseURL + "/app/site/hosting/scriptlet.nl?script=1180&deploy=1";
+            window.open(url, "_blank");
+        }
         function onclick_downloadButton() {
             var currentScript = currentRecord.get();
             var zee = currentScript.getValue({
@@ -586,23 +577,6 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             window.URL.revokeObjectURL(url);
 
         }
-
-        // function onclick_deleteRun() {
-        //     var currentScript = currentRecord.get();
-        //     var zee_id = currentScript.getValue({ fieldId: 'zee'});   
-        //     var run_id = currentScript.getValue({ fieldId: 'run'});
-        //     if (zee_id == 0 && role != 1000) {
-        //         alert('Please Select a Zee before downloading a template');
-        //     } else if (isNullorEmpty(currentScript.getValue({fieldId: 'run'}))) {
-        //         alert('Please select a run first');
-        //     } 
-        //     else {
-                
-    
-        //         alert('Run ' + run_id + ' has successfully been deleted');
-        //     }
-            
-        // }
 
         function onclick_exportRun() {
             var currentScript = currentRecord.get();
@@ -726,6 +700,7 @@ function(error, runtime, search, url, record, format, email, currentRecord ) {
             saveRecord: saveRecord,
             onclick_exportRun: onclick_exportRun,
             onclick_downloadButton: onclick_downloadButton,
+            onclick_deleteRun: onclick_deleteRun
             
             
         };  

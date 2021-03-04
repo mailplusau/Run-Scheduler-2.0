@@ -60,7 +60,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             form.addButton({
                 id : 'del_run',
                 label : 'Delete Run',
-                functionName : onclick_deleteRun(context.request.parameters.zee, context.request.parameters.run)
+                functionName : 'onclick_deleteRun()'
             });
 
             form.addButton({
@@ -231,7 +231,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
             var zee = context.request.parameters.zee;
               
             if (!isNullorEmpty(fileObj)) {
-                fileObj.folder = 2644902; //2644902, 2661964
+                fileObj.folder = 2661964; //2644902, 2661964
                 var file_type = fileObj.fileType;
                 if (file_type == 'CSV') {
                     file_type == 'csv';
@@ -313,7 +313,13 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
 
             var numLines = 0;
             iterator.each(function (line) {
-                numLines++;
+                
+                var rs_values = line.value.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                var stop1_location = rs_values[9];
+                if (!isNullorEmpty(stop1_location)) {
+                    numLines++;
+                }
+                
                 log.debug({ title: 'num lines', details: line });
                 return true;
             });
@@ -506,32 +512,32 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
 
 
     function onclick_deleteRun(zee, run) {
-        log.debug({
-            title: 'infn',
-            details: 'infn'
-        })
-        if (!isNullorEmpty(zee) && !isNullorEmpty(run)) {
-            log.debug({
-                title: 'scheduled',
-                details: 'scheduled'
-            })
-            params = {
-                custscript_delete_run_run_id_set: run
-            };
-            reschedule = task.create({
-                taskType: task.TaskType.SCHEDULED_SCRIPT,
-                scriptId: 'customscript_ss_delete_run',
-                deploymentId: 'customdeploy_ss_delete_run',
-                params: params
-            });
+        // log.debug({
+        //     title: 'infn',
+        //     details: 'infn'
+        // })
+        // if (!isNullorEmpty(zee) && !isNullorEmpty(run)) {
+        //     log.debug({
+        //         title: 'scheduled',
+        //         details: 'scheduled'
+        //     })
+        //     params = {
+        //         custscript_delete_run_run_id_set: run
+        //     };
+        //     reschedule = task.create({
+        //         taskType: task.TaskType.SCHEDULED_SCRIPT,
+        //         scriptId: 'customscript_ss_delete_run',
+        //         deploymentId: 'customdeploy_ss_delete_run',
+        //         params: params
+        //     });
             
-            log.audit({
-                title: 'Attempting: Rescheduling Script',
-                details: reschedule
-            });
+        //     log.audit({
+        //         title: 'Attempting: Rescheduling Script',
+        //         details: reschedule
+        //     });
 
-            reschedule.submit();
-        } 
+        //     reschedule.submit();
+        //} 
     }
     /**
      * Display the progress bar. Initialized at 0, with the maximum value as the number of records that will be moved.
@@ -540,7 +546,7 @@ function(ui, email, runtime, search, record, http, log, redirect, format, file, 
      * @return  {String}    inlineQty : The inline HTML string of the progress bar.
      */
     function progressBar() {
-        var inlineQty = '<div class="progress container hide">';
+        var inlineQty = '<div class="progress hide">';
         inlineQty += '<div class="progress-bar progress-bar-striped progress-bar-warning" id="progress-records" role="progressbar" aria-valuenow="0" style="width:0%">0%</div>';
         inlineQty += '</div>';
         

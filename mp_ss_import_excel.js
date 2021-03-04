@@ -325,6 +325,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
     
                 stop_location = stop_location.toLowerCase();
                 poBox_2 = poBox.toLowerCase();
+
                 //Create Service Leg record for stop 1
                 var service_leg_record = record.create({
                     type: 'customrecord_service_leg',
@@ -342,11 +343,18 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                     fieldId: 'custrecord_service_leg_service',
                     value: serviceId
                 });
-    
+                stop_location_type = stop_location_type.trim();
                 log.debug({
-                    title: "customer",
+                    title: "customer TEST",
                     details: stop_location_type
                 });
+
+                if (stop_location_type != "Customer") {
+                    log.debug({
+                        title: 'didnt work',
+                    });
+                }
+                
                 //set address in service leg rec- dependent on if customer or not cust location
                 if (stop_location_type === 'Customer') {
                     log.debug({
@@ -405,6 +413,63 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var lat = searchResult_address.getValue({name: 'custrecord_address_lat',join: 'Address'});
                         var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'});
                         
+                        if (addr1_2.indexOf("road") !== -1 || addr2_2.indexOf("road") !== -1) {
+                            if (stop_location.indexOf("rd") !== -1) {
+                                stop_location = stop_location.replace("rd", "road");
+                                
+                            }
+                        }
+
+                        if (addr1_2.indexOf("rd") !== -1 || addr2_2.indexOf("rd") !== -1) {
+                            if (stop_location.indexOf("road") !== -1) {
+                                stop_location = stop_location.replace("road", "rd");
+                            }
+                        }
+
+                        if (addr1_2.indexOf("cnr") !== -1 || addr2_2.indexOf("cnr") !== -1) {
+                            if (stop_location.indexOf("corner") !== -1) {
+                                stop_location = stop_location.replace("corner of", "cnr");
+                                stop_location = stop_location.replace("corner", "cnr");
+                            }
+                        }
+
+                        if (addr1_2.indexOf("corner") !== -1 || addr2_2.indexOf("corner") !== -1) {
+                            if (stop_location.indexOf("cnr") !== -1) {
+                                stop_location = stop_location.replace("cnr", "corner");
+                            }
+                        }
+
+                        if (addr1_2.indexOf("hwy") !== -1 || addr2_2.indexOf("hwy") !== -1) {
+                            if (stop_location.indexOf("highway") !== -1) {
+                                stop_location = stop_location.replace("highway", "hwy");
+                            }
+                        }
+
+                        if (addr1_2.indexOf("highway") !== -1 || addr2_2.indexOf("highway") !== -1) {
+                            if (stop_location.indexOf("hwy") !== -1) {
+                                stop_location = stop_location.replace("hwy", "highway");
+                            }
+                        }
+
+                        if (addr1_2.indexOf("and") !== -1 || addr2_2.indexOf("and") !== -1) {
+                            if (stop_location.indexOf("&") !== -1) {
+                                stop_location = stop_location.replace("&", "and");
+                            }
+                        }
+
+                        if (addr1_2.indexOf("&") !== -1 || addr2_2.indexOf("&") !== -1) {
+                            if (stop_location.indexOf("and") !== -1) {
+                                stop_location = stop_location.replace("and", "&");
+                            }
+                        }
+
+
+
+                        
+                        log.debug({
+                            title: 'final',
+                            details: stop_location
+                        })
                         log.debug({ title: 'addr_label', details: addr_label });
                         log.debug({ title: 'addr_label_2', details: addr_label_2 });
                         log.debug({ title: 'addr1', details: addr1 });
@@ -415,7 +480,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         log.debug({ title: 'city_2', details: city_2 });
     
                         //if (isNullorEmpty(poBox)) {
-                        if (stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
+                        if (addr2_2.match(/[a-z]/i) && stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
                             log.debug({
                                 title: 'in first address',
                                 
@@ -436,6 +501,25 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
                             
                             return false;
+                        } else if (addr1_2.match(/[a-z]/i) && stop_location.indexOf(addr1_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1) {
+                            log.debug({
+                                title: 'in first address pt2',
+                                
+                            });
+                            
+                            //type of address i.e. site address, billing addr etc
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_id});
+                            
+                            //might fail if po box is null value?
+                            // service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr_postal,});
+    
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: addr2});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr1});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
+                            service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
                         }
                         // } else {
                         //     //case when po box is in addr2 col
@@ -508,6 +592,19 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
         
                         
                     }
+
+                    searched_ncl.filters.push(search.createFilter({
+                        name: 'name',
+                        operator: search.Operator.IS,
+                        values: stop_location.toUpperCase()
+                    }));
+
+                    if (searched_ncl.runPaged().count > 0) {
+
+                    } else {
+                        searched_ncl.filters.pop();
+                    }
+
     
                     var resultSet_ncl = searched_ncl.run();
                     // original_service_leg_id
@@ -516,7 +613,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         
                         var internal_id = searchResult_ncl.getValue('internalid');
                         var name = searchResult_ncl.getValue('name').toLowerCase();
-                        var name2 = searchResult_ncl.getValue('name');
+                        var name2 = searchResult_ncl.getValue('name').toUpperCase();
                         var post_code = searchResult_ncl.getValue('custrecord_ap_lodgement_postcode');
                         var addr1 = searchResult_ncl.getValue('custrecord_ap_lodgement_addr1');
                         var addr1_2 = addr1.toLowerCase();
@@ -889,7 +986,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                                 return true;
                     
                             });
-
+                            
+                            frequency = frequency.trim();
                             var freq = frequency.split('/');
                             //freq = freq.map(name => name.toLowerCase());
                             freq = freq.map(function(v) {

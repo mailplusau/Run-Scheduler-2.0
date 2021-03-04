@@ -105,27 +105,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         type: 'customrecord_service_freq',
                         id: freqLegId,
                     });
-                    //var stop = freqRec.getValue({fieldId: 'custrecord_service_freq_stop'});
-                    //var serviceID = freqRec.getValue({fieldId: 'custrecord_service_freq_service'});
-                    // var stopRec = record.load({
-                    //     type: 'customrecord_service_leg',
-                    //     id: stop,
-                    // });
-                    // var serviceRec = record.load({
-                    //     type: 'customrecord_service',
-                    //     id: serviceID,
-                    // });
-
-                    // log.debug({
-                    //     title: 'service id',
-                    //     details: serviceID
-                    // });
-                    // var custRecord = record.load({ type: record.Type.CUSTOMER, id: freqRec.getValue({fieldId: 'custrecord_service_freq_customer'}) });
-                    // custRecord.setValue({fieldId: 'custentity_run_scheduled', value: 2});
-                    
-                    //serviceRec.setValue({ fieldId: 'custrecord_service_run_scheduled', value: 2});
-                    //stopRec.setValue({fieldId: 'isinactive', value: true});
-                    //freqRec.setValue({fieldId: 'isinactive', value: true});
 
                     record.submitFields({
                         type: 'customrecord_service',
