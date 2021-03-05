@@ -145,8 +145,6 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                 var driver = rs_values[21];var run_name = rs_values[22];
 
 
-                //deleteStopAndFreq(service_id);
-
                 log.debug({title: 'comp',details: companyName})
                 log.debug({title: 'lineVals',details: rs_values});
 
@@ -224,74 +222,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
             })
         }
 
-        function deleteStopAndFreq(service_id) {
-
-            //delete freq records
-            var freqSearch = search.load({
-                id: 'customsearch_rp_servicefreq',
-                type: 'customrecord_service_freq'
-            });
-
-            freqSearch.filters.push(search.createFilter({
-                name: 'internalid',
-                join: 'CUSTRECORD_SERVICE_FREQ_SERVICE',
-                operator: search.Operator.IS,
-                values: service_id
-            }));
-
-
-            var freqResults = freqSearch.run();
-            var search_count = freqSearch.runPaged().count;
-
-
-
-            freqResults.each(function(search_result) {
-                var freqLegId = search_result.getValue({name: 'internalid'});
-                
-                record.delete({
-                    type: 'customrecord_service_freq',
-                    id: freqLegId
-                });
-                return true;
-            });
-
-            //delete service leg records
-            var legSearch = search.load({
-                id: 'customsearch_rp_serviceleg',
-                type: 'customrecord_service_leg'
-            });
-
-            legSearch.filters.push(search.createFilter({
-                name: 'internalid',
-                join: 'CUSTRECORD_SERVICE_LEG_SERVICE',
-                operator: search.Operator.IS,
-                values: service_id
-            }));
-
-            var legResults = legSearch.run();
-
-            var search_count = legSearch.runPaged().count;
-
-            
-
-            legResults.each(function(search_result) {
-                var serviceLegId = search_result.getValue({name: 'internalid'});
-                record.delete({
-                    type: 'customrecord_service_leg',
-                    id: serviceLegId
-                });
-                return true;
-            });
-
-            
-            
-        }
-
-        function run(line, index, zee, file_id, custIdSet, stage){
-            
-            
-            return true;   
-        }
+        
         /*
          *  Adding Stop Process:
          *  1. Create Stop
@@ -384,6 +315,12 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         operator: search.Operator.IS,
                         values: custId
                     }));
+
+                    searched_address.filters.push(search.createFilter({
+                        name: 'isdefaultshipping',
+                        operator: search.Operator.IS,
+                        values: 'T'
+                    }));
     
                     var resultSet_addresses = searched_address.run();
                     
@@ -394,10 +331,8 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
     
                     resultSet_addresses.each(function(searchResult_address) {
                         var addr_id = searchResult_address.getValue({name: 'addressinternalid', join: 'Address'});
-                        var addr_id_2 = addr_id.toLowerCase();
                         //potentially might be getText
                         var addr_label = searchResult_address.getValue({ name: "addresslabel",join: "Address" });
-                        var addr_label_2 = addr_label.toLowerCase();
                         
                         //sometimes is postal i.e. PO and else it is "ground floor etc"
                         var addr1 = searchResult_address.getValue({name: 'address1',join: 'Address'});
@@ -406,81 +341,19 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                         var addr2 = searchResult_address.getValue({name: 'address2',join: 'Address'});
                         var addr2_2 = addr2.toLowerCase();
                         var city = searchResult_address.getValue({name: 'city',join: 'Address'});
-                        var city_2 = city.toLowerCase();
                         var state = searchResult_address.getValue({name: 'state',join: 'Address'});
-                        var state_2 = state.toLowerCase();
                         var zip = searchResult_address.getValue({name: 'zipcode',join: 'Address'});
                         var lat = searchResult_address.getValue({name: 'custrecord_address_lat',join: 'Address'});
                         var lon = searchResult_address.getValue({name: 'custrecord_address_lon',join: 'Address'});
-                        
-                        if (addr1_2.indexOf("road") !== -1 || addr2_2.indexOf("road") !== -1) {
-                            if (stop_location.indexOf("rd") !== -1) {
-                                stop_location = stop_location.replace("rd", "road");
-                                
-                            }
-                        }
 
-                        if (addr1_2.indexOf("rd") !== -1 || addr2_2.indexOf("rd") !== -1) {
-                            if (stop_location.indexOf("road") !== -1) {
-                                stop_location = stop_location.replace("road", "rd");
-                            }
-                        }
-
-                        if (addr1_2.indexOf("cnr") !== -1 || addr2_2.indexOf("cnr") !== -1) {
-                            if (stop_location.indexOf("corner") !== -1) {
-                                stop_location = stop_location.replace("corner of", "cnr");
-                                stop_location = stop_location.replace("corner", "cnr");
-                            }
-                        }
-
-                        if (addr1_2.indexOf("corner") !== -1 || addr2_2.indexOf("corner") !== -1) {
-                            if (stop_location.indexOf("cnr") !== -1) {
-                                stop_location = stop_location.replace("cnr", "corner");
-                            }
-                        }
-
-                        if (addr1_2.indexOf("hwy") !== -1 || addr2_2.indexOf("hwy") !== -1) {
-                            if (stop_location.indexOf("highway") !== -1) {
-                                stop_location = stop_location.replace("highway", "hwy");
-                            }
-                        }
-
-                        if (addr1_2.indexOf("highway") !== -1 || addr2_2.indexOf("highway") !== -1) {
-                            if (stop_location.indexOf("hwy") !== -1) {
-                                stop_location = stop_location.replace("hwy", "highway");
-                            }
-                        }
-
-                        if (addr1_2.indexOf("and") !== -1 || addr2_2.indexOf("and") !== -1) {
-                            if (stop_location.indexOf("&") !== -1) {
-                                stop_location = stop_location.replace("&", "and");
-                            }
-                        }
-
-                        if (addr1_2.indexOf("&") !== -1 || addr2_2.indexOf("&") !== -1) {
-                            if (stop_location.indexOf("and") !== -1) {
-                                stop_location = stop_location.replace("and", "&");
-                            }
-                        }
-
-
-
-                        
-                        log.debug({
-                            title: 'final',
-                            details: stop_location
-                        })
                         log.debug({ title: 'addr_label', details: addr_label });
-                        log.debug({ title: 'addr_label_2', details: addr_label_2 });
                         log.debug({ title: 'addr1', details: addr1 });
                         log.debug({ title: 'addr1_2', details: addr1_2 });
                         log.debug({ title: 'addr2', details: addr2 });
                         log.debug({ title: 'addr2_2', details: addr2_2 });
                         log.debug({ title: 'city', details: city });
-                        log.debug({ title: 'city_2', details: city_2 });
-    
-                        //if (isNullorEmpty(poBox)) {
-                        if (addr2_2.match(/[a-z]/i) && stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
+     
+                        if (addr2_2.match(/[a-z]/i) ) {
                             log.debug({
                                 title: 'in first address',
                                 
@@ -501,7 +374,7 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
                             
                             return false;
-                        } else if (addr1_2.match(/[a-z]/i) && stop_location.indexOf(addr1_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1) {
+                        } else if (addr1_2.match(/[a-z]/i)) {
                             log.debug({
                                 title: 'in first address pt2',
                                 
@@ -520,45 +393,9 @@ define(['N/runtime', 'N/search', 'N/record', 'N/log', 'N/task', 'N/currentRecord
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
                             service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
-                        }
-                        // } else {
-                        //     //case when po box is in addr2 col
-                        //     if (addr2_2.indexOf("PO Box") === 0 && addr2_2.indexOf(poBox_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
-                                
-                        //         log.debug({
-                        //             title: 'in first address',
-                                    
-                        //         });
-                        //         service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr', value: addr_id });
-                        //         service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr2,});
-                        //         //NULL VALUR ERRORS?
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: ''});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
-                        //         return false;
-                        //     } else if(addr1_2.indexOf(poBox_2) !== -1 && stop_location.indexOf(addr2_2) !== -1 && stop_location.indexOf(city_2) !== -1 && stop_location.indexOf(state_2) !== -1 && stop_location.indexOf(zip) !== -1 ) {
-                        //         log.debug({
-                        //             title: 'in first address',
-                                    
-                        //         });
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr',value: addr_id});
-                        //         service_leg_record.setValue({ fieldId: 'custrecord_service_leg_addr_postal',value: addr1,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_st_num_name',value: addr2});
-                        //         //service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_subdwelling',value: ''});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_suburb',value: city,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_state',value: state,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_postcode',value: zip,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lat',value: lat,});
-                        //         service_leg_record.setValue({fieldId: 'custrecord_service_leg_addr_lon',value: lon,});
-                        //         return false;
-                        //     }
-                        // }                         
+                        }                        
                         
-                        return true;
+                        
                     });
     
                     
