@@ -119,30 +119,57 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 prev_inv_deploy = ctx.deploymentId;
             }
 
-            var zeeSearch = search.load({ type: 'partner', id: 'customsearch_rp_zee_no_job_created' });
+            var zeeSearch = search.load({ type: 'partner', id: 'customsearch_rp_zee_no_job_created_2_2' });
             var resultZee = zeeSearch.run(); //.getRange({ start: 0, end: 1})
 
-            log.audit({
-                title: 'searchResultZee',
-                details: resultZee
-            })
+            // log.audit({
+            //     title: 'searchResultZee',
+            //     details: resultZee
+            // })
 
             resultZee.each(function(searchResultZee) {
-                // var zee_id = searchResultZee.getValue({ name: "internalid"});
-                var zee_id = 621451; // Gold Coast
-                // var zee_id = 626844; // Test QLD
+                var zee_id = searchResultZee.getValue({ name: "internalid"});
+                // var zee_id = 215 // Alexandria
+                // var zee_id = 5386 // Arncliffe
+                // var zee_id = 621451 // Gold Coast
+                // var zee_id = 780481 // TEST - ACT
+                // var zee_id = 779884 // TEST - NSW
+                // var zee_id = 626844 // TEST - QLD
+                // var zee_id = 626428 // TEST - VIC
+                // var zee_id = 626845 // TEST - WA
+                
                 var zee_name = searchResultZee.getValue({ name: "entityid"});
                 log.debug({
                     title: 'Zee Name',
                     details: zee_name
                 });
-                log.debug({
-                    title: 'date_of_week',
-                    details: date_of_week
-                });
 
                 //SEARCH: RP - Service Leg Frequency - All - Create App Jobs
-                var runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_jobs'});
+                // if (day != 0 && day != 6){
+                    var runPlanSearch;
+                    new_day = day + 1;
+                    log.debug({
+                        title: 'day',
+                        details: 'New Day' + new_day + 'Old Day' + day
+                    });
+                    switch (new_day){
+                        case 1: runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_mon'});
+                            break;
+                        case 2: runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_tue'});
+                            break;
+                        case 3: runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_wed'});
+                            break;
+                        case 4: runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_thu'});
+                            break;
+                        case 5: runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_fri'});
+                            break;
+                    }
+                    log.debug({
+                        title: 'runPlanSearch',
+                        details: runPlanSearch
+                    })
+                // }
+                // var runPlanSearch = search.load({ type: 'customrecord_service_leg', id: 'customsearch_rp_leg_freq_create_app_jo_2'}); // customsearch_rp_leg_freq_create_app_jo_2 or customsearch_rp_leg_freq_create_app_jobs
 
                 // log.debug({
                 //     title: 'days_of_week[day]',
@@ -154,13 +181,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 // });
 
                 if (day != 0 && day != 6) {
-                    
                     var filterExpression = [];
-                    // var filterExpression = runPlanSearch.filterExpression;
-                    // filterExpression.push('AND');
+                    var filterExpression = runPlanSearch.filterExpression;
+                    filterExpression.push('AND');
                     filterExpression.push([
                         [days_of_week[day + 1], search.Operator.IS , 'T'], // customer id
-                        // [days_of_week[day], search.Operator.IS , 'T'], // customer id
                         "OR", ["custrecord_service_freq_stop.custrecord_service_freq_day_adhoc", search.Operator.IS , 'T']
                     ]);
                     filterExpression.push("AND", ["isinactive", search.Operator.IS , "F"]);
@@ -172,12 +197,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                         ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_closing_date}, 'DD/MM/YYYY') <= TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", search.Operator.IS , "F"], "AND", ["formulatext: CASE WHEN TO_CHAR({custrecord_service_leg_opening_date}, 'DD/MM/YYYY') > TO_CHAR(SYSDATE, 'DD/MM/YYYY') THEN 'T' ELSE 'F' END", search.Operator.IS, "F"]
                     ]);
                     filterExpression.push("AND", ["custrecord_app_ser_leg_daily_job_create", search.Operator.ANYOF, "2", "@NONE@"]);
-                    log.debug({
-                        title: 'Filter Expression',
-                        details: filterExpression
-                    });
-                    runPlanSearch.filterExpression = filterExpression;
+                    // runPlanSearch.filterExpression = filterExpression;
                 }
+                log.debug({
+                    title: 'filterExpression',
+                    details: runPlanSearch.filterExpression
+                });
                 var resultRunPlan = runPlanSearch.run();
                 // var runPlanResult = resultRunPlan.getResults()
                 // log.debug({
@@ -253,12 +278,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
 
                     try {
                         // statements
-                        log.audit({
-                            title: 'Inside Try Statement'
-                        })
-
                         if (!isNullorEmpty(service_freq_run_plan_id)) {
-                            log.audit({
+                            log.debug({
                                 title: 'service_freq_run_plan_id',
                                 details: service_freq_run_plan_id
                             })
@@ -269,8 +290,8 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                             
                             var run_plan_inactive = run_plan_record.getValue({ fieldId: 'isinactive'});
 
-                            log.audit({
-                                title: 'run_plan_inactive',
+                            log.debug({
+                                title: 'run_plan_inactive ?',
                                 details: run_plan_inactive
                             })
 
@@ -279,19 +300,15 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                 id: service_freq_id
                             });
                             var weekOfDay = serviceLegRecord.getValue({ fieldId: days_of_week2[day + 1]});
-                            // var weekOfDay = serviceLegRecord.getValue({ fieldId: days_of_week2[day]});
                             log.debug({
                                 title: 'weekOfDay',
                                 details: weekOfDay
                             })
 
-                            if (weekOfDay == 'false' && service_freq_adhoc == 'false') {
+                            if (weekOfDay == false && service_freq_adhoc == false) {
 
                             } else {
-                                log.audit({
-                                    title: 'In Else Function'
-                                })
-                                if (run_plan_inactive == 'false') {
+                                if (run_plan_inactive == false) {
                                     log.audit({
                                         title: 'Run Plan Inactive = False'
                                     });
@@ -309,18 +326,14 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                     service_leg_addr_st_num = street_no_name;
 
                                     if (old_service_id != service_id) {
-                                        log.audit({
-                                            title: 'old_service_id != service_id',
-                                            details: old_service_id + " != " + service_id
-                                        });
 
                                         var usage_loopstart_cust = ctx.getRemainingUsage();
 
-                                        log.audit({
+                                        log.debug({
                                             title: 'usage_loopstart_cust',
                                             details: usage_loopstart_cust
                                         })
-                                        log.audit({
+                                        log.debug({
                                             title: 'usage_threshold',
                                             details: usage_threshold
                                         })
@@ -354,7 +367,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                             type: 'customrecord_service_leg'
                                         })
                                         service_leg_record.setValue({ fieldId: 'custrecord_app_ser_leg_daily_job_create', value: 1});
-                                        // var service = service_leg_record.save();
+                                        var service = service_leg_record.save();
                                         log.audit({
                                             title: 'Service Leg - Saved',
                                             details: service
@@ -378,15 +391,12 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                             service_leg_addr_lon, service_leg_zee, service_id, service_leg_notes, service_freq_run_plan_id, service_leg_location_type, service_freq_adhoc, service_leg_customer_text, service_multiple_operators);
 
                                     } else {
-                                        log.audit({
-                                            title: 'Else Statement'
-                                        });
                                         var service_leg_record = record.load({
                                             id: service_leg_id,
                                             type: 'customrecord_service_leg'
                                         })
                                         service_leg_record.setValue({ fieldId: 'custrecord_app_ser_leg_daily_job_create', value: 1});
-                                        // service_leg_record.save();
+                                        service_leg_record.save();
 
                                         createAppJobs(service_leg_id, service_leg_customer, service_leg_name,
                                             service_id,
@@ -406,7 +416,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                 }
                                 log.audit({
                                     title: 'Finised Run Plan'
-                                })
+                                });
                             }
                         }
                     } catch (e) {
@@ -431,19 +441,19 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 log.audit({
                     title: 'Total Count for ' + zee_name, 
                     details: count
-                })
+                });
                 if (exit == false) {
                     var zee_record = record.load({type: 'partner', id: zee_id});
                     zee_record.setValue({ fieldId: 'custentity_zee_app_job_created', value: 1});
                     // REMEMBER TO UNCOMMENT
-                    // zee_record.save();
+                    zee_record.save();
                     
                     reschedule = task.create({
                         taskType: task.TaskType.SCHEDULED_SCRIPT,
                         scriptId: 'customscript_ss_create_app_jobs_2',
                         deploymentId: 'customdeploy_ss_create_app_jobs_2'
                     });
-                    log.audit({​​​​​
+                    log.emergency({​​​​​
                         title: 'Reschedule Return - END LOOP'
                     });
                     var rescheduled = reschedule.submit();
@@ -457,7 +467,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                 }
 
                 // To remove or not too remove?!?!?
-                return true;
+                // return true;
             });
         
         }
@@ -465,7 +475,11 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
         function createAppJobGroup(service_leg_service_text, service_leg_customer, service_leg_zee, service_id) {
             var app_job_group_rec = record.create({
                 type: 'customrecord_jobgroup'
-            })
+            });
+            log.audit({
+                title: 'Create Jobs Group Activated',
+                details: app_job_group_rec
+            });
             app_job_group_rec.setValue({ fieldId: 'name', value: service_leg_service_text + '_' + date_of_week});
             app_job_group_rec.setValue({ fieldId: 'custrecord_jobgroup_ref', value: service_leg_service_text + '_' + date_of_week});
             app_job_group_rec.setValue({ fieldId: 'custrecord_jobgroup_customer', value: service_leg_customer});
@@ -473,7 +487,7 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             app_job_group_rec.setValue({ fieldId: 'custrecord_jobgroup_service', value: service_id});
             app_job_group_rec.setValue({ fieldId: 'custrecord_jobgroup_status', value: 4});
         
-            // var app_job_group_id = app_job_group_rec.save();
+            var app_job_group_id = app_job_group_rec.save();
             return app_job_group_id;
         }
         
@@ -491,19 +505,21 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             service_leg_addr_postcode,
             service_leg_addr_lat,
             service_leg_addr_lon, service_leg_zee, service_id, service_leg_notes, service_freq_run_plan_id, service_leg_location_type, service_freq_adhoc, service_leg_customer_text, service_multiple_operators) {
-            log.audit({
-                title: 'Create Jobs Function Activated'
-            });
+            
             var app_job_rec = record.create({
                 type: 'customrecord_job'
+            });
+            log.audit({
+                title: 'Create Jobs Function Activated',
+                details: app_job_rec
             });
             app_job_rec.setValue({ fieldId: 'custrecord_job_franchisee', value: service_leg_zee});
             log.audit({
                 title: 'Adhoc Value',
                 details: service_freq_adhoc
-            })
+            });
             // if (service_freq_adhoc == 'T') {
-            if (service_freq_adhoc == 'true') {
+            if (service_freq_adhoc == true) {
                 if (service_leg_location_type == 2) {
                     app_job_rec.setValue({ fieldId:'custrecord_app_job_stop_name', value: 'ADHOC - ' + service_leg_name + ' - ' + service_leg_customer_text});
                 } else {
@@ -517,76 +533,40 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             app_job_rec.setValue({ fieldId: 'custrecord_job_customer', value: service_leg_customer});
             app_job_rec.setValue({ fieldId: 'custrecord_job_source', value: 6});
             app_job_rec.setValue({ fieldId: 'custrecord_job_service', value: service_id});
-            log.audit({
-                title: 'service_id',
-                details: service_id
-            });
             app_job_rec.setValue({ fieldId: 'custrecord_job_service_price', value: service_price});
             app_job_rec.setValue({ fieldId: 'custrecord_job_stop', value: service_leg_id});
             app_job_rec.setValue({ fieldId: 'custrecord159', value: service_leg_id});
             app_job_rec.setValue({ fieldId: 'custrecord_job_status', value: 1});
 
-            log.audit({
-                title: 'date_of_week',
-                details: date_of_week
-            });
             
             var new_date_of_week = format.parse({
                 type: format.Type.DATE,
                 value: date_of_week
             });
-            log.audit({
-                title: 'new_date_of_week',
-                details: new_date_of_week
-            });
             app_job_rec.setValue({ fieldId: 'custrecord_job_date_scheduled', value: new_date_of_week});
             
-            log.audit({
-                title: 'service_freq_time_current',
-                details: service_freq_time_current
-            });
             var convert_curr_arr = convertTo24Hour(service_freq_time_current);
             var curr_arr = convert_curr_arr.split(':');
             var curr_1 = parseInt(curr_arr[0]);
             var curr_2 = parseInt(curr_arr[1]);
             var currTimeVar = new Date ();
-            currTimeVar.setHours(curr_1, curr_2, 0, 0);
-            log.debug({
-                title: 'currTimeVar',
-                details: currTimeVar
-            })            
+            currTimeVar.setHours(curr_1, curr_2, 0, 0);    
             app_job_rec.setValue({ fieldId: 'custrecord_job_time_scheduled', value: currTimeVar});
                         
-            log.audit({
-                title: 'service_freq_time_end',
-                details: service_freq_time_end
-            })
             var convert_end_arr = convertTo24Hour(service_freq_time_end);
             var end_arr = convert_end_arr.split(':');
             var end_1 = parseInt(end_arr[0]);
             var end_2 = parseInt(end_arr[1]);
             var endTimeVar = new Date ();
             endTimeVar.setHours(end_1, end_2, 0, 0);
-            log.debug({
-                title: 'endTimeVar',
-                details: endTimeVar
-            })
             app_job_rec.setValue({ fieldId: 'custrecord_job_time_scheduled_after', value: endTimeVar});
 
-            log.audit({
-                title: 'service_freq_time_start',
-                details: service_freq_time_start
-            })
             var convert_start_arr = convertTo24Hour(service_freq_time_start);
             var start_arr = convert_start_arr.split(':');
             var start_1 = parseInt(start_arr[0]);
             var start_2 = parseInt(start_arr[1]);
             var startTimeVar = new Date ();;
             startTimeVar.setHours(start_1, start_2, 0, 0);
-            log.debug({
-                title: 'startTimeVar',
-                details: startTimeVar
-            });
             app_job_rec.setValue({ fieldId: 'custrecord_job_time_scheduled_before', value: startTimeVar});
             
             app_job_rec.setValue({ fieldId: 'custrecord_job_service_leg', value: service_leg_no});
@@ -603,15 +583,14 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             app_job_rec.setValue({ fieldId: 'custrecord_app_job_location_type', value: service_leg_location_type});
             app_job_rec.setValue({ fieldId: 'custrecord_job_multiple_operators', value: service_multiple_operators});
             
-            log.audit({
-                title: 'Create App Job Save'
-            });
-            
-            // var create_app_id = app_job_rec.save();
             // log.audit({
-            //     title: 'Create_App Save ID',
-            //     details: create_app_id
+            //     title: 'Create App Jobs Completed',
             // })
+            var create_app_id = app_job_rec.save();
+            log.audit({
+                title: 'Create_App Saved with ID',
+                details: create_app_id
+            });
         }
         
         
@@ -666,3 +645,4 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
             execute: main
         }
 });
+
