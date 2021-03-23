@@ -362,19 +362,6 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                             // }​​​​​
                                         }
 
-                                        var service_leg_record = record.load({
-                                            id: service_leg_id,
-                                            type: 'customrecord_service_leg'
-                                        })
-                                        service_leg_record.setValue({ fieldId: 'custrecord_app_ser_leg_daily_job_create', value: 1});
-                                        var service = service_leg_record.save();
-                                        log.audit({
-                                            title: 'Service Leg - Saved',
-                                            details: service
-                                        })
-
-                                        app_job_group_id2 = createAppJobGroup(service_leg_service_text, service_leg_customer, service_leg_zee, service_id);
-
                                         createAppJobs(service_leg_id, service_leg_customer, service_leg_name,
                                             service_id,
                                             service_price,
@@ -389,14 +376,21 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                             service_leg_addr_postcode,
                                             service_leg_addr_lat,
                                             service_leg_addr_lon, service_leg_zee, service_id, service_leg_notes, service_freq_run_plan_id, service_leg_location_type, service_freq_adhoc, service_leg_customer_text, service_multiple_operators);
+
+                                            var service_leg_record = record.load({
+                                                id: service_leg_id,
+                                                type: 'customrecord_service_leg'
+                                            })
+                                            service_leg_record.setValue({ fieldId: 'custrecord_app_ser_leg_daily_job_create', value: 1});
+                                            var service = service_leg_record.save();
+                                            log.audit({
+                                                title: 'Service Leg - Saved',
+                                                details: service
+                                            })
+    
+                                            app_job_group_id2 = createAppJobGroup(service_leg_service_text, service_leg_customer, service_leg_zee, service_id);
 
                                     } else {
-                                        var service_leg_record = record.load({
-                                            id: service_leg_id,
-                                            type: 'customrecord_service_leg'
-                                        })
-                                        service_leg_record.setValue({ fieldId: 'custrecord_app_ser_leg_daily_job_create', value: 1});
-                                        service_leg_record.save();
 
                                         createAppJobs(service_leg_id, service_leg_customer, service_leg_name,
                                             service_id,
@@ -412,6 +406,13 @@ define(['N/ui/serverWidget', 'N/email', 'N/runtime', 'N/search', 'N/record', 'N/
                                             service_leg_addr_postcode,
                                             service_leg_addr_lat,
                                             service_leg_addr_lon, service_leg_zee, service_id, service_leg_notes, service_freq_run_plan_id, service_leg_location_type, service_freq_adhoc, service_leg_customer_text, service_multiple_operators);
+                                            
+                                            var service_leg_record = record.load({
+                                                id: service_leg_id,
+                                                type: 'customrecord_service_leg'
+                                            })
+                                            service_leg_record.setValue({ fieldId: 'custrecord_app_ser_leg_daily_job_create', value: 1});
+                                            service_leg_record.save();
                                     }
                                 }
                                 log.audit({
